@@ -1,6 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Calendar, FileSearch, TrendingUp, Activity, ArrowRight } from "lucide-react";
+import step1Img from "@assets/generated_images/integrated_diagnostics_illustration.png";
+import step2Img from "@assets/generated_images/practitioner_reviewing_integrated_health_data.png";
+import step3Img from "@assets/generated_images/person_preparing_herbal_tea_holistic_health.png";
+import step4Img from "@assets/generated_images/five_elements_cycle_nature_growth.png";
 
 export default function HowItWorks() {
   const steps = [
@@ -10,7 +14,8 @@ export default function HowItWorks() {
       description: "Book a visit at a local lab near you. We test over 100 biomarkers including hormones, metabolic markers, nutrients, and heavy metals—far more than a standard annual physical.",
       icon: Calendar,
       color: "bg-emerald-100 text-emerald-800",
-      accent: "border-emerald-200"
+      accent: "border-emerald-200",
+      image: step1Img
     },
     {
       id: 2,
@@ -18,7 +23,8 @@ export default function HowItWorks() {
       description: "Answer a detailed questionnaire about your symptoms, digestion, sleep, and stress. Upload photos of your tongue for traditional diagnostic analysis.",
       icon: FileSearch,
       color: "bg-[hsl(35,60%,90%)] text-[hsl(35,60%,30%)]",
-      accent: "border-[hsl(35,60%,80%)]"
+      accent: "border-[hsl(35,60%,80%)]",
+      image: step2Img
     },
     {
       id: 3,
@@ -26,7 +32,8 @@ export default function HowItWorks() {
       description: "Our clinicians and TCM practitioners review your data together. You get a unified dashboard showing where your western labs and eastern patterns align.",
       icon: Activity,
       color: "bg-[hsl(2,35%,90%)] text-[hsl(2,35%,50%)]",
-      accent: "border-[hsl(2,35%,80%)]"
+      accent: "border-[hsl(2,35%,80%)]",
+      image: step3Img
     },
     {
       id: 4,
@@ -34,7 +41,8 @@ export default function HowItWorks() {
       description: "Follow your personalized plan including supplements, herbal formulas, and nutrition. Retest every 6 months to track objective progress.",
       icon: TrendingUp,
       color: "bg-[hsl(280,15%,90%)] text-[hsl(280,15%,40%)]",
-      accent: "border-[hsl(280,15%,80%)]"
+      accent: "border-[hsl(280,15%,80%)]",
+      image: step4Img
     }
   ];
 
@@ -80,8 +88,9 @@ export default function HowItWorks() {
                 <div className={`flex-1 w-full lg:w-1/2 ${index % 2 === 0 ? 'lg:pl-12' : 'lg:pr-12'}`}>
                    {/* Card / Image Placeholder */}
                    <div className="aspect-[16/9] bg-white rounded-2xl shadow-lg shadow-primary/5 border border-primary/10 flex items-center justify-center overflow-hidden relative group-hover:shadow-xl transition-all duration-500">
-                      <div className="absolute inset-0 bg-secondary/30 opacity-50" />
-                      <p className="text-primary/20 font-serif text-4xl font-bold relative z-10">0{step.id}</p>
+                      <img src={step.image} alt={step.title} className="w-full h-full object-cover" />
+                      {/* Overlay for depth */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                    </div>
                 </div>
 

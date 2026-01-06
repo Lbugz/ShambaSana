@@ -68,7 +68,7 @@ export function Navbar() {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-4">
           <Link href="/auth">
-            <Button variant="ghost" className="text-sm font-medium hover:bg-primary/5">
+            <Button variant="ghost" className="text-sm font-medium hover:bg-primary/5 hover:text-primary rounded-full px-6">
               Member Login
             </Button>
           </Link>
