@@ -1,0 +1,38 @@
+I opened Function’s “What we test” page to understand how they present their lab‑test menu.  The page opens with a statement that they run over 160 lab tests to provide the most complete picture of your health.  Scrolling down, there’s a search bar and a set of “jump to” chips for categories like Heart, Thyroid, Cancer Detection, Autoimmunity, Immune Regulation, Female Health, Male Health, Metabolic, Environmental Toxins, Biological Age, Nutrients, Stress & Aging, Liver, Blood, Kidneys, Pancreas, Brain Health, Electrolytes, Allergies & Sensitivities, Urine, Sexual Health, Bone Health, Infections, Gut and even MRI & CT Scans.  Selecting a category exposes a list of specific biomarkers (e.g., LDL peak size, lipoprotein(a), ANA screen) with brief descriptions and indicators of how often they’re tested.
+
+### How to add a “What We Test” section to LifeRX
+
+1. **Section placement and messaging**
+
+   * Position this new section right after your “How It Works” overview or just before the footer.  Use a clear headline such as “What We Test” or “Our Comprehensive Test Panel”.  A short subheading can echo the Function wording, e.g., “160+ lab tests chosen to provide a complete picture of your health,” but customise it to emphasise the integration of Western biomarkers and TCM patterns.
+
+2. **Category chips and filtering**
+
+   * Take inspiration from Function’s jump‑to chips.  Create rounded “pills” for each test category, styled using your jade palette with subtle earth‑tone accents.  Chips could include:
+
+     ```
+     Heart, Thyroid, Cancer Detection, Autoimmunity, Immune Regulation, Female Health, Male Health,
+     Metabolic, Environmental Toxins, Biological Age, Nutrients, Stress & Aging, Liver, Blood, Kidneys,
+     Pancreas, Brain Health, Electrolytes, Allergies & Sensitivities, Urine, Sexual Health, Bone Health,
+     Infections, Gut, MRI & CT Scans
+     ```
+   * When a user clicks a chip, smoothly scroll them to that category’s details or filter a grid of tests.  A hover state can change the chip’s background to a deeper jade or the category’s accent colour.
+
+3. **Test listings**
+
+   * Under each category, list key biomarkers or tests with a succinct description.  For example, under **Heart**: “LDL Peak Size – measures the size of LDL particles; Lipoprotein(a) – helps detect inherited cholesterol disorders; ANA Screen – helps identify patterns of autoimmunity”.  Indicate which tests are included in the core 100‑+ panel and which are optional add‑ons.
+   * Use collapsible panels or cards with rounded corners and drop shadows to keep the list approachable.  This prevents the section from feeling overwhelming.
+
+4. **Visual elements**
+
+   * Rather than re‑using the “Western science” microscope image (which felt too clinical), consider:
+
+     * A stylised illustration of a circular mandala divided into segments representing each bodily system (heart, hormones, liver, etc.), blending Eastern motifs (lotus petals, meridians) with subtle scientific icons.
+     * Botanical imagery (ginkgo, lotus, reishi mushrooms) interwoven with abstract representations of molecules or DNA strands to symbolise the integration of TCM and modern lab science.
+   * Keep imagery in harmony with the jade/cream palette so it doesn’t clash with the rest of the site.
+
+5. **Call to action**
+
+   * End the section with a gentle prompt to begin testing, such as a button saying “See My Plan” or “Start My Journey” that leads into your sign‑up flow.
+
+By adding a well‑structured test‑menu section, you provide visitors with tangible evidence of the depth of your service while reinforcing your East‑meets‑West positioning.  Careful use of warm illustrations and intuitive filtering will keep the interface inviting rather than clinical, in keeping with your Jade & Meridian aesthetic.
