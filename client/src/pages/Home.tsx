@@ -80,13 +80,13 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center mb-32">
-             <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-900/10 aspect-[4/3] group card-hover border border-white/50">
+             <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-900/10 aspect-[5/6] md:aspect-[4/3] group card-hover border border-white/50">
                 <img src={precisionVialsImg} alt="Lab Testing" className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-10">
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-6 md:p-10">
                   <div className="text-white">
-                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-3 border border-white/30">Western Science</div>
-                    <h3 className="text-3xl font-serif mb-3">100+ Biomarker Lab Panel</h3>
-                    <p className="text-white/90 leading-relaxed font-light">Far beyond a standard annual checkup. We test hormones, thyroid, nutrients, metabolic health, and heavy metals with clinical precision.</p>
+                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-2 md:mb-3 border border-white/30">Western Science</div>
+                    <h3 className="text-2xl md:text-3xl font-serif mb-2 md:mb-3">100+ Biomarker Lab Panel</h3>
+                    <p className="text-white/90 leading-relaxed font-light text-sm md:text-base">Far beyond a standard annual checkup. We test hormones, thyroid, nutrients, metabolic health, and heavy metals with clinical precision.</p>
                   </div>
                 </div>
              </div>
@@ -137,13 +137,13 @@ export default function Home() {
                 </div>
              </div>
              
-             <div className="order-1 md:order-2 relative rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-900/10 aspect-[4/3] group card-hover border border-white/50">
+             <div className="order-1 md:order-2 relative rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-900/10 aspect-[5/6] md:aspect-[4/3] group card-hover border border-white/50">
                 <img src={tcmImg} alt="TCM" className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" />
-                 <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-10">
+                 <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-6 md:p-10">
                   <div className="text-white">
-                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-3 border border-white/30">Eastern Wisdom</div>
-                    <h3 className="text-3xl font-serif mb-3">Ancient Roots</h3>
-                    <p className="text-white/90 leading-relaxed font-light">Thousands of years of empirical evidence applied to your modern health challenges, restoring balance to your body's systems.</p>
+                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-2 md:mb-3 border border-white/30">Eastern Wisdom</div>
+                    <h3 className="text-2xl md:text-3xl font-serif mb-2 md:mb-3">Ancient Roots</h3>
+                    <p className="text-white/90 leading-relaxed font-light text-sm md:text-base">Thousands of years of empirical evidence applied to your modern health challenges, restoring balance to your body's systems.</p>
                   </div>
                 </div>
              </div>
