@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { ArrowUp, ArrowDown, Download, Calendar, Pill, Leaf, Activity, Droplets, Wind, Sparkles } from "lucide-react";
+import { ArrowUp, ArrowDown, Download, Calendar, Pill, Leaf, Activity, Droplets, Wind, Sparkles, Menu } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useState } from "react";
 
 const mockTrendData = [
   { month: 'Jan', value: 20 },
@@ -22,10 +24,10 @@ const mockTCMData = [
 ];
 
 export default function Dashboard() {
-  return (
-    <div className="min-h-screen bg-background flex font-sans">
-      {/* Sidebar Mockup */}
-      <aside className="w-72 border-r border-border hidden md:flex flex-col bg-white/50 backdrop-blur-md fixed h-full z-20">
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const SidebarContent = () => (
+    <>
         <div className="p-8">
           <h2 className="text-3xl font-serif font-bold text-primary flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
@@ -62,14 +64,37 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+    </>
+  );
+
+  return (
+    <div className="min-h-screen bg-background flex font-sans">
+      {/* Sidebar Desktop */}
+      <aside className="w-72 border-r border-border hidden md:flex flex-col bg-white/50 backdrop-blur-md fixed h-full z-20">
+        <SidebarContent />
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 md:ml-72 p-6 md:p-12 overflow-y-auto">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-          <div>
-            <h1 className="text-4xl font-serif font-bold text-primary mb-2">Welcome back, John</h1>
-            <p className="text-muted-foreground text-lg">Your Qi levels are rising. Here's your latest snapshot.</p>
+          <div className="flex items-center gap-4">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="md:hidden shrink-0">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 bg-white/95 backdrop-blur-xl w-72">
+                <div className="flex flex-col h-full">
+                  <SidebarContent />
+                </div>
+              </SheetContent>
+            </Sheet>
+            
+            <div>
+              <h1 className="text-3xl md:text-4xl font-serif font-bold text-primary mb-2">Welcome back, John</h1>
+              <p className="text-muted-foreground text-base md:text-lg">Your Qi levels are rising. Here's your latest snapshot.</p>
+            </div>
           </div>
           <Button className="hidden sm:flex rounded-full px-6 shadow-md bg-primary text-white hover:bg-primary/90">
              <Calendar className="mr-2 h-4 w-4" /> Schedule Follow-up

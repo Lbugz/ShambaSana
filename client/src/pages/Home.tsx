@@ -161,35 +161,39 @@ export default function Home() {
           </div>
 
           <div className="max-w-4xl mx-auto bg-white rounded-[2rem] shadow-xl overflow-hidden border border-border">
-             <div className="grid grid-cols-4 bg-primary/5 p-6 border-b border-border text-primary font-bold font-serif text-lg">
-                <div className="col-span-1"></div>
-                <div className="col-span-1 text-center">Standard GP</div>
-                <div className="col-span-1 text-center">Function Health</div>
-                <div className="col-span-1 text-center text-emerald-700 bg-white rounded-lg py-1 shadow-sm">LifeRX</div>
-             </div>
-             
-             <div className="divide-y divide-border/50">
-               {[
-                 { label: "100+ Biomarker Panel", gp: false, fh: true, lrx: true },
-                 { label: "TCM Pattern Diagnosis", gp: false, fh: false, lrx: true },
-                 { label: "Herbal Protocols", gp: false, fh: false, lrx: true },
-                 { label: "Clinician Review", gp: "Brief", fh: true, lrx: true },
-                 { label: "Seasonal Retesting", gp: false, fh: true, lrx: true },
-               ].map((row, i) => (
-                 <div key={i} className="grid grid-cols-4 p-6 items-center hover:bg-secondary/5 transition-colors">
-                    <div className="col-span-1 font-medium text-foreground">{row.label}</div>
-                    <div className="col-span-1 flex justify-center text-muted-foreground">
-                      {row.gp === false ? <span className="text-red-300">✕</span> : row.gp === true ? <Check className="text-primary" /> : <span className="text-sm">{row.gp}</span>}
-                    </div>
-                    <div className="col-span-1 flex justify-center text-muted-foreground">
-                       {row.fh === false ? <span className="text-red-300">✕</span> : <Check className="text-primary" />}
-                    </div>
-                    <div className="col-span-1 flex justify-center relative">
-                       <div className="absolute inset-y-0 bg-primary/5 w-full -z-10" />
-                       <Check className="text-emerald-700 stroke-[3px]" />
-                    </div>
+             <div className="overflow-x-auto">
+               <div className="min-w-[600px]">
+                 <div className="grid grid-cols-4 bg-primary/5 p-6 border-b border-border text-primary font-bold font-serif text-lg">
+                    <div className="col-span-1"></div>
+                    <div className="col-span-1 text-center">Standard GP</div>
+                    <div className="col-span-1 text-center">Function Health</div>
+                    <div className="col-span-1 text-center text-emerald-700 bg-white rounded-lg py-1 shadow-sm">LifeRX</div>
                  </div>
-               ))}
+                 
+                 <div className="divide-y divide-border/50">
+                   {[
+                     { label: "100+ Biomarker Panel", gp: false, fh: true, lrx: true },
+                     { label: "TCM Pattern Diagnosis", gp: false, fh: false, lrx: true },
+                     { label: "Herbal Protocols", gp: false, fh: false, lrx: true },
+                     { label: "Clinician Review", gp: "Brief", fh: true, lrx: true },
+                     { label: "Seasonal Retesting", gp: false, fh: true, lrx: true },
+                   ].map((row, i) => (
+                     <div key={i} className="grid grid-cols-4 p-6 items-center hover:bg-secondary/5 transition-colors">
+                        <div className="col-span-1 font-medium text-foreground">{row.label}</div>
+                        <div className="col-span-1 flex justify-center text-muted-foreground">
+                          {row.gp === false ? <span className="text-red-300">✕</span> : row.gp === true ? <Check className="text-primary" /> : <span className="text-sm">{row.gp}</span>}
+                        </div>
+                        <div className="col-span-1 flex justify-center text-muted-foreground">
+                           {row.fh === false ? <span className="text-red-300">✕</span> : <Check className="text-primary" />}
+                        </div>
+                        <div className="col-span-1 flex justify-center relative">
+                           <div className="absolute inset-y-0 bg-primary/5 w-full -z-10" />
+                           <Check className="text-emerald-700 stroke-[3px]" />
+                        </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
              </div>
           </div>
         </div>
