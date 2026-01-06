@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { ArrowUp, ArrowDown, Download, Calendar, Pill, Leaf, Activity, Droplets, Wind, Sparkles, Menu } from "lucide-react";
+import { ArrowUp, ArrowDown, Download, Calendar, Pill, Leaf, Activity, Droplets, Wind, Sparkles, Menu, BookOpen, BrainCircuit } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
+import { Link } from "wouter";
 
 const mockTrendData = [
   { month: 'Jan', value: 20 },
@@ -49,6 +50,11 @@ export default function Dashboard() {
           <Button variant="ghost" className="w-full justify-start text-muted-foreground h-12 hover:text-primary hover:bg-primary/5">
             <Sparkles className="mr-3 h-4 w-4" /> My Protocol
           </Button>
+          <Link href="/formula-library">
+            <Button variant="ghost" className="w-full justify-start text-muted-foreground h-12 hover:text-primary hover:bg-primary/5">
+              <BookOpen className="mr-3 h-4 w-4" /> Formula Library
+            </Button>
+          </Link>
           <Button variant="ghost" className="w-full justify-start text-muted-foreground h-12 hover:text-primary hover:bg-primary/5">
             <Calendar className="mr-3 h-4 w-4" /> Appointments
           </Button>
@@ -173,32 +179,45 @@ export default function Dashboard() {
 
             <Card className="border-none shadow-sm bg-white rounded-3xl p-2">
               <CardHeader className="p-6 pb-2">
-                <CardTitle className="font-serif text-2xl text-primary">Recent Insights</CardTitle>
+                <CardTitle className="font-serif text-2xl text-primary flex items-center gap-2">
+                  <BrainCircuit className="h-6 w-6 text-emerald-600" />
+                  Pattern Insights
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 p-6">
-                <div className="flex gap-5 items-start p-6 bg-[hsl(35,60%,95%)] rounded-2xl border border-[hsl(35,60%,90%)] hover:shadow-md transition-shadow">
-                  <div className="bg-[hsl(35,60%,85%)] p-3 rounded-xl text-[hsl(35,60%,30%)] shadow-sm">
-                     <Wind className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-serif text-lg font-bold text-primary mb-2">TCM Diagnosis: Kidney Yang Deficiency</h4>
-                    <p className="text-[hsl(35,20%,30%)] leading-relaxed">
-                      Your fatigue and cold hands correlate with low Vitamin D and Ferritin levels. This pattern indicates a need to warm and nourish the body's foundation (Yang).
-                    </p>
+              <CardContent className="space-y-6 p-6">
+                <div className="bg-[hsl(35,60%,97%)] rounded-2xl border border-[hsl(35,60%,90%)] p-6">
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="border-r border-[hsl(35,20%,85%)] pr-6 last:border-0">
+                      <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Lab Signal</h5>
+                      <p className="font-medium text-foreground">Low Ferritin (22 ng/mL)</p>
+                      <p className="font-medium text-foreground">Borderline B12</p>
+                    </div>
+                    <div className="border-r border-[hsl(35,20%,85%)] pr-6 last:border-0">
+                      <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">TCM Pattern</h5>
+                      <p className="font-serif text-lg text-primary font-bold">Blood Deficiency</p>
+                      <p className="text-sm text-muted-foreground">with underlying Liver Stagnation</p>
+                    </div>
+                    <div className="pl-2">
+                      <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Educational Context</h5>
+                      <p className="text-sm text-foreground/80 mb-2">Historically, <span className="font-semibold text-primary">Si Wu Tang</span> is discussed for this pattern to nourish blood.</p>
+                      <Link href="/formula-library">
+                        <a className="text-xs text-primary underline decoration-primary/30 hover:decoration-primary">Learn more in Library</a>
+                      </Link>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="flex gap-5 items-center p-6 bg-white border border-border rounded-2xl hover:border-primary/30 transition-colors">
+                <div className="flex gap-5 items-center p-4 bg-white border border-border rounded-xl hover:border-primary/30 transition-colors">
                    <div className="bg-primary/5 p-3 rounded-xl text-primary">
-                     <Download className="h-6 w-6" />
+                     <Download className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-primary">New Lab Report Available</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Your Q1 2026 Comprehensive Panel results are ready.
+                    <h4 className="font-bold text-primary text-sm">New Lab Report Available</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Q1 2026 Comprehensive Panel
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" className="bg-white hover:bg-primary hover:text-white transition-colors rounded-full px-6">View</Button>
+                  <Button variant="ghost" size="sm" className="hover:text-primary">View PDF</Button>
                 </div>
               </CardContent>
             </Card>

@@ -6,6 +6,7 @@ import heroBg from "@assets/generated_images/warm_cream_paper_texture_with_subtl
 import abstractImg from "@assets/generated_images/deep_jade_and_gold_abstract_flow_illustration.png";
 import precisionVialsImg from "@assets/generated_images/minimalist_precision_test_tubes_warm_light.png";
 import tcmImg from "@assets/generated_images/tcm_herbs_and_acupuncture_minimalist.png";
+import formulaImg from "@assets/generated_images/flat_lay_herbal_formulas_on_stone.png";
 
 export default function Home() {
   return (
@@ -144,6 +145,59 @@ export default function Home() {
                     <h3 className="text-3xl font-serif mb-3">Ancient Roots</h3>
                     <p className="text-white/90 leading-relaxed font-light">Thousands of years of empirical evidence applied to your modern health challenges, restoring balance to your body's systems.</p>
                   </div>
+                </div>
+             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Ancient Formulas. Modern Context. */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col lg:flex-row gap-16 items-center">
+             <div className="w-full lg:w-1/2">
+                <div className="relative rounded-[2rem] overflow-hidden shadow-2xl aspect-square border border-white/50 group">
+                   <img src={formulaImg} alt="Ancient Formulas" className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
+                   <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex items-end p-10">
+                      <div className="text-white">
+                        <h3 className="text-3xl font-serif mb-2">Formula Intelligence</h3>
+                        <p className="text-white/80 font-light">Not just pills. Precision interventions.</p>
+                      </div>
+                   </div>
+                </div>
+             </div>
+             <div className="w-full lg:w-1/2 space-y-8">
+                <div>
+                  <h2 className="text-4xl md:text-5xl font-serif text-primary mb-6">Ancient Formulas.<br/>Modern Context.</h2>
+                  <p className="text-xl text-muted-foreground font-light leading-relaxed">
+                    We don't sell products. We provide understanding. Our platform overlays 2,000 years of herbal data onto your modern lab results.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                   <div className="p-6 bg-white rounded-2xl border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+                      <h4 className="font-serif text-xl text-primary mb-2">Xiao Yao San</h4>
+                      <p className="text-sm text-muted-foreground mb-3 italic">"Free and Easy Wanderer"</p>
+                      <p className="text-foreground/80 leading-relaxed border-l-2 border-emerald-500 pl-4">
+                        Traditionally associated with stress-related digestive patterns. In a modern lens, we discuss this when cortisol dysregulation appears alongside hepatic stress markers.
+                      </p>
+                   </div>
+                   
+                   <div className="p-6 bg-white rounded-2xl border border-border/60 shadow-sm hover:shadow-md transition-shadow opacity-70 hover:opacity-100 transition-opacity">
+                      <h4 className="font-serif text-xl text-primary mb-2">Si Wu Tang</h4>
+                      <p className="text-sm text-muted-foreground mb-3 italic">"Four Substance Decoction"</p>
+                      <p className="text-foreground/80 leading-relaxed border-l-2 border-[hsl(2,35%,54%)] pl-4">
+                        The classical blood tonic. Often relevant when Ferritin levels are suboptimal despite normal hemoglobin ranges.
+                      </p>
+                   </div>
+                </div>
+                
+                <div className="pt-4">
+                   <Link href="/auth?signup=true">
+                     <Button variant="link" className="text-primary p-0 h-auto text-lg font-serif decoration-primary/30 hover:decoration-primary underline-offset-4">
+                       Explore our educational library <ArrowRight className="ml-2 h-4 w-4" />
+                     </Button>
+                   </Link>
                 </div>
              </div>
           </div>

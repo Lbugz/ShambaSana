@@ -14,12 +14,13 @@ import WhatWeTest from "@/pages/WhatWeTest";
 import Pricing from "@/pages/Pricing";
 import Dashboard from "@/pages/Dashboard";
 import Auth from "@/pages/Auth";
+import FormulaLibrary from "@/pages/FormulaLibrary";
 
 function Router() {
   const [location] = useLocation();
 
   // Hide Navbar/Footer on Dashboard and Auth pages for immersive experience
-  const isAppRoute = location.startsWith("/dashboard") || location.startsWith("/auth");
+  const isAppRoute = location.startsWith("/dashboard") || location.startsWith("/auth") || location.startsWith("/formula-library");
 
   return (
     <>
@@ -30,6 +31,7 @@ function Router() {
         <Route path="/what-we-test" component={WhatWeTest} />
         <Route path="/pricing" component={Pricing} />
         <Route path="/dashboard" component={Dashboard} />
+        <Route path="/formula-library" component={FormulaLibrary} />
         <Route path="/auth" component={Auth} />
         <Route component={NotFound} />
       </Switch>
