@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { ArrowRight, Activity, Sprout, HeartPulse, ShieldCheck, Star } from "lucide-react";
 import heroBg from "@assets/generated_images/warm_cream_paper_texture_with_subtle_botanical_jade_watermark.png";
 import abstractImg from "@assets/generated_images/deep_jade_and_gold_abstract_flow_illustration.png";
-import stillLifeImg from "@assets/generated_images/still_life_bridging_tcm_and_modern_science.png";
+import precisionVialsImg from "@assets/generated_images/minimalist_precision_test_tubes_warm_light.png";
 import tcmImg from "@assets/generated_images/tcm_herbs_and_acupuncture_minimalist.png";
 
 export default function Home() {
@@ -76,10 +76,10 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center mb-32">
              <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-900/10 aspect-[4/3] group card-hover border border-white/50">
-                <img src={stillLifeImg} alt="Integrated Medicine" className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" />
+                <img src={precisionVialsImg} alt="Lab Testing" className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-10">
                   <div className="text-white">
-                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-3 border border-white/30">Integrated Diagnostics</div>
+                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-3 border border-white/30">Western Science</div>
                     <h3 className="text-3xl font-serif mb-3">100+ Biomarker Lab Panel</h3>
                     <p className="text-white/90 leading-relaxed font-light">Far beyond a standard annual checkup. We test hormones, thyroid, nutrients, metabolic health, and heavy metals with clinical precision.</p>
                   </div>
