@@ -193,7 +193,7 @@ export default function Home() {
                 </div>
                 
                 <div className="pt-4">
-                   <Link href="/auth?signup=true">
+                   <Link href="/formula-library">
                      <Button variant="link" className="text-primary p-0 h-auto text-lg font-serif decoration-primary/30 hover:decoration-primary underline-offset-4">
                        Explore our educational library <ArrowRight className="ml-2 h-4 w-4" />
                      </Button>
