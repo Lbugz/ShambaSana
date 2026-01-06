@@ -4,71 +4,77 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   
-  /* Earthy, Clinical, Holistic Palette */
+  /* Jade & Meridian Palette */
   
-  /* Backgrounds: Warm Off-White */
-  --color-background: hsl(40 20% 98%);
-  --color-foreground: hsl(145 25% 20%); /* Very dark green almost black */
+  /* Backgrounds: Soft Cream/Ivory */
+  --color-background: hsl(38 35% 94%); /* #f6f1e7 equivalent */
+  --color-foreground: hsl(161 67% 16%); /* Deep Jade Text #0e4634 */
   
-  /* Card: Pure White or slightly warmer */
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(145 25% 20%);
+  /* Card: Slightly lighter cream or pure white with warmth */
+  --color-card: hsl(40 30% 98%);
+  --color-card-foreground: hsl(161 67% 16%);
   
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(145 25% 20%);
+  --color-popover: hsl(40 30% 98%);
+  --color-popover-foreground: hsl(161 67% 16%);
   
-  /* Primary: Deep Medicinal Green */
-  --color-primary: hsl(145 30% 35%);
-  --color-primary-foreground: hsl(0 0% 100%);
+  /* Primary: Deep Jade */
+  --color-primary: hsl(161 67% 16%); /* #0e4634 */
+  --color-primary-foreground: hsl(40 30% 98%);
   
-  /* Secondary: Soft Sage/Herbal */
-  --color-secondary: hsl(140 20% 90%);
-  --color-secondary-foreground: hsl(145 30% 30%);
+  /* Secondary: Soft Sage/Moss */
+  --color-secondary: hsl(150 15% 88%);
+  --color-secondary-foreground: hsl(161 67% 16%);
   
-  /* Muted: Stone Grey */
-  --color-muted: hsl(40 10% 92%);
-  --color-muted-foreground: hsl(145 10% 45%);
+  /* Muted: Stone/Clay */
+  --color-muted: hsl(35 15% 85%);
+  --color-muted-foreground: hsl(161 20% 40%);
   
-  /* Accent: Subtle Gold/Clay (TCM Element) */
-  --color-accent: hsl(35 50% 92%);
-  --color-accent-foreground: hsl(35 60% 30%);
+  /* Accents (TCM Elements) */
+  --color-accent: hsl(161 67% 16%); /* Jade default */
+  --color-accent-foreground: hsl(40 30% 98%);
   
-  --color-destructive: hsl(0 60% 50%);
+  /* Specific Element Colors */
+  --color-accent-qi: hsl(155 91% 22%);    /* Emerald #056a41 */
+  --color-accent-blood: hsl(2 35% 54%);    /* Rose #b95e5a */
+  --color-accent-spirit: hsl(280 15% 40%); /* Muted Purple #6e5773 */
+  
+  --color-destructive: hsl(0 50% 50%);
   --color-destructive-foreground: hsl(0 0% 98%);
   
-  --color-border: hsl(145 15% 85%);
-  --color-input: hsl(145 15% 90%);
-  --color-ring: hsl(145 30% 35%);
+  --color-border: hsl(35 15% 85%);
+  --color-input: hsl(35 15% 90%);
+  --color-ring: hsl(161 67% 16%);
   
-  /* Chart Colors (Five Elements Colors) */
-  --color-chart-1: hsl(145 30% 35%); /* Wood/Green */
-  --color-chart-2: hsl(10 70% 50%);  /* Fire/Red */
-  --color-chart-3: hsl(45 80% 50%);  /* Earth/Yellow */
-  --color-chart-4: hsl(200 60% 50%); /* Water/Blue */
-  --color-chart-5: hsl(0 0% 60%);    /* Metal/White-Grey */
+  /* Chart Colors (Updated to match TCM accents) */
+  --color-chart-1: hsl(161 67% 16%); /* Jade */
+  --color-chart-2: hsl(2 35% 54%);   /* Rose/Blood */
+  --color-chart-3: hsl(155 91% 22%); /* Emerald/Qi */
+  --color-chart-4: hsl(35 60% 60%);  /* Gold/Earth */
+  --color-chart-5: hsl(280 15% 40%); /* Spirit */
   
-  --color-sidebar: hsl(40 20% 97%);
-  --color-sidebar-foreground: hsl(145 25% 20%);
-  --color-sidebar-primary: hsl(145 30% 35%);
-  --color-sidebar-primary-foreground: hsl(0 0% 100%);
-  --color-sidebar-accent: hsl(140 20% 90%);
-  --color-sidebar-accent-foreground: hsl(145 30% 30%);
-  --color-sidebar-border: hsl(145 15% 85%);
-  --color-sidebar-ring: hsl(145 30% 35%);
+  --color-sidebar: hsl(38 35% 92%);
+  --color-sidebar-foreground: hsl(161 67% 16%);
+  --color-sidebar-primary: hsl(161 67% 16%);
+  --color-sidebar-primary-foreground: hsl(40 30% 98%);
+  --color-sidebar-accent: hsl(150 15% 88%);
+  --color-sidebar-accent-foreground: hsl(161 67% 16%);
+  --color-sidebar-border: hsl(35 15% 85%);
+  --color-sidebar-ring: hsl(161 67% 16%);
 
-  --font-sans: "Inter", sans-serif;
-  --font-serif: "Playfair Display", serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-serif: "Lora", serif;
   
-  --radius: 0.5rem;
+  --radius: 0.75rem; /* 12px default as requested */
   
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 2px 0 rgb(14 70 52 / 0.05);
+  --shadow: 0 4px 6px -1px rgb(14 70 52 / 0.05), 0 2px 4px -2px rgb(14 70 52 / 0.05);
+  --shadow-md: 0 10px 15px -3px rgb(14 70 52 / 0.08), 0 4px 6px -4px rgb(14 70 52 / 0.08);
+  --shadow-lg: 0 20px 25px -5px rgb(14 70 52 / 0.1), 0 8px 10px -6px rgb(14 70 52 / 0.1);
 }
 
 @layer base {
@@ -79,6 +85,20 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
+    @apply font-serif text-primary font-medium tracking-tight;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-background/80 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-md;
+  }
+  
+  .text-gradient-jade {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-[hsl(155,91%,22%)];
   }
 }

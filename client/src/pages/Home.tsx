@@ -1,121 +1,144 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
-import { ArrowRight, Activity, Sprout, HeartPulse, ShieldCheck } from "lucide-react";
-import heroBg from "@assets/generated_images/clean_minimal_abstract_nature_medical_background.png";
+import { ArrowRight, Activity, Sprout, HeartPulse, ShieldCheck, Star } from "lucide-react";
+import heroBg from "@assets/generated_images/warm_cream_paper_texture_with_subtle_botanical_jade_watermark.png";
+import abstractImg from "@assets/generated_images/deep_jade_and_gold_abstract_flow_illustration.png";
 import labImg from "@assets/generated_images/modern_medical_lab_equipment_aesthetic.png";
 import tcmImg from "@assets/generated_images/tcm_herbs_and_acupuncture_minimalist.png";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-32 lg:pt-32">
-        <div className="absolute inset-0 z-0 opacity-40">
+      <section className="relative pt-20 pb-32 lg:pt-32 overflow-hidden">
+        {/* Background Texture */}
+        <div className="absolute inset-0 z-0 opacity-100 mix-blend-multiply pointer-events-none">
            <img 
              src={heroBg} 
              alt="Background" 
              className="w-full h-full object-cover"
            />
-           <div className="absolute inset-0 bg-gradient-to-b from-background/80 to-background"></div>
         </div>
         
-        <div className="container relative z-10 mx-auto px-4 text-center">
-          <span className="inline-block py-1 px-3 rounded-full bg-accent/50 text-accent-foreground text-xs font-semibold tracking-wide mb-6 animate-in fade-in zoom-in duration-700">
-            THE FUTURE OF INTEGRATIVE HEALTH
-          </span>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight max-w-4xl mx-auto">
-            Your Health, <br/>
-            <span className="text-primary italic">Fully Understood.</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            LifeRX combines 100+ comprehensive lab tests with Traditional Chinese Medicine insights to uncover the root cause of your symptoms.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/auth?signup=true">
-              <Button size="lg" className="h-12 px-8 text-lg rounded-full">
-                Get Started
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/how-it-works">
-              <Button variant="outline" size="lg" className="h-12 px-8 text-lg rounded-full bg-background/50 backdrop-blur-sm">
-                How It Works
-              </Button>
-            </Link>
+        {/* Abstract Flow Graphic */}
+        <div className="absolute right-0 top-0 w-2/3 h-full opacity-10 pointer-events-none z-0">
+           <img 
+             src={abstractImg} 
+             alt="Flow" 
+             className="w-full h-full object-cover mix-blend-multiply mask-image-fade-left"
+             style={{ maskImage: "linear-gradient(to right, transparent, black)" }}
+           />
+        </div>
+        
+        <div className="container relative z-10 mx-auto px-6">
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-primary/5 border border-primary/10 text-primary text-sm font-semibold tracking-wide mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+              THE FUTURE OF INTEGRATIVE HEALTH
+            </span>
+            
+            <h1 className="text-5xl md:text-7xl font-serif font-medium text-primary mb-8 leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+              Where Qi Moves, <br/>
+              <span className="italic text-emerald-700/80">Healing Follows.</span>
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mb-12 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 font-light">
+              We bridge 100+ modern clinical lab tests with ancient Traditional Chinese Medicine diagnostics to uncover the root cause of your symptoms.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center gap-5 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+              <Link href="/auth?signup=true">
+                <Button size="lg" className="h-14 px-10 text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all bg-primary hover:bg-primary/90">
+                  Begin My Healing Journey
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/how-it-works">
+                <Button variant="outline" size="lg" className="h-14 px-10 text-lg rounded-full bg-white/50 backdrop-blur-sm border-primary/20 text-primary hover:bg-white/80">
+                  Learn How It Works
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Grid */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">A Complete Picture of You</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Western diagnostics tell you "what". Eastern medicine tells you "why". We give you both.
+      <section className="py-24 relative">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-serif text-primary mb-6">A Complete Picture of You</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Western diagnostics tell you "what". Eastern medicine tells you "why". We give you both in one unified protocol.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center mb-24">
-             <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-[4/3] group">
-                <img src={labImg} alt="Lab Testing" className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center mb-32">
+             <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-900/10 aspect-[4/3] group card-hover border border-white/50">
+                <img src={labImg} alt="Lab Testing" className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-10">
                   <div className="text-white">
-                    <h3 className="text-2xl font-bold mb-2">100+ Biomarker Lab Panel</h3>
-                    <p className="text-white/80">Far beyond a standard annual checkup. We test hormones, thyroid, nutrients, metabolic health, and more.</p>
+                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-3 border border-white/30">Western Science</div>
+                    <h3 className="text-3xl font-serif mb-3">100+ Biomarker Lab Panel</h3>
+                    <p className="text-white/90 leading-relaxed font-light">Far beyond a standard annual checkup. We test hormones, thyroid, nutrients, metabolic health, and heavy metals with clinical precision.</p>
                   </div>
                 </div>
              </div>
-             <div className="space-y-6 lg:pl-10">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Activity className="text-primary h-6 w-6" />
+             
+             <div className="space-y-10 lg:pl-4">
+                <div className="flex gap-6 group">
+                  <div className="w-16 h-16 rounded-2xl bg-white shadow-lg shadow-emerald-900/5 border border-emerald-900/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    <Activity className="text-emerald-700 h-8 w-8" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold mb-2">Data-Driven Precision</h4>
-                    <p className="text-muted-foreground">Establish a baseline with clinical accuracy. Identify deficiencies and risks before they become chronic issues.</p>
+                    <h4 className="text-2xl font-serif text-primary mb-3">Data-Driven Precision</h4>
+                    <p className="text-muted-foreground leading-relaxed text-lg">Establish a baseline with clinical accuracy. Identify deficiencies and risks before they become chronic issues using advanced diagnostic markers.</p>
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="text-primary h-6 w-6" />
+                
+                <div className="flex gap-6 group">
+                  <div className="w-16 h-16 rounded-2xl bg-white shadow-lg shadow-emerald-900/5 border border-emerald-900/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    <ShieldCheck className="text-emerald-700 h-8 w-8" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold mb-2">Proactive Monitoring</h4>
-                    <p className="text-muted-foreground">Retest every 6 months to track improvements and adjust your protocol based on real data.</p>
+                    <h4 className="text-2xl font-serif text-primary mb-3">Proactive Monitoring</h4>
+                    <p className="text-muted-foreground leading-relaxed text-lg">Retest every 6 months to track improvements and adjust your protocol based on real data, not guesswork.</p>
                   </div>
                 </div>
              </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
-             <div className="order-2 md:order-1 space-y-6 lg:pr-10">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center shrink-0">
-                    <Sprout className="text-amber-600 h-6 w-6" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center">
+             <div className="order-2 md:order-1 space-y-10 lg:pr-4">
+                <div className="flex gap-6 group">
+                  <div className="w-16 h-16 rounded-2xl bg-white shadow-lg shadow-emerald-900/5 border border-emerald-900/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    <Sprout className="text-[hsl(2,35%,54%)] h-8 w-8" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold mb-2">TCM Pattern Diagnosis</h4>
-                    <p className="text-muted-foreground">Our practitioners analyze your tongue, pulse (via report), and symptoms to identify patterns like "Qi Deficiency" or "Liver Stagnation".</p>
+                    <h4 className="text-2xl font-serif text-primary mb-3">TCM Pattern Diagnosis</h4>
+                    <p className="text-muted-foreground leading-relaxed text-lg">Our practitioners analyze your tongue, pulse, and symptoms to identify patterns like <span className="text-[hsl(2,35%,54%)] font-medium">"Blood Deficiency"</span> or <span className="text-emerald-700 font-medium">"Liver Stagnation"</span>.</p>
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center shrink-0">
-                    <HeartPulse className="text-amber-600 h-6 w-6" />
+                
+                <div className="flex gap-6 group">
+                  <div className="w-16 h-16 rounded-2xl bg-white shadow-lg shadow-emerald-900/5 border border-emerald-900/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    <HeartPulse className="text-[hsl(2,35%,54%)] h-8 w-8" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold mb-2">Personalized Protocols</h4>
-                    <p className="text-muted-foreground">Receive custom herbal formulas, dietary guidance, and lifestyle adjustments tailored to your unique constitution.</p>
+                    <h4 className="text-2xl font-serif text-primary mb-3">Personalized Protocols</h4>
+                    <p className="text-muted-foreground leading-relaxed text-lg">Receive custom herbal formulas, dietary guidance, and lifestyle adjustments tailored to your unique constitution and current season.</p>
                   </div>
                 </div>
              </div>
-             <div className="order-1 md:order-2 relative rounded-2xl overflow-hidden shadow-2xl aspect-[4/3] group">
-                <img src={tcmImg} alt="TCM" className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
+             
+             <div className="order-1 md:order-2 relative rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-900/10 aspect-[4/3] group card-hover border border-white/50">
+                <img src={tcmImg} alt="TCM" className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-10">
                   <div className="text-white">
-                    <h3 className="text-2xl font-bold mb-2">Ancient Wisdom</h3>
-                    <p className="text-white/80">Thousands of years of empirical evidence applied to your modern health challenges.</p>
+                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-3 border border-white/30">Eastern Wisdom</div>
+                    <h3 className="text-3xl font-serif mb-3">Ancient Roots</h3>
+                    <p className="text-white/90 leading-relaxed font-light">Thousands of years of empirical evidence applied to your modern health challenges, restoring balance to your body's systems.</p>
                   </div>
                 </div>
              </div>
@@ -124,24 +147,26 @@ export default function Home() {
       </section>
 
       {/* Testimonials / Trust */}
-      <section className="py-24 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Trusted by Health Seekers</h2>
+      <section className="py-24 bg-white/50 backdrop-blur-sm border-y border-border/50">
+        <div className="container mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-serif text-primary text-center mb-16">Stories of Renewal</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="border-none shadow-sm bg-background/60 backdrop-blur-sm">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-1 mb-4 text-amber-500">
-                    {"★★★★★"}
+              <Card key={i} className="border-none shadow-md hover:shadow-xl transition-all duration-300 bg-background/60 backdrop-blur-md rounded-2xl p-2 group">
+                <CardContent className="pt-8 px-6 pb-6">
+                  <div className="flex items-center gap-1 mb-6">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star key={star} className="w-4 h-4 fill-[hsl(35,60%,60%)] text-[hsl(35,60%,60%)]" />
+                    ))}
                   </div>
-                  <p className="text-muted-foreground mb-6 italic">
-                    "I finally understand why I was feeling tired all the time. The lab tests showed low iron, but the TCM diagnosis explained the root cause."
+                  <p className="text-foreground/80 mb-8 italic text-lg font-serif leading-relaxed">
+                    "I finally understand why I was feeling tired all the time. The lab tests showed low iron, but the TCM diagnosis explained the root cause was Spleen Qi Deficiency."
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/20" />
+                  <div className="flex items-center gap-4 pt-6 border-t border-border/50">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-serif font-bold text-lg">S</div>
                     <div>
-                      <p className="font-semibold text-sm">Sarah J.</p>
-                      <p className="text-xs text-muted-foreground">Member since 2024</p>
+                      <p className="font-serif font-bold text-primary">Sarah Jenkins</p>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mt-0.5">LifeRX Member</p>
                     </div>
                   </div>
                 </CardContent>
