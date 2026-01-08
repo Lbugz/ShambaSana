@@ -39,29 +39,32 @@ export default function Home() {
               THE FUTURE OF INTEGRATIVE HEALTH
             </span>
             
-            <h1 className="text-5xl md:text-7xl font-serif font-medium text-primary mb-8 leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-              Where Qi Moves, <br/>
-              <span className="italic text-emerald-700/80">Healing Follows.</span>
+            <h1 className="text-4xl md:text-6xl font-serif font-medium text-primary mb-8 leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+              A New Health Operating System:<br/>
+              <span className="italic text-emerald-700/80 text-3xl md:text-5xl block mt-4">Labs → Patterns → Guidance → Monitoring</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mb-8 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 font-light">
-              We test over 160 biomarkers across hormones, nutrients, cardiometabolic health and toxin exposure to give you the most complete picture possible.
+              We test 160+ clinical biomarkers across 20 body systems—hormones, nutrients, cardiometabolic health and toxins—to give you the most complete picture possible.
             </p>
 
-            <div className="flex items-center gap-3 mb-10 text-emerald-800 bg-emerald-50/50 w-fit px-4 py-2 rounded-full border border-emerald-100 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-               <span className="font-semibold text-sm tracking-wide">MEMBERSHIP STARTS AT $499/YEAR</span>
+            <div className="group relative flex items-center gap-3 mb-10 text-emerald-800 bg-emerald-50/50 w-fit px-4 py-2 rounded-full border border-emerald-100 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 cursor-help">
+               <span className="font-semibold text-sm tracking-wide">MEMBERSHIP STARTS AT $499/YEAR *</span>
+               <div className="absolute left-0 bottom-full mb-2 w-64 bg-white p-3 rounded-lg shadow-xl border border-border opacity-0 group-hover:opacity-100 transition-opacity text-xs text-muted-foreground pointer-events-none z-50">
+                 Includes 2 comprehensive lab panels/year, TCM pattern analysis, and dashboard access.
+               </div>
             </div>
             
             <div className="flex flex-col sm:flex-row items-center gap-5 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
               <Link href="/auth?signup=true">
                 <Button size="lg" className="h-14 px-10 text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all bg-primary hover:bg-primary/90">
-                  Begin My Healing Journey
+                  Join Core Plan
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/how-it-works">
+              <Link href="/pricing">
                 <Button variant="outline" size="lg" className="h-14 px-10 text-lg rounded-full bg-background border-primary/20 text-primary hover:bg-background hover:border-primary/40 shadow-sm transition-all">
-                  Learn How It Works
+                  Explore Complete & Concierge
                 </Button>
               </Link>
             </div>
@@ -85,8 +88,8 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-6 md:p-10">
                   <div className="text-white">
                     <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-2 md:mb-3 border border-white/30">Western Science</div>
-                    <h3 className="text-2xl md:text-3xl font-serif mb-2 md:mb-3">160+ Biomarker Lab Panel</h3>
-                    <p className="text-white/90 leading-relaxed font-light text-sm md:text-base">Far beyond a standard annual checkup. We test hormones, thyroid, nutrients, metabolic health, and heavy metals with clinical precision.</p>
+                    <h3 className="text-2xl md:text-3xl font-serif mb-2 md:mb-3">Comprehensive Diagnostics</h3>
+                    <p className="text-white/90 leading-relaxed font-light text-sm md:text-base">160+ biomarkers across 20 body systems. We re-test every 6 months to track improvements, with an 80+ biomarker panel at the mid-year mark.</p>
                   </div>
                 </div>
              </div>
@@ -122,7 +125,18 @@ export default function Home() {
                   </div>
                   <div>
                     <h4 className="text-2xl font-serif text-primary mb-3">TCM Pattern Diagnosis</h4>
-                    <p className="text-muted-foreground leading-relaxed text-lg">Our practitioners analyze your tongue, pulse, and symptoms to identify patterns like <span className="text-[hsl(2,35%,54%)] font-medium">"Blood Deficiency"</span> or <span className="text-emerald-700 font-medium">"Liver Stagnation"</span>.</p>
+                    <p className="text-muted-foreground leading-relaxed text-lg">
+                      We layer Traditional Chinese Medicine assessments on top of your labs:
+                    </p>
+                    <ul className="list-disc list-inside mt-2 text-muted-foreground text-base space-y-1 ml-1">
+                      <li>Tongue Analysis (Organ health)</li>
+                      <li>Pulse Intake (Energy flow)</li>
+                      <li>Symptom Pattern Mapping</li>
+                      <li>Constitutional Typing</li>
+                    </ul>
+                    <p className="text-sm text-emerald-700 mt-4 bg-emerald-50 p-2 rounded-lg inline-block border border-emerald-100">
+                      * WHO: ~80% of the world relies on traditional medicine.
+                    </p>
                   </div>
                 </div>
                 
@@ -168,10 +182,26 @@ export default function Home() {
              </div>
              <div className="w-full lg:w-1/2 space-y-8">
                 <div>
-                  <h2 className="text-4xl md:text-5xl font-serif text-primary mb-6">Ancient Formulas.<br/>Modern Context.</h2>
+                  <h2 className="text-4xl md:text-5xl font-serif text-primary mb-6">Formula Intelligence & <br/>Botanical Fulfillment (Premium)</h2>
                   <p className="text-xl text-muted-foreground font-light leading-relaxed">
-                    We don't sell products. We provide understanding. Our platform overlays 2,000 years of herbal data onto your modern lab results.
+                    Two layers of support:
                   </p>
+                  <ul className="space-y-4 mt-4 text-muted-foreground">
+                    <li className="flex gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">1</div>
+                      <p><span className="font-bold text-primary">Educational Overlay (All Tiers):</span> Map lab patterns to classical formulas to see how ancient remedies align with modern findings.</p>
+                    </li>
+                    <li className="flex gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">2</div>
+                      <p><span className="font-bold text-primary">Practitioner-Guided Fulfillment (Complete+):</span> Optional monthly herbal formulations executed only after diagnosis.</p>
+                    </li>
+                  </ul>
+                  
+                  <div className="pt-6">
+                    <Link href="/pricing">
+                      <Button className="rounded-full px-8 shadow-md">Upgrade for Personalized Support</Button>
+                    </Link>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -212,6 +242,74 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Pricing Tiers */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-serif text-primary mb-6">Plans & Pricing</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Choose the level of guidance that fits your journey.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Core */}
+            <Card className="border border-border shadow-sm hover:shadow-lg transition-all rounded-[2rem] overflow-hidden">
+              <CardContent className="p-8 flex flex-col h-full">
+                <h3 className="text-2xl font-serif text-primary mb-2">Core</h3>
+                <div className="text-3xl font-bold text-primary mb-6">$499<span className="text-lg text-muted-foreground font-normal">/year</span></div>
+                <div className="space-y-4 flex-1">
+                  <p className="text-sm font-bold text-primary">Includes:</p>
+                  <ul className="space-y-3 text-sm text-muted-foreground">
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> 2 Comprehensive Lab Panels</li>
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> TCM Pattern Analysis</li>
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> Dashboard Access</li>
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> Formula Educational Overlay</li>
+                  </ul>
+                </div>
+                <Button className="w-full mt-8 rounded-full" variant="outline">Select Core</Button>
+              </CardContent>
+            </Card>
+
+            {/* Complete */}
+            <Card className="border-2 border-primary/20 shadow-xl bg-primary/5 rounded-[2rem] overflow-hidden relative">
+              <div className="absolute top-0 inset-x-0 bg-primary text-white text-center text-xs font-bold py-1 uppercase tracking-wider">Most Popular</div>
+              <CardContent className="p-8 pt-10 flex flex-col h-full">
+                <h3 className="text-2xl font-serif text-primary mb-2">Complete</h3>
+                <div className="text-3xl font-bold text-primary mb-6">$799<span className="text-lg text-muted-foreground font-normal">/year</span></div>
+                <div className="space-y-4 flex-1">
+                  <p className="text-sm font-bold text-primary">Everything in Core, plus:</p>
+                  <ul className="space-y-3 text-sm text-muted-foreground">
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> Botanical Fulfillment Access</li>
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> 2 Practitioner Consults</li>
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> Seasonal Protocol Adjustments</li>
+                  </ul>
+                </div>
+                <Button className="w-full mt-8 rounded-full">Select Complete</Button>
+              </CardContent>
+            </Card>
+
+            {/* Concierge */}
+            <Card className="border border-border shadow-sm hover:shadow-lg transition-all rounded-[2rem] overflow-hidden">
+              <CardContent className="p-8 flex flex-col h-full">
+                <h3 className="text-2xl font-serif text-primary mb-2">Concierge</h3>
+                <div className="text-3xl font-bold text-primary mb-6">$1,499<span className="text-lg text-muted-foreground font-normal">/year</span></div>
+                <div className="space-y-4 flex-1">
+                  <p className="text-sm font-bold text-primary">Everything in Complete, plus:</p>
+                  <ul className="space-y-3 text-sm text-muted-foreground">
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> Quarterly Testing (4x/yr)</li>
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> Dedicated Health Manager</li>
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> Priority Support</li>
+                    <li className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0" /> 10% off Formulas</li>
+                  </ul>
+                </div>
+                <Button className="w-full mt-8 rounded-full" variant="outline">Select Concierge</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Comparison / Why LifeRX */}
       <section className="py-24 bg-secondary/20">
         <div className="container mx-auto px-6">
@@ -222,31 +320,39 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="max-w-4xl mx-auto bg-white rounded-[2rem] shadow-xl overflow-hidden border border-border">
+          <div className="max-w-6xl mx-auto bg-white rounded-[2rem] shadow-xl overflow-hidden border border-border">
              <div className="overflow-x-auto">
-               <div className="min-w-[600px]">
-                 <div className="grid grid-cols-4 bg-primary/5 p-6 border-b border-border text-primary font-bold font-serif text-lg">
+               <div className="min-w-[800px]">
+                 <div className="grid grid-cols-6 bg-primary/5 p-6 border-b border-border text-primary font-bold font-serif text-lg">
                     <div className="col-span-1"></div>
-                    <div className="col-span-1 text-center">Standard GP</div>
-                    <div className="col-span-1 text-center">Function Health</div>
-                    <div className="col-span-1 text-center text-emerald-700 bg-white rounded-lg py-1 shadow-sm">LifeRX</div>
+                    <div className="col-span-1 text-center text-base">Standard GP</div>
+                    <div className="col-span-1 text-center text-base">Function Health</div>
+                    <div className="col-span-1 text-center text-base">Empirical Health</div>
+                    <div className="col-span-1 text-center text-base">Balanced Thistle</div>
+                    <div className="col-span-1 text-center text-emerald-700 bg-white rounded-lg py-1 shadow-sm text-base">LifeRX</div>
                  </div>
                  
                  <div className="divide-y divide-border/50">
                    {[
-                     { label: "Biomarkers Tested", gp: "~20-40", fh: "100+", lrx: "160+" },
-                     { label: "TCM Pattern Diagnosis", gp: false, fh: false, lrx: true },
-                     { label: "Herbal Protocols", gp: false, fh: false, lrx: true },
-                     { label: "Clinician Review", gp: "15 min", fh: "Detailed", lrx: "Detailed + Holistic" },
-                     { label: "Retesting Frequency", gp: "Annual", fh: "Every 6 mo", lrx: "Every 6 mo" },
+                     { label: "Biomarkers", gp: "~20-40", fh: "100+", eh: "Broad", bt: "Varies", lrx: "160+" },
+                     { label: "TCM Diagnostics", gp: false, fh: false, eh: false, bt: true, lrx: true },
+                     { label: "Interpretation", gp: "Basic", fh: "Labs Only", eh: "Medical", bt: "TCM Only", lrx: "Integrated" },
+                     { label: "Botanical Fulfillment", gp: false, fh: false, eh: false, bt: true, lrx: "Premium" },
+                     { label: "Scalable Platform", gp: true, fh: true, eh: true, bt: false, lrx: true },
                    ].map((row, i) => (
-                     <div key={i} className="grid grid-cols-4 p-6 items-center hover:bg-secondary/5 transition-colors">
-                        <div className="col-span-1 font-medium text-foreground">{row.label}</div>
+                     <div key={i} className="grid grid-cols-6 p-6 items-center hover:bg-secondary/5 transition-colors">
+                        <div className="col-span-1 font-medium text-foreground text-sm">{row.label}</div>
                         <div className="col-span-1 flex justify-center text-muted-foreground">
                           {row.gp === false ? <span className="text-red-300">✕</span> : row.gp === true ? <Check className="text-primary" /> : <span className="text-sm font-medium">{row.gp}</span>}
                         </div>
                         <div className="col-span-1 flex justify-center text-muted-foreground">
                            {row.fh === false ? <span className="text-red-300">✕</span> : row.fh === true ? <Check className="text-primary" /> : <span className="text-sm font-medium">{row.fh}</span>}
+                        </div>
+                        <div className="col-span-1 flex justify-center text-muted-foreground">
+                           {row.eh === false ? <span className="text-red-300">✕</span> : row.eh === true ? <Check className="text-primary" /> : <span className="text-sm font-medium">{row.eh}</span>}
+                        </div>
+                        <div className="col-span-1 flex justify-center text-muted-foreground">
+                           {row.bt === false ? <span className="text-red-300">✕</span> : row.bt === true ? <Check className="text-primary" /> : <span className="text-sm font-medium">{row.bt}</span>}
                         </div>
                         <div className="col-span-1 flex justify-center relative">
                            <div className="absolute inset-y-0 bg-primary/5 w-full -z-10" />
@@ -256,6 +362,14 @@ export default function Home() {
                    ))}
                  </div>
                </div>
+             </div>
+             
+             {/* Research Strip */}
+             <div className="bg-primary/5 p-6 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-muted-foreground">
+                <p>• "Function Health runs 100+ lab tests..."</p>
+                <p>• "Balanced Thistle integrates acupuncture..."</p>
+                <p>• "Empirical Health delivers blood panels..."</p>
+                <p>• "WHO: 80% of the world uses traditional medicine."</p>
              </div>
           </div>
         </div>

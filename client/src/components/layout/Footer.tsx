@@ -6,9 +6,12 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <h3 className="text-xl font-serif font-bold text-primary">LifeRX</h3>
+            <h3 className="text-xl font-serif font-bold text-primary">LifeRX Future Co</h3>
             <p className="text-muted-foreground text-sm max-w-xs">
               Bridging the gap between modern diagnostics and ancient wisdom for a complete picture of your health.
+            </p>
+            <p className="text-xs text-muted-foreground font-medium pt-2 uppercase tracking-wider">
+              Live Platform Preview
             </p>
           </div>
           
@@ -16,6 +19,7 @@ export function Footer() {
             <h4 className="font-semibold mb-4 text-primary">Company</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/about">About Us</Link></li>
+              <li><Link href="/fulfillment-philosophy">Why We Fulfill</Link></li>
               <li><Link href="/careers">Careers</Link></li>
               <li><Link href="/contact">Contact</Link></li>
             </ul>
