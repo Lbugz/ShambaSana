@@ -39,12 +39,21 @@ export default function Home() {
               THE FUTURE OF INTEGRATIVE HEALTH
             </span>
             
-            <h1 className="text-4xl md:text-6xl font-serif font-medium text-primary mb-8 leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-              A New Health Operating System:<br/>
-              <span className="italic text-emerald-700/80 text-3xl md:text-5xl block mt-4">Labs → Patterns → Guidance → Monitoring</span>
+            <h1 className="text-5xl md:text-7xl font-serif font-medium text-primary mb-8 leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+              Where Qi Moves, <br/>
+              <span className="italic text-emerald-700/80">Healing Follows.</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mb-8 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 font-light">
+            <div className="flex flex-col gap-2 mb-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+               <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl leading-relaxed font-light">
+                 The New Operating System for Your Health:
+               </p>
+               <p className="font-serif text-lg md:text-xl text-primary font-medium tracking-wide">
+                 Labs → Patterns → Guidance → Monitoring
+               </p>
+            </div>
+            
+            <p className="text-lg text-muted-foreground max-w-2xl mb-8 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 font-light border-l-2 border-emerald-500/30 pl-4">
               We test 160+ clinical biomarkers across 20 body systems—hormones, nutrients, cardiometabolic health and toxins—to give you the most complete picture possible.
             </p>
 
