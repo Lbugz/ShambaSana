@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { ArrowRight, Activity, Sprout, HeartPulse, ShieldCheck, Star, Check } from "lucide-react";
-import heroBg from "@assets/generated_images/warm_cream_paper_texture_with_subtle_botanical_jade_watermark.png";
+import heroBg from "@assets/generated_images/herbs_and_lab_equipment_still_life.png";
 import abstractImg from "@assets/generated_images/deep_jade_and_gold_abstract_flow_illustration.png";
 import precisionVialsImg from "@assets/generated_images/minimalist_precision_test_tubes_warm_light.png";
 import tcmImg from "@assets/generated_images/tcm_herbs_and_acupuncture_minimalist.png";
@@ -45,7 +45,7 @@ export default function Home() {
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mb-8 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 font-light">
-              Modern lab precision meets ancient wisdom. We bridge 100+ clinical biomarkers with Traditional Chinese Medicine to uncover the root cause of your symptoms.
+              We test over 160 biomarkers across hormones, nutrients, cardiometabolic health and toxin exposure to give you the most complete picture possible.
             </p>
 
             <div className="flex items-center gap-3 mb-10 text-emerald-800 bg-emerald-50/50 w-fit px-4 py-2 rounded-full border border-emerald-100 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
@@ -85,7 +85,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-6 md:p-10">
                   <div className="text-white">
                     <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-2 md:mb-3 border border-white/30">Western Science</div>
-                    <h3 className="text-2xl md:text-3xl font-serif mb-2 md:mb-3">100+ Biomarker Lab Panel</h3>
+                    <h3 className="text-2xl md:text-3xl font-serif mb-2 md:mb-3">160+ Biomarker Lab Panel</h3>
                     <p className="text-white/90 leading-relaxed font-light text-sm md:text-base">Far beyond a standard annual checkup. We test hormones, thyroid, nutrients, metabolic health, and heavy metals with clinical precision.</p>
                   </div>
                 </div>
@@ -190,6 +190,14 @@ export default function Home() {
                         The classical blood tonic. Often relevant when Ferritin levels are suboptimal despite normal hemoglobin ranges.
                       </p>
                    </div>
+                   
+                   <div className="p-6 bg-white rounded-2xl border border-border/60 shadow-sm hover:shadow-md transition-shadow opacity-70 hover:opacity-100 transition-opacity">
+                      <h4 className="font-serif text-xl text-primary mb-2">Ba Zhen Tang</h4>
+                      <p className="text-sm text-muted-foreground mb-3 italic">"Eight Treasure Decoction"</p>
+                      <p className="text-foreground/80 leading-relaxed border-l-2 border-amber-500 pl-4">
+                        Combines Qi and Blood tonics. Discussed when fatigue presents with both dizziness (Blood deficiency) and poor appetite (Qi deficiency).
+                      </p>
+                   </div>
                 </div>
                 
                 <div className="pt-4">
@@ -226,23 +234,23 @@ export default function Home() {
                  
                  <div className="divide-y divide-border/50">
                    {[
-                     { label: "100+ Biomarker Panel", gp: false, fh: true, lrx: true },
+                     { label: "Biomarkers Tested", gp: "~20-40", fh: "100+", lrx: "160+" },
                      { label: "TCM Pattern Diagnosis", gp: false, fh: false, lrx: true },
                      { label: "Herbal Protocols", gp: false, fh: false, lrx: true },
-                     { label: "Clinician Review", gp: "Brief", fh: true, lrx: true },
-                     { label: "Seasonal Retesting", gp: false, fh: true, lrx: true },
+                     { label: "Clinician Review", gp: "15 min", fh: "Detailed", lrx: "Detailed + Holistic" },
+                     { label: "Retesting Frequency", gp: "Annual", fh: "Every 6 mo", lrx: "Every 6 mo" },
                    ].map((row, i) => (
                      <div key={i} className="grid grid-cols-4 p-6 items-center hover:bg-secondary/5 transition-colors">
                         <div className="col-span-1 font-medium text-foreground">{row.label}</div>
                         <div className="col-span-1 flex justify-center text-muted-foreground">
-                          {row.gp === false ? <span className="text-red-300">✕</span> : row.gp === true ? <Check className="text-primary" /> : <span className="text-sm">{row.gp}</span>}
+                          {row.gp === false ? <span className="text-red-300">✕</span> : row.gp === true ? <Check className="text-primary" /> : <span className="text-sm font-medium">{row.gp}</span>}
                         </div>
                         <div className="col-span-1 flex justify-center text-muted-foreground">
-                           {row.fh === false ? <span className="text-red-300">✕</span> : <Check className="text-primary" />}
+                           {row.fh === false ? <span className="text-red-300">✕</span> : row.fh === true ? <Check className="text-primary" /> : <span className="text-sm font-medium">{row.fh}</span>}
                         </div>
                         <div className="col-span-1 flex justify-center relative">
                            <div className="absolute inset-y-0 bg-primary/5 w-full -z-10" />
-                           <Check className="text-emerald-700 stroke-[3px]" />
+                           {row.lrx === true ? <Check className="text-emerald-700 stroke-[3px]" /> : <span className="text-sm font-bold text-emerald-700">{row.lrx}</span>}
                         </div>
                      </div>
                    ))}
@@ -258,22 +266,44 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-serif text-primary text-center mb-16">Stories of Renewal</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
+            {[
+              {
+                name: "Sarah Jenkins",
+                location: "Portland, OR",
+                quote: "I finally understand why I was feeling tired all the time. The lab tests showed low iron, but the TCM diagnosis explained the root cause was Spleen Qi Deficiency.",
+                stars: 5,
+                initial: "S"
+              },
+              {
+                name: "Michael Chen",
+                location: "Austin, TX",
+                quote: "My eczema wouldn't clear up with creams. LifeRX identified a Damp-Heat pattern in my liver and adjusted my diet. 3 months later, my skin is completely clear.",
+                stars: 5,
+                initial: "M"
+              },
+              {
+                name: "Elena Rodriguez",
+                location: "New York, NY",
+                quote: "High-stress job, high cortisol. The adaptogen protocol they designed wasn't just 'take this pill', it was a whole lifestyle shift. I feel grounded for the first time in years.",
+                stars: 5,
+                initial: "E"
+              }
+            ].map((story, i) => (
               <Card key={i} className="border-none shadow-md hover:shadow-xl transition-all duration-300 bg-background/60 backdrop-blur-md rounded-2xl p-2 group">
                 <CardContent className="pt-8 px-6 pb-6">
                   <div className="flex items-center gap-1 mb-6">
-                    {[1, 2, 3, 4, 5].map(star => (
+                    {[...Array(story.stars)].map((_, star) => (
                       <Star key={star} className="w-4 h-4 fill-[hsl(35,60%,60%)] text-[hsl(35,60%,60%)]" />
                     ))}
                   </div>
                   <p className="text-foreground/80 mb-8 italic text-lg font-serif leading-relaxed">
-                    "I finally understand why I was feeling tired all the time. The lab tests showed low iron, but the TCM diagnosis explained the root cause was Spleen Qi Deficiency."
+                    "{story.quote}"
                   </p>
                   <div className="flex items-center gap-4 pt-6 border-t border-border/50">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-serif font-bold text-lg">S</div>
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-serif font-bold text-lg">{story.initial}</div>
                     <div>
-                      <p className="font-serif font-bold text-primary">Sarah Jenkins</p>
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground mt-0.5">LifeRX Member</p>
+                      <p className="font-serif font-bold text-primary">{story.name}</p>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mt-0.5">{story.location}</p>
                     </div>
                   </div>
                 </CardContent>

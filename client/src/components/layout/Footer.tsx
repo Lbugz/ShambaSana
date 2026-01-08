@@ -24,9 +24,9 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4 text-primary">Resources</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/blog">Health Journal</Link></li>
-              <li><Link href="/science">The Science</Link></li>
-              <li><Link href="/faq">FAQs</Link></li>
+              <li><Link href="/">Marketing Website</Link></li>
+              <li><Link href="/what-we-test">What We Test</Link></li>
+              <li><Link href="/formula-library">Formula Library</Link></li>
             </ul>
           </div>
 
