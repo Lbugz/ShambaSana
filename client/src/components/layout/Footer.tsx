@@ -28,7 +28,7 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4 text-primary">Resources</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/">Marketing Website</Link></li>
+              <li><Link href="/">Live Platform Preview</Link></li>
               <li><Link href="/what-we-test">What We Test</Link></li>
               <li><Link href="/formula-library">Formula Library</Link></li>
             </ul>
@@ -44,7 +44,7 @@ export function Footer() {
         </div>
         
         <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} LifeRX. All rights reserved.
+          &copy; {new Date().getFullYear()} LifeRX Future Co. All rights reserved.
         </div>
       </div>
     </footer>

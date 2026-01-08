@@ -65,25 +65,31 @@ export default function Home() {
                </div>
             </div>
             
-            <div className="flex flex-col sm:flex-row items-center gap-5 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-              <Link href="/auth?signup=true">
-                <Button size="lg" className="h-14 px-10 text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all bg-primary hover:bg-primary/90">
-                  Join Core Plan
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/pricing">
-                <Button variant="outline" size="lg" className="h-14 px-10 text-lg rounded-full bg-background border-primary/20 text-primary hover:bg-background hover:border-primary/40 shadow-sm transition-all">
-                  Explore Complete & Concierge
-                </Button>
-              </Link>
+            <div className="flex flex-col sm:flex-row items-start gap-5 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+              <div className="flex flex-col items-center gap-2">
+                <Link href="/auth?signup=true">
+                  <Button size="lg" className="h-14 px-10 text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all bg-primary hover:bg-primary/90">
+                    Join Core Plan
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <span className="text-xs text-muted-foreground">Labs + Patterns + Dashboard</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <Link href="/pricing">
+                  <Button variant="outline" size="lg" className="h-14 px-10 text-lg rounded-full bg-background border-primary/20 text-primary hover:bg-background hover:border-primary/40 shadow-sm transition-all">
+                    Explore Complete & Concierge
+                  </Button>
+                </Link>
+                <span className="text-xs text-muted-foreground">+ Herbal Fulfillment & Consults</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Grid */}
-      <section className="py-24 relative">
+      <section id="patterns" className="py-24 relative scroll-mt-24">
         <div className="container mx-auto px-6">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-serif text-primary mb-6">Pattern Intelligence First</h2>
@@ -243,12 +249,15 @@ export default function Home() {
                    </div>
                 </div>
                 
-                <div className="pt-4">
+                <div className="pt-4 space-y-4">
                    <Link href="/formula-library">
                      <Button variant="link" className="text-primary p-0 h-auto text-lg font-serif decoration-primary/30 hover:decoration-primary underline-offset-4">
                        Explore our educational library <ArrowRight className="ml-2 h-4 w-4" />
                      </Button>
                    </Link>
+                   <p className="text-xs text-muted-foreground italic border-l-2 border-amber-400/50 pl-3">
+                     For educational purposes only. Formulas are provided under practitioner guidance after pattern diagnosis and are not sold directly to the public.
+                   </p>
                 </div>
              </div>
           </div>
@@ -262,6 +271,9 @@ export default function Home() {
             <h2 className="text-4xl font-serif text-primary mb-6">Plans & Pricing</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Choose the level of guidance that fits your journey.
+            </p>
+            <p className="text-sm text-emerald-700 mt-4 bg-emerald-50 px-4 py-2 rounded-full inline-block border border-emerald-100">
+              HSA/FSA Eligible
             </p>
           </div>
           
@@ -350,6 +362,7 @@ export default function Home() {
                      { label: "Biomarkers", gp: "~20-40", fh: "100+", eh: "Broad", bt: "Varies", lrx: "160+" },
                      { label: "TCM Diagnostics", gp: false, fh: false, eh: false, bt: true, lrx: true },
                      { label: "Interpretation", gp: "Basic", fh: "Labs Only", eh: "Medical", bt: "TCM Only", lrx: "Integrated" },
+                     { label: "Retesting Cadence", gp: "Annual", fh: "3-6 mo", eh: "Varies", bt: "Varies", lrx: "6 mo" },
                      { label: "Botanical Fulfillment", gp: false, fh: false, eh: false, bt: true, lrx: "Premium" },
                      { label: "Scalable Platform", gp: true, fh: true, eh: true, bt: false, lrx: true },
                    ].map((row, i) => (
@@ -397,21 +410,21 @@ export default function Home() {
               {
                 name: "Sarah Jenkins",
                 location: "Portland, OR",
-                quote: "I finally understand why I was feeling tired all the time. The lab tests showed low iron, but the TCM diagnosis explained the root cause was Spleen Qi Deficiency.",
+                quote: "The lab tests showed low iron, but LifeRX's pattern diagnosis revealed Spleen Qi Deficiency as the root cause. The Si Wu Tang formula they prescribed addressed both—my ferritin is up and my energy is back.",
                 stars: 5,
                 initial: "S"
               },
               {
                 name: "Michael Chen",
                 location: "Austin, TX",
-                quote: "My eczema wouldn't clear up with creams. LifeRX identified a Damp-Heat pattern in my liver and adjusted my diet. 3 months later, my skin is completely clear.",
+                quote: "Creams didn't help my eczema. LifeRX identified a Damp-Heat pattern, confirmed by elevated liver enzymes. Their herbal protocol plus diet shifts cleared my skin in 3 months—and my labs improved too.",
                 stars: 5,
                 initial: "M"
               },
               {
                 name: "Elena Rodriguez",
                 location: "New York, NY",
-                quote: "High-stress job, high cortisol. The adaptogen protocol they designed wasn't just 'take this pill', it was a whole lifestyle shift. I feel grounded for the first time in years.",
+                quote: "High cortisol, Liver Qi stagnation, and a demanding job. LifeRX's pattern-first approach gave me a framework to understand my stress. The adaptogen protocol and lifestyle shifts finally made it manageable.",
                 stars: 5,
                 initial: "E"
               }
