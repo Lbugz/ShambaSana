@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { ArrowRight, Activity, Sprout, HeartPulse, ShieldCheck, Star, Check } from "lucide-react";
-import heroBg from "@assets/generated_images/botanical_leaf_with_data_overlay.png";
+import heroBg from "@assets/generated_images/minimalist_jade_stone_on_glass.png";
 import abstractImg from "@assets/generated_images/deep_jade_and_gold_abstract_flow_illustration.png";
 import precisionVialsImg from "@assets/generated_images/minimalist_precision_test_tubes_warm_light.png";
 import tcmImg from "@assets/generated_images/tcm_herbs_and_acupuncture_minimalist.png";
