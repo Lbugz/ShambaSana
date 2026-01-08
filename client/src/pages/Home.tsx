@@ -40,22 +40,23 @@ export default function Home() {
             </span>
             
             <h1 className="text-5xl md:text-7xl font-serif font-medium text-primary mb-8 leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-              Where Qi Moves, <br/>
-              <span className="italic text-emerald-700/80">Healing Follows.</span>
+              Your Body Speaks <br/>
+              <span className="italic text-emerald-700/80">in Patterns.</span>
             </h1>
             
-            <div className="flex flex-col gap-2 mb-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-               <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl leading-relaxed font-light">
-                 The New Operating System for Your Health:
-               </p>
-               <p className="font-serif text-lg md:text-xl text-primary font-medium tracking-wide">
-                 Labs → Patterns → Guidance → Monitoring
-               </p>
-            </div>
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mb-6 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 font-light">
+              We help you understand them.
+            </p>
             
             <p className="text-lg text-muted-foreground max-w-2xl mb-8 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 font-light border-l-2 border-emerald-500/30 pl-4">
-              We test 160+ clinical biomarkers across 20 body systems—hormones, nutrients, cardiometabolic health and toxins—to give you the most complete picture possible.
+              Traditional Chinese Medicine pattern intelligence, validated by 160+ modern biomarkers. We translate your unique constellation of symptoms into actionable insights—then prove them with comprehensive lab data and longitudinal tracking.
             </p>
+            
+            <div className="flex items-center gap-2 mb-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+               <p className="font-serif text-base md:text-lg text-primary/70 font-medium tracking-wide">
+                 Patterns → Labs → Guidance → Monitoring
+               </p>
+            </div>
 
             <div className="group relative flex items-center gap-3 mb-10 text-emerald-800 bg-emerald-50/50 w-fit px-4 py-2 rounded-full border border-emerald-100 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 cursor-help">
                <span className="font-semibold text-sm tracking-wide">MEMBERSHIP STARTS AT $499/YEAR *</span>
@@ -85,20 +86,21 @@ export default function Home() {
       <section className="py-24 relative">
         <div className="container mx-auto px-6">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-serif text-primary mb-6">A Complete Picture of You</h2>
+            <h2 className="text-4xl md:text-5xl font-serif text-primary mb-6">Pattern Intelligence First</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Western diagnostics tell you "what". Eastern medicine tells you "why". We give you both in one unified protocol.
+              Eastern medicine tells you "why". Western diagnostics confirm and refine. We give you both in one unified protocol.
             </p>
           </div>
 
+          {/* TCM PATTERN INTELLIGENCE - NOW FIRST */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center mb-32">
              <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-900/10 aspect-[5/6] md:aspect-[4/3] group card-hover border border-white/50">
-                <img src={precisionVialsImg} alt="Lab Testing" className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" />
+                <img src={tcmImg} alt="TCM Pattern Intelligence" className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-6 md:p-10">
                   <div className="text-white">
-                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-2 md:mb-3 border border-white/30">Western Science</div>
-                    <h3 className="text-2xl md:text-3xl font-serif mb-2 md:mb-3">Comprehensive Diagnostics</h3>
-                    <p className="text-white/90 leading-relaxed font-light text-sm md:text-base">160+ biomarkers across 20 body systems. We re-test every 6 months to track improvements, with an 80+ biomarker panel at the mid-year mark.</p>
+                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-2 md:mb-3 border border-white/30">Pattern Intelligence</div>
+                    <h3 className="text-2xl md:text-3xl font-serif mb-2 md:mb-3">Your Body's Language</h3>
+                    <p className="text-white/90 leading-relaxed font-light text-sm md:text-base">We decode patterns like Qi stagnation, Blood deficiency, or Yin/Yang imbalance—using 2,000 years of clinical observation as our foundation.</p>
                   </div>
                 </div>
              </div>
@@ -106,46 +108,20 @@ export default function Home() {
              <div className="space-y-10 lg:pl-4">
                 <div className="flex gap-6 group">
                   <div className="w-16 h-16 rounded-2xl bg-white shadow-lg shadow-emerald-900/5 border border-emerald-900/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <Activity className="text-emerald-700 h-8 w-8" />
-                  </div>
-                  <div>
-                    <h4 className="text-2xl font-serif text-primary mb-3">Data-Driven Precision</h4>
-                    <p className="text-muted-foreground leading-relaxed text-lg">Establish a baseline with clinical accuracy. Identify deficiencies and risks before they become chronic issues using advanced diagnostic markers.</p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-6 group">
-                  <div className="w-16 h-16 rounded-2xl bg-white shadow-lg shadow-emerald-900/5 border border-emerald-900/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <ShieldCheck className="text-emerald-700 h-8 w-8" />
-                  </div>
-                  <div>
-                    <h4 className="text-2xl font-serif text-primary mb-3">Proactive Monitoring</h4>
-                    <p className="text-muted-foreground leading-relaxed text-lg">Retest every 6 months to track improvements and adjust your protocol based on real data, not guesswork.</p>
-                  </div>
-                </div>
-             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center">
-             <div className="order-2 md:order-1 space-y-10 lg:pr-4">
-                <div className="flex gap-6 group">
-                  <div className="w-16 h-16 rounded-2xl bg-white shadow-lg shadow-emerald-900/5 border border-emerald-900/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
                     <Sprout className="text-[hsl(2,35%,54%)] h-8 w-8" />
                   </div>
                   <div>
-                    <h4 className="text-2xl font-serif text-primary mb-3">TCM Pattern Diagnosis</h4>
+                    <h4 className="text-2xl font-serif text-primary mb-3">TCM Assessment Stack</h4>
                     <p className="text-muted-foreground leading-relaxed text-lg">
-                      We layer Traditional Chinese Medicine assessments on top of your labs:
+                      Our pattern diagnostics include:
                     </p>
                     <ul className="list-disc list-inside mt-2 text-muted-foreground text-base space-y-1 ml-1">
-                      <li>Tongue Analysis (Organ health)</li>
-                      <li>Pulse Intake (Energy flow)</li>
+                      <li>Tongue Photo Analysis</li>
+                      <li>Pulse Intake Assessment</li>
                       <li>Symptom Pattern Mapping</li>
                       <li>Constitutional Typing</li>
+                      <li>Five-Element Stress Mapping</li>
                     </ul>
-                    <p className="text-sm text-emerald-700 mt-4 bg-emerald-50 p-2 rounded-lg inline-block border border-emerald-100">
-                      * WHO: ~80% of the world relies on traditional medicine.
-                    </p>
                   </div>
                 </div>
                 
@@ -154,19 +130,47 @@ export default function Home() {
                     <HeartPulse className="text-[hsl(2,35%,54%)] h-8 w-8" />
                   </div>
                   <div>
-                    <h4 className="text-2xl font-serif text-primary mb-3">Personalized Protocols</h4>
-                    <p className="text-muted-foreground leading-relaxed text-lg">Receive custom herbal formulas, dietary guidance, and lifestyle adjustments tailored to your unique constitution and current season.</p>
+                    <h4 className="text-2xl font-serif text-primary mb-3">Meaning Behind Symptoms</h4>
+                    <p className="text-muted-foreground leading-relaxed text-lg">Your fatigue isn't just "low energy"—it may be Spleen Qi deficiency. Your anxiety isn't just stress—it may be Liver Qi stagnation. We give you the framework to understand <em>why</em>.</p>
+                    <p className="text-sm text-emerald-700 mt-4 bg-emerald-50 p-2 rounded-lg inline-block border border-emerald-100">
+                      * WHO: ~80% of the world relies on traditional medicine.
+                    </p>
+                  </div>
+                </div>
+             </div>
+          </div>
+
+          {/* LAB VALIDATION - NOW SECOND */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center">
+             <div className="order-2 md:order-1 space-y-10 lg:pr-4">
+                <div className="flex gap-6 group">
+                  <div className="w-16 h-16 rounded-2xl bg-white shadow-lg shadow-emerald-900/5 border border-emerald-900/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    <Activity className="text-emerald-700 h-8 w-8" />
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-serif text-primary mb-3">Validated by Data</h4>
+                    <p className="text-muted-foreground leading-relaxed text-lg">160+ biomarkers across 20 body systems confirm or refine pattern hypotheses. Labs don't replace pattern intelligence—they validate it.</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-6 group">
+                  <div className="w-16 h-16 rounded-2xl bg-white shadow-lg shadow-emerald-900/5 border border-emerald-900/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    <ShieldCheck className="text-emerald-700 h-8 w-8" />
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-serif text-primary mb-3">Longitudinal Tracking</h4>
+                    <p className="text-muted-foreground leading-relaxed text-lg">Retest every 6 months (80+ biomarker mid-year panel) to track improvements. Watch your patterns shift as your protocols take effect.</p>
                   </div>
                 </div>
              </div>
              
              <div className="order-1 md:order-2 relative rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-900/10 aspect-[5/6] md:aspect-[4/3] group card-hover border border-white/50">
-                <img src={tcmImg} alt="TCM" className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" />
+                <img src={precisionVialsImg} alt="Lab Validation" className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" />
                  <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex items-end p-6 md:p-10">
                   <div className="text-white">
-                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-2 md:mb-3 border border-white/30">Eastern Wisdom</div>
-                    <h3 className="text-2xl md:text-3xl font-serif mb-2 md:mb-3">Ancient Roots</h3>
-                    <p className="text-white/90 leading-relaxed font-light text-sm md:text-base">Thousands of years of empirical evidence applied to your modern health challenges, restoring balance to your body's systems.</p>
+                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full inline-block text-sm font-medium mb-2 md:mb-3 border border-white/30">Validated by Data</div>
+                    <h3 className="text-2xl md:text-3xl font-serif mb-2 md:mb-3">160+ Biomarkers</h3>
+                    <p className="text-white/90 leading-relaxed font-light text-sm md:text-base">Comprehensive labs confirm pattern diagnoses. Hormones, nutrients, metabolic health, toxins—we leave nothing to guesswork.</p>
                   </div>
                 </div>
              </div>
