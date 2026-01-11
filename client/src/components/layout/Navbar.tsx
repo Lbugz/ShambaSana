@@ -19,7 +19,6 @@ export function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/#patterns", label: "Patterns" },
     { href: "/how-it-works", label: "How It Works" },
     { href: "/what-we-test", label: "What We Test" },
     { href: "/pricing", label: "Pricing" },
