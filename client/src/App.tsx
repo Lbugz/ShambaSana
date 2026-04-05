@@ -15,12 +15,13 @@ import Pricing from "@/pages/Pricing";
 import Dashboard from "@/pages/Dashboard";
 import Auth from "@/pages/Auth";
 import FormulaLibrary from "@/pages/FormulaLibrary";
+import TcmAssessment from "@/pages/TcmAssessment";
 
 function Router() {
   const [location] = useLocation();
 
   // Hide Navbar/Footer on Dashboard and Auth pages for immersive experience
-  const isAppRoute = location.startsWith("/dashboard") || location.startsWith("/auth") || location.startsWith("/formula-library");
+  const isAppRoute = location.startsWith("/dashboard") || location.startsWith("/auth") || location.startsWith("/formula-library") || location.startsWith("/tcm-assessment");
 
   return (
     <>
@@ -32,6 +33,7 @@ function Router() {
         <Route path="/pricing" component={Pricing} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/formula-library" component={FormulaLibrary} />
+        <Route path="/tcm-assessment" component={TcmAssessment} />
         <Route path="/auth" component={Auth} />
         <Route component={NotFound} />
       </Switch>

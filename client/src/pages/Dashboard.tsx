@@ -47,6 +47,11 @@ export default function Dashboard() {
           <Button variant="ghost" className="w-full justify-start text-muted-foreground h-12 hover:text-primary hover:bg-primary/5">
             <Wind className="mr-3 h-4 w-4" /> TCM Insights
           </Button>
+          <Link href="/tcm-assessment">
+            <Button variant="ghost" className="w-full justify-start text-muted-foreground h-12 hover:text-primary hover:bg-primary/5">
+              <BrainCircuit className="mr-3 h-4 w-4" /> Take Assessment
+            </Button>
+          </Link>
           <Button variant="ghost" className="w-full justify-start text-muted-foreground h-12 hover:text-primary hover:bg-primary/5">
             <Sparkles className="mr-3 h-4 w-4" /> My Protocol
           </Button>
