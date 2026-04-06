@@ -14,45 +14,67 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 
-const mockPatients = [
-  { id: 1, name: "John Doe", email: "john@example.com", status: "Active", lastActive: "2 hrs ago", alert: "Review TCM Assessment" },
-  { id: 2, name: "Sarah Smith", email: "sarah@example.com", status: "Active", lastActive: "1 day ago", alert: "New Lab Results" },
-  { id: 3, name: "Michael Chen", email: "michael@example.com", status: "Onboarding", lastActive: "3 days ago", alert: "" },
-  { id: 4, name: "Emma Wilson", email: "emma@example.com", status: "Active", lastActive: "5 hrs ago", alert: "Protocol Update Required" },
-];
-
-const recentAssessments = [
-  { id: 101, patient: "John Doe", date: "Today, 10:30 AM", type: "Constitutional Intake", status: "Pending Review", primary: "Earth", secondary: "Wood", pattern: "Spleen Qi Deficiency" },
-  { id: 102, patient: "Lisa Rodriguez", date: "Yesterday", type: "Follow-up Assessment", status: "Reviewed", primary: "Water", secondary: "Metal", pattern: "Kidney Jing Depletion" },
-  { id: 103, patient: "Robert Kim", date: "Oct 12, 2026", type: "Constitutional Intake", status: "Pending Review", primary: "Fire", secondary: "Earth", pattern: "Heart Shen Disturbance" },
-];
-
 export default function AdminDashboard() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
   const { toast } = useToast();
 
-  const [assessments, setAssessments] = useState(() => {
-    try {
-      const saved = localStorage.getItem('mockAssessments');
-      if (saved) {
-        return [...JSON.parse(saved), ...recentAssessments];
-      }
-    } catch(e) {}
-    return recentAssessments;
-  });
+  const [patients, setPatients] = useState<any[]>([]);
 
-  // Listen for changes from other tabs or local storage updates
+  useEffect(() => {
+    const loadPatients = () => {
+      try {
+        const savedAssessments = localStorage.getItem('mockAssessments');
+        if (savedAssessments) {
+          const parsed = JSON.parse(savedAssessments);
+          // Convert assessments to unique patients
+          const uniquePatients = parsed.map((a: any, idx: number) => ({
+            id: a.id || idx,
+            name: a.patient,
+            email: a.patient.toLowerCase().replace(' ', '.') + '@example.com',
+            status: a.status === "Pending Review" ? "Onboarding" : "Active",
+            lastActive: a.date,
+            alert: a.status === "Pending Review" ? "Review TCM Assessment" : ""
+          }));
+          
+          // Use unique patients or fallback to empty array
+          setPatients(uniquePatients);
+        } else {
+          setPatients([]);
+        }
+      } catch (e) {
+        setPatients([]);
+      }
+    };
+
+    loadPatients();
+    window.addEventListener('storage', loadPatients);
+    const interval = setInterval(loadPatients, 2000);
+
+    return () => {
+      window.removeEventListener('storage', loadPatients);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Load any mock submissions from local storage on mount
   useEffect(() => {
     const checkStorage = () => {
       try {
         const saved = localStorage.getItem('mockAssessments');
         if (saved) {
-          setAssessments([...JSON.parse(saved), ...recentAssessments]);
+          setAssessments(JSON.parse(saved));
+        } else {
+          setAssessments([]); // If nothing saved, show empty state instead of mock data
         }
-      } catch(e) {}
+      } catch(e) {
+        setAssessments([]);
+      }
     };
+
+    // Run once on mount
+    checkStorage();
 
     window.addEventListener('storage', checkStorage);
     // Also poll every 2 seconds just in case the storage event doesn't fire in the iframe environment
@@ -172,7 +194,7 @@ export default function AdminDashboard() {
             
             <div>
               <h1 className="text-3xl font-serif font-bold text-primary mb-2">Good morning, Dr. Chen</h1>
-              <p className="text-muted-foreground">You have <span className="font-bold text-foreground">2 patient assessments</span> pending your clinical review.</p>
+              <p className="text-muted-foreground">You have <span className="font-bold text-foreground">{assessments.filter(a => a.status === 'Pending Review').length} patient assessments</span> pending your clinical review.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -181,8 +203,8 @@ export default function AdminDashboard() {
                   <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-2 flex items-center gap-2">
                      <Users className="w-4 h-4 text-emerald-600" /> Active Patients
                   </p>
-                  <div className="text-4xl font-serif font-bold text-primary">124</div>
-                  <p className="text-sm text-emerald-600 font-medium mt-2 bg-emerald-50 w-fit px-2 py-0.5 rounded-md">+12 this month</p>
+                  <div className="text-4xl font-serif font-bold text-primary">{patients.length}</div>
+                  <p className="text-sm text-emerald-600 font-medium mt-2 bg-emerald-50 w-fit px-2 py-0.5 rounded-md">+{patients.length} this month</p>
                 </CardContent>
               </Card>
               <Card className="rounded-3xl border-border shadow-sm bg-white hover:shadow-md transition-shadow">
@@ -190,7 +212,7 @@ export default function AdminDashboard() {
                   <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-2 flex items-center gap-2">
                      <FileText className="w-4 h-4 text-rose-500" /> Pending Review
                   </p>
-                  <div className="text-4xl font-serif font-bold text-rose-500">2</div>
+                  <div className="text-4xl font-serif font-bold text-rose-500">{assessments.filter(a => a.status === 'Pending Review').length}</div>
                   <p className="text-sm text-muted-foreground mt-2">Requires practitioner output</p>
                 </CardContent>
               </Card>
@@ -234,7 +256,15 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="divide-y divide-border/50">
-                    {assessments.map((assessment) => (
+                    {assessments.length === 0 ? (
+                      <div className="p-8 text-center text-muted-foreground flex flex-col items-center">
+                        <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                          <FileText className="w-6 h-6 text-muted-foreground/50" />
+                        </div>
+                        <p className="font-medium">No pending assessments</p>
+                        <p className="text-sm">Share the assessment link to get started</p>
+                      </div>
+                    ) : assessments.map((assessment) => (
                       <div key={assessment.id} className="p-6 hover:bg-muted/20 transition-colors flex flex-col sm:flex-row gap-4 sm:items-center justify-between group">
                         <div className="flex items-start gap-4">
                           <div className="w-12 h-12 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center text-primary shrink-0 mt-1">
@@ -282,7 +312,14 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent className="p-0 flex-1 flex flex-col">
                   <div className="divide-y divide-border/50 flex-1">
-                    {mockPatients.map((patient) => (
+                    {patients.length === 0 ? (
+                      <div className="p-8 text-center text-muted-foreground flex flex-col items-center">
+                        <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                          <Users className="w-6 h-6 text-muted-foreground/50" />
+                        </div>
+                        <p className="font-medium">No active patients</p>
+                      </div>
+                    ) : patients.map((patient) => (
                       <div key={patient.id} className="p-4 hover:bg-muted/30 transition-colors flex items-center justify-between group cursor-pointer">
                         <div className="flex items-center gap-3">
                            <Avatar className="h-10 w-10 border border-border shadow-sm">
