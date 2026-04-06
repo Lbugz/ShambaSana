@@ -16,15 +16,29 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     
-    // Mock Auth
+    const email = (document.getElementById('email') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+
     setTimeout(() => {
       setLoading(false);
-      toast({
-        title: "Access Granted",
-        description: "Welcome to the Clinical Portal.",
-      });
-      setLocation("/admin/dashboard");
-    }, 1000);
+      
+      if (
+        (email === 'langa@createsafe.io' && password === 'admin123') ||
+        (email === 'dumisanis@gmail.com' && password === 'admin123')
+      ) {
+        toast({
+          title: "Access Granted",
+          description: "Welcome to the Clinical Portal.",
+        });
+        setLocation("/admin/dashboard");
+      } else {
+        toast({
+          title: "Access Denied",
+          description: "Invalid credentials.",
+          variant: "destructive"
+        });
+      }
+    }, 800);
   };
 
   return (

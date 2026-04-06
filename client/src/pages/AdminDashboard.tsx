@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Separator } from "@/components/ui/separator";
 import { 
   Users, Activity, BrainCircuit, Search, Bell, Settings, 
-  ChevronRight, FileText, Filter, Menu, UserCircle, Beaker, LogOut, CheckCircle2
+  ChevronRight, FileText, Filter, Menu, UserCircle, Beaker, LogOut, CheckCircle2, Share2
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,18 @@ export default function AdminDashboard() {
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
   const { toast } = useToast();
+
+  const [assessments, setAssessments] = useState(recentAssessments);
+
+  // Load any mock submissions from local storage on mount
+  useState(() => {
+    try {
+      const saved = localStorage.getItem('mockAssessments');
+      if (saved) {
+        setAssessments(prev => [...JSON.parse(saved), ...prev]);
+      }
+    } catch(e) {}
+  });
 
   const handleReviewClick = (assessment: any) => {
     setSelectedAssessment(assessment);
@@ -183,11 +195,27 @@ export default function AdminDashboard() {
                     <CardTitle className="text-xl font-serif text-primary">Assessment Review Queue</CardTitle>
                     <CardDescription className="mt-1">Recently submitted TCM assessments</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" className="rounded-full shadow-sm">View All</Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-full shadow-sm text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/tcm-assessment?public=true`);
+                        toast({
+                          title: "Link Copied",
+                          description: "Public assessment link copied to clipboard. Ready to paste in SMS/Email.",
+                        });
+                      }}
+                    >
+                      <Share2 className="w-4 h-4 mr-2" /> Generate Link
+                    </Button>
+                    <Button variant="outline" size="sm" className="rounded-full shadow-sm">View All</Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="divide-y divide-border/50">
-                    {recentAssessments.map((assessment) => (
+                    {assessments.map((assessment) => (
                       <div key={assessment.id} className="p-6 hover:bg-muted/20 transition-colors flex flex-col sm:flex-row gap-4 sm:items-center justify-between group">
                         <div className="flex items-start gap-4">
                           <div className="w-12 h-12 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center text-primary shrink-0 mt-1">

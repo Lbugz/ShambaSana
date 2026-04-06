@@ -229,7 +229,7 @@ export default function TcmAssessment() {
   }, [answers, lifePhase]);
 
   const selectedSymptoms = symptomQuestions.filter((q) => answers[q.id]).map((q) => q.id);
-  const { primary } = getTopTwo(scores);
+  const { primary, secondary } = getTopTwo(scores);
   const pattern = inferPattern(scores, selectedSymptoms);
 
   function toggle(id: string) {
@@ -261,6 +261,21 @@ export default function TcmAssessment() {
 
   function goNext() {
     if (step === steps.length - 1) {
+      if (isPublicLink && vitals.name) {
+        const newAssessment = {
+          id: Date.now(),
+          patient: vitals.name,
+          date: "Just now",
+          type: "Constitutional Intake",
+          status: "Pending Review",
+          primary: primary,
+          secondary: secondary,
+          pattern: pattern
+        };
+        const existing = JSON.parse(localStorage.getItem('mockAssessments') || '[]');
+        localStorage.setItem('mockAssessments', JSON.stringify([newAssessment, ...existing]));
+      }
+
       toast({
         title: "Assessment Submitted",
         description: "Your profile is securely saved.",
