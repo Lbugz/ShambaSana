@@ -242,7 +242,7 @@ export default function TcmAssessment() {
 
   function handleShareLink() {
     // Generate a mock public link
-    const shareLink = `${window.location.origin}/tcm-assessment?public=true`;
+    const shareLink = `https://${window.location.host}/tcm-assessment?public=true`;
     
     if (navigator.share && isMobile) {
       navigator.share({
