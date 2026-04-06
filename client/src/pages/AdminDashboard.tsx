@@ -20,6 +20,7 @@ export default function AdminDashboard() {
   const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
   const { toast } = useToast();
 
+  const [assessments, setAssessments] = useState<any[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
 
   useEffect(() => {
