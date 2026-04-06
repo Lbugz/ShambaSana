@@ -5,11 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { 
   Users, Activity, BrainCircuit, Search, Bell, Settings, 
-  ChevronRight, FileText, Filter, Menu, UserCircle, Beaker, LogOut
+  ChevronRight, FileText, Filter, Menu, UserCircle, Beaker, LogOut, CheckCircle2
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useToast } from "@/hooks/use-toast";
 
 const mockPatients = [
   { id: 1, name: "John Doe", email: "john@example.com", status: "Active", lastActive: "2 hrs ago", alert: "Review TCM Assessment" },
@@ -26,6 +29,22 @@ const recentAssessments = [
 
 export default function AdminDashboard() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
+  const { toast } = useToast();
+
+  const handleReviewClick = (assessment: any) => {
+    setSelectedAssessment(assessment);
+    setReviewModalOpen(true);
+  };
+
+  const handleApproveReport = () => {
+    setReviewModalOpen(false);
+    toast({
+      title: "Report Approved",
+      description: `Assessment for ${selectedAssessment?.patient} has been finalized.`,
+    });
+  };
 
   const SidebarContent = () => (
     <>
@@ -189,7 +208,11 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                         </div>
-                        <Button className="shrink-0 rounded-full shadow-md" variant={assessment.status === "Pending Review" ? "default" : "secondary"}>
+                        <Button 
+                          className="shrink-0 rounded-full shadow-md" 
+                          variant={assessment.status === "Pending Review" ? "default" : "secondary"}
+                          onClick={() => handleReviewClick(assessment)}
+                        >
                           {assessment.status === "Pending Review" ? "Review Output" : "View Details"}
                         </Button>
                       </div>
@@ -241,6 +264,75 @@ export default function AdminDashboard() {
 
           </div>
         </div>
+
+        {/* Assessment Review Modal */}
+        <Dialog open={reviewModalOpen} onOpenChange={setReviewModalOpen}>
+          <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-white/95 backdrop-blur-xl border-border">
+            {selectedAssessment && (
+              <>
+                <DialogHeader className="p-6 border-b border-border/50 bg-primary/5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Badge variant={selectedAssessment.status === "Pending Review" ? "destructive" : "outline"} className="uppercase tracking-wider">
+                      {selectedAssessment.status}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground font-medium">{selectedAssessment.date}</span>
+                  </div>
+                  <DialogTitle className="text-2xl font-serif text-primary">
+                    Assessment Review: {selectedAssessment.patient}
+                  </DialogTitle>
+                  <DialogDescription className="text-base text-foreground/80">
+                    {selectedAssessment.type} • System generated pattern impression
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white border border-border p-4 rounded-2xl shadow-sm">
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Primary Element</p>
+                      <p className="text-xl font-serif font-bold text-primary">{selectedAssessment.primary}</p>
+                    </div>
+                    <div className="bg-white border border-border p-4 rounded-2xl shadow-sm">
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Secondary Element</p>
+                      <p className="text-xl font-serif font-bold text-primary">{selectedAssessment.secondary}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-[hsl(35,50%,95%)] border border-[hsl(35,50%,90%)] p-6 rounded-2xl">
+                    <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2 flex items-center gap-2">
+                      <BrainCircuit className="w-4 h-4" /> AI Pattern Impression
+                    </p>
+                    <h3 className="text-2xl font-bold text-primary mb-2">{selectedAssessment.pattern}</h3>
+                    <p className="text-foreground/80">
+                      Based on the intake responses, {selectedAssessment.patient}'s system is primarily leaning towards {selectedAssessment.primary}. 
+                      The specific symptom cluster strongly indicates {selectedAssessment.pattern.toLowerCase()}.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-foreground">Practitioner Clinical Notes</h4>
+                    <textarea 
+                      className="w-full min-h-[100px] p-4 rounded-xl border border-border/50 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none text-sm"
+                      placeholder="Add your clinical observations, tongue/pulse notes, or adjustments to the generated pattern here before approving the report for the patient..."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <DialogFooter className="p-6 border-t border-border/50 bg-muted/20 sm:justify-between items-center">
+                  <Button variant="ghost" className="text-muted-foreground hover:text-primary">
+                    Request Follow-up Info
+                  </Button>
+                  <div className="flex gap-3">
+                    <Button variant="outline" onClick={() => setReviewModalOpen(false)}>Cancel</Button>
+                    <Button onClick={handleApproveReport} className="shadow-md">
+                      <CheckCircle2 className="w-4 h-4 mr-2" /> Approve & Generate Report
+                    </Button>
+                  </div>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
       </main>
     </div>
   );
