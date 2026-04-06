@@ -221,7 +221,7 @@ export default function AdminDashboard() {
                            <div>
                              <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{patient.name}</h4>
                              <p className={`text-xs truncate max-w-[140px] font-medium ${patient.alert ? 'text-rose-500' : 'text-muted-foreground'}`}>
-                               {patient.alert || \`Last active: \${patient.lastActive}\`}
+                               {patient.alert || `Last active: ${patient.lastActive}`}
                              </p>
                            </div>
                         </div>

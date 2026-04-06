@@ -35,33 +35,31 @@ export function Navbar() {
     >
       <div className="container mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/">
-          <a className="text-2xl font-serif font-bold text-primary tracking-tight flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <div className="w-4 h-4 rounded-full bg-primary" />
-            </div>
-            LifeRX
-          </a>
+        <Link href="/" className="text-2xl font-serif font-bold text-primary tracking-tight flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="w-4 h-4 rounded-full bg-primary" />
+          </div>
+          LifeRX
         </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-10">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href}>
-              <a
-                className={cn(
-                  "text-base font-medium transition-all hover:text-primary relative group",
-                  location === link.href
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                )}
-              >
-                {link.label}
-                <span className={cn(
-                  "absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full",
-                  location === link.href ? "w-full" : ""
-                )} />
-              </a>
+            <Link 
+              key={link.href} 
+              href={link.href}
+              className={cn(
+                "text-base font-medium transition-all hover:text-primary relative group",
+                location === link.href
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              )}
+            >
+              {link.label}
+              <span className={cn(
+                "absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full",
+                location === link.href ? "w-full" : ""
+              )} />
             </Link>
           ))}
         </div>
@@ -91,13 +89,13 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-20 left-0 w-full bg-background/95 backdrop-blur-xl border-b border-border p-6 flex flex-col gap-6 animate-in slide-in-from-top-5 shadow-xl">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href}>
-              <a
-                className="block text-xl font-serif font-medium py-2 text-foreground hover:text-primary transition-colors border-b border-border/50 pb-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </a>
+            <Link 
+              key={link.href} 
+              href={link.href}
+              className="block text-xl font-serif font-medium py-2 text-foreground hover:text-primary transition-colors border-b border-border/50 pb-4"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {link.label}
             </Link>
           ))}
           <div className="flex flex-col gap-3 mt-2">

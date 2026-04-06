@@ -74,10 +74,8 @@ export default function Auth() {
         <CardFooter className="flex flex-col gap-4 text-center">
           <div className="text-sm text-muted-foreground">
             {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-            <Link href={isSignup ? "/auth" : "/auth?signup=true"}>
-              <a className="text-primary font-medium hover:underline">
-                {isSignup ? "Sign in" : "Sign up"}
-              </a>
+            <Link href={isSignup ? "/auth" : "/auth?signup=true"} className="text-primary font-medium hover:underline">
+              {isSignup ? "Sign in" : "Sign up"}
             </Link>
           </div>
         </CardFooter>
