@@ -19,9 +19,10 @@ export function Footer() {
             <h4 className="font-semibold mb-4 text-primary">Company</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/about">About Us</Link></li>
-              <li><Link href="/why-we-fulfill">Why We Fulfill (And Why Others Don't)</Link></li>
+              <li><Link href="/why-we-fulfill">Why We Fulfill</Link></li>
               <li><Link href="/careers">Careers</Link></li>
               <li><Link href="/contact">Contact</Link></li>
+              <li><Link href="/admin" className="text-emerald-700/70 hover:text-emerald-700">Practitioner Portal</Link></li>
             </ul>
           </div>
 
