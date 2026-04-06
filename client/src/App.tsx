@@ -4,6 +4,14 @@ import { queryClient } from "./lib/queryClient";
 
 // Custom hash location hook to support static deployment environments
 const currentHashLocation = () => {
+  // If we arrived via a path (e.g. /tcm-assessment) due to a 404 fallback,
+  // we should redirect to the hash version to fix the URL.
+  if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+    const pathAndSearch = window.location.pathname + window.location.search;
+    window.history.replaceState(null, '', '/#' + pathAndSearch);
+    return window.location.pathname;
+  }
+
   const hash = window.location.hash.replace(/^#/, "");
   return hash.split("?")[0] || "/";
 };

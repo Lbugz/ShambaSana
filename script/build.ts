@@ -1,6 +1,7 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, copyFile } from "fs/promises";
+import path from "path";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -37,6 +38,17 @@ async function buildAll() {
 
   console.log("building client...");
   await viteBuild();
+
+  // Create a 404.html that is a copy of index.html for static hosting fallback
+  console.log("creating 404.html fallback for static routing...");
+  try {
+    await copyFile(
+      path.join(process.cwd(), "dist/public/index.html"),
+      path.join(process.cwd(), "dist/public/404.html")
+    );
+  } catch (e) {
+    console.error("Could not create 404.html:", e);
+  }
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
