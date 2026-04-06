@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -33,17 +33,36 @@ export default function AdminDashboard() {
   const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
   const { toast } = useToast();
 
-  const [assessments, setAssessments] = useState(recentAssessments);
-
-  // Load any mock submissions from local storage on mount
-  useState(() => {
+  const [assessments, setAssessments] = useState(() => {
     try {
       const saved = localStorage.getItem('mockAssessments');
       if (saved) {
-        setAssessments(prev => [...JSON.parse(saved), ...prev]);
+        return [...JSON.parse(saved), ...recentAssessments];
       }
     } catch(e) {}
+    return recentAssessments;
   });
+
+  // Listen for changes from other tabs or local storage updates
+  useEffect(() => {
+    const checkStorage = () => {
+      try {
+        const saved = localStorage.getItem('mockAssessments');
+        if (saved) {
+          setAssessments([...JSON.parse(saved), ...recentAssessments]);
+        }
+      } catch(e) {}
+    };
+
+    window.addEventListener('storage', checkStorage);
+    // Also poll every 2 seconds just in case the storage event doesn't fire in the iframe environment
+    const interval = setInterval(checkStorage, 2000);
+
+    return () => {
+      window.removeEventListener('storage', checkStorage);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleReviewClick = (assessment: any) => {
     setSelectedAssessment(assessment);

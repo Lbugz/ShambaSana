@@ -261,20 +261,18 @@ export default function TcmAssessment() {
 
   function goNext() {
     if (step === steps.length - 1) {
-      if (isPublicLink && vitals.name) {
-        const newAssessment = {
-          id: Date.now(),
-          patient: vitals.name,
-          date: "Just now",
-          type: "Constitutional Intake",
-          status: "Pending Review",
-          primary: primary,
-          secondary: secondary,
-          pattern: pattern
-        };
-        const existing = JSON.parse(localStorage.getItem('mockAssessments') || '[]');
-        localStorage.setItem('mockAssessments', JSON.stringify([newAssessment, ...existing]));
-      }
+      const newAssessment = {
+        id: Date.now(),
+        patient: vitals.name || "Guest Patient",
+        date: "Just now",
+        type: "Constitutional Intake",
+        status: "Pending Review",
+        primary: primary,
+        secondary: secondary,
+        pattern: pattern
+      };
+      const existing = JSON.parse(localStorage.getItem('mockAssessments') || '[]');
+      localStorage.setItem('mockAssessments', JSON.stringify([newAssessment, ...existing]));
 
       toast({
         title: "Assessment Submitted",
