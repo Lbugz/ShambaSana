@@ -243,7 +243,7 @@ export default function AdminDashboard() {
                       size="sm" 
                       className="rounded-full shadow-sm text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
                       onClick={() => {
-                        navigator.clipboard.writeText(`https://${window.location.host}/tcm-assessment?public=true`);
+                        navigator.clipboard.writeText(`${window.location.origin}/#/tcm-assessment?public=true`);
                         toast({
                           title: "Link Copied",
                           description: "Public assessment link copied to clipboard. Ready to paste in SMS/Email.",

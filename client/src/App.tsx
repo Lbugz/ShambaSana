@@ -1,5 +1,32 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Router as WouterRouter } from "wouter";
+import { useState, useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
+
+// Custom hash location hook to support static deployment environments
+const currentHashLocation = () => {
+  const hash = window.location.hash.replace(/^#/, "");
+  return hash.split("?")[0] || "/";
+};
+
+const hashNavigate = (to: string) => {
+  window.location.hash = to;
+};
+
+const useHashLocation = () => {
+  const [loc, setLoc] = useState(currentHashLocation());
+
+  useEffect(() => {
+    const handler = () => setLoc(currentHashLocation());
+    window.addEventListener("hashchange", handler);
+    window.addEventListener("popstate", handler);
+    return () => {
+      window.removeEventListener("hashchange", handler);
+      window.removeEventListener("popstate", handler);
+    };
+  }, []);
+
+  return [loc, hashNavigate] as const;
+};
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -50,8 +77,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <WouterRouter hook={useHashLocation}>
+          <Toaster />
+          <Router />
+        </WouterRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
