@@ -16,12 +16,14 @@ import Dashboard from "@/pages/Dashboard";
 import Auth from "@/pages/Auth";
 import FormulaLibrary from "@/pages/FormulaLibrary";
 import TcmAssessment from "@/pages/TcmAssessment";
+import AdminLogin from "@/pages/AdminLogin";
+import AdminDashboard from "@/pages/AdminDashboard";
 
 function Router() {
   const [location] = useLocation();
 
   // Hide Navbar/Footer on Dashboard and Auth pages for immersive experience
-  const isAppRoute = location.startsWith("/dashboard") || location.startsWith("/auth") || location.startsWith("/formula-library") || location.startsWith("/tcm-assessment");
+  const isAppRoute = location.startsWith("/dashboard") || location.startsWith("/auth") || location.startsWith("/formula-library") || location.startsWith("/tcm-assessment") || location.startsWith("/admin");
 
   return (
     <>
@@ -35,6 +37,8 @@ function Router() {
         <Route path="/formula-library" component={FormulaLibrary} />
         <Route path="/tcm-assessment" component={TcmAssessment} />
         <Route path="/auth" component={Auth} />
+        <Route path="/admin" component={AdminLogin} />
+        <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>
       {!isAppRoute && <Footer />}
