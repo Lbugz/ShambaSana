@@ -189,6 +189,7 @@ export default function TcmAssessment() {
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [lifePhase, setLifePhase] = useState("phase_depleted");
   const [sliders, setSliders] = useState({ pain: 0, energy: 5, sleep: 5, stress: 5 });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   // Expanded vitals to include identity for public link cases
   const [vitals, setVitals] = useState({ name: "", email: "", phone: "", age: "", gender: "", bp: "", hr: "", weight: "", height: "" });
   const [lifestyle, setLifestyle] = useState({ diet: "", movement: "", balance: "" });
@@ -257,6 +258,26 @@ export default function TcmAssessment() {
         description: "Public assessment link copied to clipboard. Ready to paste in SMS/Email.",
       });
     }
+  }
+
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 10MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImagePreview(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
   }
 
   function goNext() {
@@ -614,33 +635,49 @@ export default function TcmAssessment() {
                           <br /><br /><strong>Instructions:</strong> Find good lighting (natural daylight is best). Stick your tongue out naturally without straining or pointing it, and hold still for the photo.
                         </p>
 
-                        {/* Photo Upload Zone - Mobile Optimized */}
-                        <div className="grid sm:grid-cols-2 gap-4 pt-2">
-                          <div className="border-2 border-primary/20 bg-primary/5 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-primary/10 transition-colors group relative overflow-hidden shadow-sm">
-                             {/* capture="user" explicitly asks for the front-facing camera on mobile */}
-                             <input type="file" accept="image/*" capture="user" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-primary shadow-sm mb-4 group-hover:scale-110 transition-transform">
-                               <Camera className="w-8 h-8" />
-                             </div>
-                             <h5 className="font-bold text-primary text-lg mb-1">Take a Photo</h5>
-                             <p className="text-sm text-muted-foreground font-medium">Use your phone's camera right now.</p>
+                        {imagePreview ? (
+                          <div className="space-y-4">
+                            <div className="relative rounded-2xl overflow-hidden border border-border aspect-[4/3] bg-slate-50 flex items-center justify-center">
+                              <img src={imagePreview} alt="Tongue Preview" className="object-contain w-full h-full max-h-[300px]" />
+                            </div>
+                            <div className="flex gap-3 justify-center">
+                              <Button variant="outline" className="rounded-full" onClick={() => setImagePreview(null)}>
+                                Retake Photo
+                              </Button>
+                              <Button className="rounded-full px-8" onClick={goNext}>
+                                Looks Good, Continue
+                              </Button>
+                            </div>
                           </div>
+                        ) : (
+                          <div className="grid sm:grid-cols-2 gap-4 pt-2">
+                            <div className="border-2 border-primary/20 bg-primary/5 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-primary/10 transition-colors group relative overflow-hidden shadow-sm">
+                               <input type="file" accept="image/*" capture="environment" onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-primary shadow-sm mb-4 group-hover:scale-110 transition-transform">
+                                 <Camera className="w-8 h-8" />
+                               </div>
+                               <h5 className="font-bold text-primary text-lg mb-1">Take a Photo</h5>
+                               <p className="text-sm text-muted-foreground font-medium">Use your phone's camera right now.</p>
+                            </div>
 
-                          <div className="border-2 border-dashed border-slate-200 bg-slate-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100 transition-colors group relative overflow-hidden">
-                             <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-sm mb-4 group-hover:scale-110 transition-transform">
-                               <UploadCloud className="w-8 h-8" />
-                             </div>
-                             <h5 className="font-bold text-slate-700 text-lg mb-1">Upload File</h5>
-                             <p className="text-sm text-muted-foreground font-medium">Choose from your photo library.</p>
+                            <div className="border-2 border-dashed border-slate-200 bg-slate-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100 transition-colors group relative overflow-hidden">
+                               <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-sm mb-4 group-hover:scale-110 transition-transform">
+                                 <UploadCloud className="w-8 h-8" />
+                               </div>
+                               <h5 className="font-bold text-slate-700 text-lg mb-1">Upload File</h5>
+                               <p className="text-sm text-muted-foreground font-medium">Choose from your photo library.</p>
+                            </div>
                           </div>
-                        </div>
+                        )}
                         
-                        <div className="mt-2 pt-4 w-full flex justify-center">
-                          <span className="text-xs text-muted-foreground font-semibold">
-                            Secure upload • JPEG, PNG, HEIC up to 10MB
-                          </span>
-                        </div>
+                        {!imagePreview && (
+                          <div className="mt-2 pt-4 w-full flex justify-center">
+                            <span className="text-xs text-muted-foreground font-semibold">
+                              Secure upload • JPEG, PNG, HEIC up to 10MB
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
