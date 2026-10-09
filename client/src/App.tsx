@@ -61,6 +61,10 @@ import Policies from "@/pages/Policies";
 function Router() {
   const [location] = useLocation();
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [location]);
+
   // Hide Navbar/Footer on Dashboard and Auth pages for immersive experience
   const isAppRoute =
     location.startsWith("/dashboard") ||

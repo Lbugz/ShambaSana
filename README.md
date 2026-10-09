@@ -23,7 +23,9 @@ The integration suite covers authentication and role enforcement, ownership of p
 
 ## Replit deployment
 
-This app now requires a running Node server. `.replit` starts `npm run dev` in the workspace and builds/runs `npm run start` for an Autoscale deployment. Static hosting cannot run private care APIs or use server secrets.
+This app requires a running Node server. `.replit` starts `npm run dev` in the workspace. For publishing it selects Autoscale using Replit's `deploymentTarget = "cloudrun"`, builds with `npm run build`, and runs `npm run start`. Static hosting cannot run private care APIs or use server secrets.
+
+For an app previously published as Static, open **Publishing → Adjust settings** and select **Autoscale**. Confirm the build command is `npm run build`, the run command is `npm run start`, and the server port is 5000. Pull the latest Git changes before republishing. Verify the production database and the deployment secrets below are present in the published environment. Changing `.replit` alone may not change an existing publishing configuration. See [Replit deployment types](https://docs.replit.com/features/publishing/deployment-types) and [app configuration](https://docs.replit.com/features/project-setup/configuration).
 
 Configure these in Replit Secrets or its server environment, never in Git:
 
@@ -47,7 +49,7 @@ Create a Stripe webhook for `/api/stripe/webhook` with `checkout.session.complet
 
 The app creates its own `shamba_records` table and owner index on startup, without changing the original Drizzle `users` table. Back up the PostgreSQL database using the hosting provider's supported process. Uploaded documents are stored as private records and downloaded through authenticated case routes; there is no public uploads directory.
 
-After deployment, `/api/config` should return JSON and the homepage should say Shamba Sana. Sign in to `/#/admin` using the configured practitioner account. Confirm a synthetic customer journey before uploading real pilot records. The current public deployment was still the LifeRX version at the start of this implementation; local changes are not live until the updated code is deployed.
+After deployment, `/api/config` should return JSON, anonymous `/api/cases` should return a JSON 401, and the homepage should say Shamba Sana. HTML or a 404 page at `/api/config` indicates that the care server is not serving the published app. Sign in to `/#/admin` using the configured practitioner account. Confirm a synthetic customer journey before uploading real pilot records.
 
 ## Pilot journey
 
