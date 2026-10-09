@@ -1,424 +1,740 @@
-import { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Users, Activity, BrainCircuit, Search, Bell, Settings, 
-  ChevronRight, FileText, Filter, Menu, UserCircle, Beaker, LogOut, CheckCircle2, Share2
-} from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useToast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { CareLayout, ErrorMessage } from "@/components/CareLayout";
+import { ReportView } from "@/components/ReportView";
+import {
+  useAuth,
+  useCases,
+  useCase,
+  useCaseAction,
+  useCareConfig,
+} from "@/lib/care";
+import {
+  blankReport,
+  caseStatus,
+  reportFields,
+  type CareCase,
+  type Document,
+  type Extraction,
+  type Report,
+  type LabRow,
+} from "@shared/care";
 
 export default function AdminDashboard() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
-  const { toast } = useToast();
-
-  const [assessments, setAssessments] = useState<any[]>([]);
-  const [patients, setPatients] = useState<any[]>([]);
-
-  useEffect(() => {
-    const loadPatients = () => {
-      try {
-        const savedAssessments = localStorage.getItem('mockAssessments');
-        if (savedAssessments) {
-          const parsed = JSON.parse(savedAssessments);
-          // Convert assessments to unique patients
-          const uniquePatients = parsed.map((a: any, idx: number) => ({
-            id: a.id || idx,
-            name: a.patient,
-            email: a.patient.toLowerCase().replace(' ', '.') + '@example.com',
-            status: a.status === "Pending Review" ? "Onboarding" : "Active",
-            lastActive: a.date,
-            alert: a.status === "Pending Review" ? "Review TCM Assessment" : ""
-          }));
-          
-          // Use unique patients or fallback to empty array
-          setPatients(uniquePatients);
-        } else {
-          setPatients([]);
-        }
-      } catch (e) {
-        setPatients([]);
-      }
-    };
-
-    loadPatients();
-    window.addEventListener('storage', loadPatients);
-    const interval = setInterval(loadPatients, 2000);
-
-    return () => {
-      window.removeEventListener('storage', loadPatients);
-      clearInterval(interval);
-    };
-  }, []);
-
-  // Load any mock submissions from local storage on mount
-  useEffect(() => {
-    const checkStorage = () => {
-      try {
-        const saved = localStorage.getItem('mockAssessments');
-        if (saved) {
-          setAssessments(JSON.parse(saved));
-        } else {
-          setAssessments([]); // If nothing saved, show empty state instead of mock data
-        }
-      } catch(e) {
-        setAssessments([]);
-      }
-    };
-
-    // Run once on mount
-    checkStorage();
-
-    window.addEventListener('storage', checkStorage);
-    // Also poll every 2 seconds just in case the storage event doesn't fire in the iframe environment
-    const interval = setInterval(checkStorage, 2000);
-
-    return () => {
-      window.removeEventListener('storage', checkStorage);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const handleReviewClick = (assessment: any) => {
-    setSelectedAssessment(assessment);
-    setReviewModalOpen(true);
-  };
-
-  const handleApproveReport = () => {
-    setReviewModalOpen(false);
-    toast({
-      title: "Report Approved",
-      description: `Assessment for ${selectedAssessment?.patient} has been finalized.`,
-    });
-  };
-
-  const SidebarContent = () => (
-    <>
-      <div className="p-8 pb-6">
-        <h2 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
-          <BrainCircuit className="w-6 h-6 text-emerald-400" />
-          LifeRX
-        </h2>
-        <p className="text-emerald-400/60 text-xs tracking-[0.2em] uppercase mt-1">Clinical Portal</p>
-      </div>
-      <nav className="flex-1 px-4 space-y-2">
-        <Button variant="secondary" className="w-full justify-start font-medium text-base h-12 bg-white/10 text-white hover:bg-white/20 border border-white/5">
-          <Activity className="mr-3 h-4 w-4" /> Overview
-        </Button>
-        <Button variant="ghost" className="w-full justify-start text-emerald-100/70 h-12 hover:text-white hover:bg-white/5">
-          <Users className="mr-3 h-4 w-4" /> Patient Roster
-        </Button>
-        <Button variant="ghost" className="w-full justify-start text-emerald-100/70 h-12 hover:text-white hover:bg-white/5 relative">
-          <FileText className="mr-3 h-4 w-4" /> TCM Assessments
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 bg-rose-500 text-white text-xs flex items-center justify-center rounded-full font-bold shadow-md">2</span>
-        </Button>
-        <Button variant="ghost" className="w-full justify-start text-emerald-100/70 h-12 hover:text-white hover:bg-white/5">
-          <Beaker className="mr-3 h-4 w-4" /> Lab Integrations
-        </Button>
-        <Button variant="ghost" className="w-full justify-start text-emerald-100/70 h-12 hover:text-white hover:bg-white/5">
-          <UserCircle className="mr-3 h-4 w-4" /> Team Directory
-        </Button>
-        <Button variant="ghost" className="w-full justify-start text-emerald-100/70 h-12 hover:text-white hover:bg-white/5">
-          <Settings className="mr-3 h-4 w-4" /> Portal Settings
-        </Button>
-      </nav>
-      <div className="p-6 border-t border-white/10">
-        <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 border border-white/20">
-              <AvatarFallback className="bg-emerald-800 text-emerald-100 font-serif">DR</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-bold text-white">Dr. Sarah Chen</p>
-              <p className="text-xs text-emerald-100/60">Lead Practitioner</p>
-            </div>
-          </div>
-          <LogOut className="w-4 h-4 text-emerald-100/40 group-hover:text-emerald-100 transition-colors" />
-        </div>
-      </div>
-    </>
+  const auth = useAuth("practitioner");
+  const cases = useCases(auth.user?.role === "practitioner");
+  const [selected, setSelected] = useState("");
+  const [search, setSearch] = useState("");
+  if (auth.isLoading)
+    return <p className="p-10">Loading the practitioner workspace…</p>;
+  const filtered = cases.data?.filter((c) =>
+    `${c.customerName} ${c.customerEmail} ${caseStatus(c)}`
+      .toLowerCase()
+      .includes(search.toLowerCase()),
   );
-
   return (
-    <div className="min-h-screen bg-[hsl(38,35%,94%)] flex font-sans">
-      {/* Sidebar Desktop */}
-      <aside className="w-72 hidden xl:flex flex-col bg-[hsl(161,67%,12%)] fixed h-full z-20 shadow-2xl">
-        <SidebarContent />
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 xl:ml-72 flex flex-col h-screen overflow-hidden">
-        {/* Top Header */}
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-border flex items-center justify-between px-6 md:px-10 shrink-0 sticky top-0 z-10">
-          <div className="flex items-center gap-4">
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="xl:hidden shrink-0">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 bg-[hsl(161,67%,12%)] border-none w-72">
-                <div className="flex flex-col h-full">
-                  <SidebarContent />
-                </div>
-              </SheetContent>
-            </Sheet>
-            
-            <div className="relative w-full max-w-md hidden sm:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search patients, assessments, or labs..." className="pl-10 bg-white border-border/50 rounded-full h-10 w-[300px] lg:w-[400px] shadow-sm focus-visible:ring-primary/20" />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-primary">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white" />
-            </Button>
-            <Link href="/">
-               <Button variant="outline" size="sm" className="rounded-full hidden sm:flex border-border/50 shadow-sm text-muted-foreground hover:text-primary">Public Site</Button>
-            </Link>
-          </div>
-        </header>
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-10">
-          <div className="max-w-6xl mx-auto space-y-8">
-            
-            <div>
-              <h1 className="text-3xl font-serif font-bold text-primary mb-2">Good morning, Dr. Chen</h1>
-              <p className="text-muted-foreground">You have <span className="font-bold text-foreground">{assessments.filter(a => a.status === 'Pending Review').length} patient assessments</span> pending your clinical review.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="rounded-3xl border-border shadow-sm bg-white hover:shadow-md transition-shadow">
-                <CardContent className="p-6 flex flex-col justify-center">
-                  <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-2 flex items-center gap-2">
-                     <Users className="w-4 h-4 text-emerald-600" /> Active Patients
-                  </p>
-                  <div className="text-4xl font-serif font-bold text-primary">{patients.length}</div>
-                  <p className="text-sm text-emerald-600 font-medium mt-2 bg-emerald-50 w-fit px-2 py-0.5 rounded-md">+{patients.length} this month</p>
-                </CardContent>
-              </Card>
-              <Card className="rounded-3xl border-border shadow-sm bg-white hover:shadow-md transition-shadow">
-                <CardContent className="p-6 flex flex-col justify-center">
-                  <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-2 flex items-center gap-2">
-                     <FileText className="w-4 h-4 text-rose-500" /> Pending Review
-                  </p>
-                  <div className="text-4xl font-serif font-bold text-rose-500">{assessments.filter(a => a.status === 'Pending Review').length}</div>
-                  <p className="text-sm text-muted-foreground mt-2">Requires practitioner output</p>
-                </CardContent>
-              </Card>
-              <Card className="rounded-3xl border-border shadow-sm bg-white hover:shadow-md transition-shadow">
-                <CardContent className="p-6 flex flex-col justify-center">
-                  <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-2 flex items-center gap-2">
-                     <Beaker className="w-4 h-4 text-amber-600" /> Lab Integrations
-                  </p>
-                  <div className="text-4xl font-serif font-bold text-primary">8</div>
-                  <p className="text-sm text-amber-600 font-medium mt-2 bg-amber-50 w-fit px-2 py-0.5 rounded-md">2 new panels synced</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              
-              {/* Assessments Review Queue */}
-              <Card className="lg:col-span-2 rounded-3xl border-border shadow-sm bg-white overflow-hidden">
-                <CardHeader className="p-6 pb-4 border-b border-border/50 flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-xl font-serif text-primary">Assessment Review Queue</CardTitle>
-                    <CardDescription className="mt-1">Recently submitted TCM assessments</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="rounded-full shadow-sm text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/#/tcm-assessment?public=true`);
-                        toast({
-                          title: "Link Copied",
-                          description: "Public assessment link copied to clipboard. Ready to paste in SMS/Email.",
-                        });
-                      }}
-                    >
-                      <Share2 className="w-4 h-4 mr-2" /> Generate Link
-                    </Button>
-                    <Button variant="outline" size="sm" className="rounded-full shadow-sm">View All</Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="divide-y divide-border/50">
-                    {assessments.length === 0 ? (
-                      <div className="p-8 text-center text-muted-foreground flex flex-col items-center">
-                        <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
-                          <FileText className="w-6 h-6 text-muted-foreground/50" />
-                        </div>
-                        <p className="font-medium">No pending assessments</p>
-                        <p className="text-sm">Share the assessment link to get started</p>
-                      </div>
-                    ) : assessments.map((assessment) => (
-                      <div key={assessment.id} className="p-6 hover:bg-muted/20 transition-colors flex flex-col sm:flex-row gap-4 sm:items-center justify-between group">
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center text-primary shrink-0 mt-1">
-                            <BrainCircuit className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-bold text-foreground text-base">{assessment.patient}</h4>
-                              <Badge variant={assessment.status === "Pending Review" ? "destructive" : "outline"} className="text-[10px] uppercase tracking-wider px-2 py-0">
-                                {assessment.status}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-3">{assessment.type} • {assessment.date}</p>
-                            <div className="flex flex-wrap items-center gap-2">
-                               <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm font-medium">Pri: {assessment.primary}</Badge>
-                               <Badge variant="outline" className="bg-[hsl(35,50%,95%)] text-[hsl(35,60%,30%)] border-[hsl(35,60%,80%)] shadow-sm font-medium">Sec: {assessment.secondary}</Badge>
-                               <span className="text-xs font-semibold text-foreground px-2.5 py-1 bg-muted/80 rounded-md border border-border/50">{assessment.pattern}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <Button 
-                          className="shrink-0 rounded-full shadow-md" 
-                          variant={assessment.status === "Pending Review" ? "default" : "secondary"}
-                          onClick={() => handleReviewClick(assessment)}
-                        >
-                          {assessment.status === "Pending Review" ? "Review Output" : "View Details"}
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Patient Roster */}
-              <Card className="rounded-3xl border-border shadow-sm bg-white overflow-hidden flex flex-col">
-                <CardHeader className="p-6 pb-4 border-b border-border/50">
-                  <div className="flex items-center justify-between mb-4">
-                    <CardTitle className="text-xl font-serif text-primary">Patient Roster</CardTitle>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Filter className="h-4 w-4" /></Button>
-                  </div>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Filter patients..." className="pl-9 bg-muted/50 border-border/50 h-10 text-sm rounded-xl focus-visible:ring-primary/20" />
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0 flex-1 flex flex-col">
-                  <div className="divide-y divide-border/50 flex-1">
-                    {patients.length === 0 ? (
-                      <div className="p-8 text-center text-muted-foreground flex flex-col items-center">
-                        <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
-                          <Users className="w-6 h-6 text-muted-foreground/50" />
-                        </div>
-                        <p className="font-medium">No active patients</p>
-                      </div>
-                    ) : patients.map((patient) => (
-                      <div key={patient.id} className="p-4 hover:bg-muted/30 transition-colors flex items-center justify-between group cursor-pointer">
-                        <div className="flex items-center gap-3">
-                           <Avatar className="h-10 w-10 border border-border shadow-sm">
-                             <AvatarFallback className="bg-[hsl(35,50%,95%)] text-primary font-bold text-sm">{patient.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
-                           </Avatar>
-                           <div>
-                             <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{patient.name}</h4>
-                             <p className={`text-xs truncate max-w-[140px] font-medium ${patient.alert ? 'text-rose-500' : 'text-muted-foreground'}`}>
-                               {patient.alert || `Last active: ${patient.lastActive}`}
-                             </p>
-                           </div>
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-4 border-t border-border/50 mt-auto bg-muted/10">
-                     <Button variant="outline" className="w-full text-sm rounded-full bg-white shadow-sm hover:text-primary">View Full Directory</Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-            </div>
-
-          </div>
+    <CareLayout practitioner>
+      <header className="mb-8">
+        <p className="mb-3 text-xs uppercase tracking-[.2em] text-muted-foreground">
+          Shamba Sana · Practitioner workspace
+        </p>
+        <h1 className="text-3xl md:text-4xl">Care, connected.</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Verify the source, review the whole person, and release clear
+          guidance.
+        </p>
+      </header>
+      <ErrorMessage error={auth.error || cases.error} />
+      <div className="grid grid-cols-1 gap-7 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside>
+          <Label htmlFor="case-search">Find a care case</Label>
+          <Input
+            className="my-3"
+            id="case-search"
+            placeholder="Name, email or status"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Button
+            className="mb-5 w-full"
+            variant="outline"
+            onClick={() => cases.refetch()}
+          >
+            Refresh cases
+          </Button>
+          {cases.isLoading && <p className="text-sm">Loading cases…</p>}
+          {cases.isSuccess && !filtered?.length && (
+            <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
+              No cases to show.
+            </p>
+          )}
+          <ul className="space-y-3">
+            {filtered?.map((c) => (
+              <li key={c.id}>
+                <button
+                  aria-pressed={selected === c.id}
+                  onClick={() => setSelected(c.id)}
+                  className={`w-full rounded-xl border p-4 text-left ${selected === c.id ? "border-primary bg-secondary/50" : "border-border bg-card"}`}
+                >
+                  <span className="block text-sm font-semibold">
+                    {c.customerName}
+                  </span>
+                  <span className="mt-1 block break-all text-xs text-muted-foreground">
+                    {c.customerEmail}
+                  </span>
+                  <span className="mt-3 block text-xs text-primary">
+                    {caseStatus(c)}
+                  </span>
+                  <span className="mt-2 block text-xs text-muted-foreground">
+                    {new Date(c.createdAt).toLocaleDateString()}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </aside>
+        <div className="min-w-0">
+          {selected ? (
+            <PractitionerCase key={selected} id={selected} />
+          ) : (
+            <section className="rounded-2xl border border-dashed border-border p-10">
+              <h2 className="text-2xl">Select a care case</h2>
+              <p className="mt-4 text-sm leading-7 text-muted-foreground">
+                Submitted intake answers, original lab documents, verification
+                and report editing are available here. AI assistance is optional
+                and requires customer permission.
+              </p>
+            </section>
+          )}
         </div>
-
-        {/* Assessment Review Modal */}
-        <Dialog open={reviewModalOpen} onOpenChange={setReviewModalOpen}>
-          <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-white/95 backdrop-blur-xl border-border">
-            {selectedAssessment && (
-              <>
-                <DialogHeader className="p-6 border-b border-border/50 bg-primary/5">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Badge variant={selectedAssessment.status === "Pending Review" ? "destructive" : "outline"} className="uppercase tracking-wider">
-                      {selectedAssessment.status}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground font-medium">{selectedAssessment.date}</span>
-                  </div>
-                  <DialogTitle className="text-2xl font-serif text-primary">
-                    Assessment Review: {selectedAssessment.patient}
-                  </DialogTitle>
-                  <DialogDescription className="text-base text-foreground/80">
-                    {selectedAssessment.type} • System generated pattern impression
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white border border-border p-4 rounded-2xl shadow-sm">
-                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Primary Element</p>
-                      <p className="text-xl font-serif font-bold text-primary">{selectedAssessment.primary}</p>
-                    </div>
-                    <div className="bg-white border border-border p-4 rounded-2xl shadow-sm">
-                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Secondary Element</p>
-                      <p className="text-xl font-serif font-bold text-primary">{selectedAssessment.secondary}</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-[hsl(35,50%,95%)] border border-[hsl(35,50%,90%)] p-6 rounded-2xl">
-                    <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2 flex items-center gap-2">
-                      <BrainCircuit className="w-4 h-4" /> AI Pattern Impression
-                    </p>
-                    <h3 className="text-2xl font-bold text-primary mb-2">{selectedAssessment.pattern}</h3>
-                    <p className="text-foreground/80">
-                      Based on the intake responses, {selectedAssessment.patient}'s system is primarily leaning towards {selectedAssessment.primary}. 
-                      The specific symptom cluster strongly indicates {selectedAssessment.pattern.toLowerCase()}.
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="font-bold text-foreground">Practitioner Clinical Notes</h4>
-                    <textarea 
-                      className="w-full min-h-[100px] p-4 rounded-xl border border-border/50 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none text-sm"
-                      placeholder="Add your clinical observations, tongue/pulse notes, or adjustments to the generated pattern here before approving the report for the patient..."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <DialogFooter className="p-6 border-t border-border/50 bg-muted/20 sm:justify-between items-center">
-                  <Button variant="ghost" className="text-muted-foreground hover:text-primary">
-                    Request Follow-up Info
-                  </Button>
-                  <div className="flex gap-3">
-                    <Button variant="outline" onClick={() => setReviewModalOpen(false)}>Cancel</Button>
-                    <Button onClick={handleApproveReport} className="shadow-md">
-                      <CheckCircle2 className="w-4 h-4 mr-2" /> Approve & Generate Report
-                    </Button>
-                  </div>
-                </DialogFooter>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
-
-      </main>
+      </div>
+    </CareLayout>
+  );
+}
+function PractitionerCase({ id }: { id: string }) {
+  const query = useCase(id);
+  const action = useCaseAction(id);
+  const config = useCareConfig();
+  const c = query.data;
+  const [error, setError] = useState<unknown>();
+  const [notice, setNotice] = useState("");
+  const perform = async (path: string, body: unknown, method = "POST") => {
+    setError(undefined);
+    setNotice("");
+    try {
+      const result = await action.mutateAsync({ path, body, method });
+      setNotice("Saved to the care record.");
+      return result;
+    } catch (e) {
+      setError(e);
+      return undefined;
+    }
+  };
+  if (!c)
+    return (
+      <>
+        <ErrorMessage error={query.error} />
+        <p>Loading case…</p>
+      </>
+    );
+  return (
+    <div className="space-y-6">
+      <header className="rounded-2xl bg-primary p-6">
+        <p className="mb-3 text-xs uppercase tracking-[.15em] text-white/65">
+          {c.payment.status === "unpaid-pilot" ? "Unpaid pilot" : "Remote care"}{" "}
+          · Revision {c.revision}
+        </p>
+        <h2 className="text-2xl text-white">{c.customerName}</h2>
+        <p className="mt-3 text-sm text-white/75">{caseStatus(c)}</p>
+        <Button
+          variant="secondary"
+          className="mt-5"
+          onClick={() => query.refetch()}
+        >
+          Refresh case
+        </Button>
+      </header>
+      <ErrorMessage error={error || action.error} />
+      {notice && (
+        <p role="status" className="text-sm">
+          {notice}
+        </p>
+      )}
+      <details className="rounded-2xl border border-border bg-card p-6" open>
+        <summary className="cursor-pointer font-serif text-xl">
+          Health history and TCM intake
+        </summary>
+        <p className="mt-3 text-xs text-muted-foreground">
+          {c.intakeSubmittedAt
+            ? `Submitted ${new Date(c.intakeSubmittedAt).toLocaleString()}`
+            : "Intake is still a draft. Reports cannot be released until it is submitted."}
+        </p>
+        <dl className="mt-6 grid gap-5 sm:grid-cols-2">
+          {Object.entries(c.intake)
+            .filter(([key]) => key !== "schemaVersion")
+            .map(([key, value]) => (
+              <div key={key}>
+                <dt className="text-xs capitalize text-muted-foreground">
+                  {key.replace(/([A-Z])/g, " $1")}
+                </dt>
+                <dd className="mt-1 whitespace-pre-wrap break-words text-sm leading-6">
+                  {Array.isArray(value)
+                    ? value.join(", ") || "Not answered"
+                    : String(value) || "Not answered"}
+                </dd>
+              </div>
+            ))}
+        </dl>
+        {c.documents
+          .filter((d) => d.purpose === "tongue")
+          .map((d) => (
+            <p key={d.id} className="mt-5 text-sm">
+              <a
+                className="underline"
+                href={`/api/cases/${id}/documents/${d.id}`}
+              >
+                Download tongue photo: {d.name}
+              </a>
+            </p>
+          ))}
+        <p className="mt-5 text-xs leading-6 text-muted-foreground">
+          Tongue observations are self-reported. The remote questionnaire does
+          not include a measured pulse examination.
+        </p>
+      </details>
+      {c.labRequest && (
+        <LabOrder c={c} busy={action.isPending} perform={perform} />
+      )}
+      <section className="space-y-4">
+        <h3 className="text-2xl">Lab source and verification</h3>
+        {!c.documents.some((d) => d.purpose === "lab") && (
+          <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
+            No lab documents uploaded yet.
+          </p>
+        )}
+        {c.documents
+          .filter((d) => d.purpose === "lab")
+          .map((d) => (
+            <LabEditor
+              key={d.id}
+              c={c}
+              document={d}
+              busy={action.isPending}
+              aiAvailable={!!config.data?.ai && !!c.aiConsent}
+              perform={perform}
+            />
+          ))}
+      </section>
+      <ReviewNotes c={c} busy={action.isPending} perform={perform} />
+      <ReportEditor
+        c={c}
+        busy={action.isPending}
+        aiAvailable={!!config.data?.ai && !!c.aiConsent}
+        perform={perform}
+      />
+      {!!c.reports.length && (
+        <details className="rounded-2xl border border-border bg-card p-6">
+          <summary className="cursor-pointer font-serif text-xl">
+            Released reports ({c.reports.length})
+          </summary>
+          <div className="mt-6 space-y-6">
+            {c.reports.map((r) => (
+              <ReportView
+                key={r.id}
+                report={r}
+                customerName={c.customerName}
+                printable={false}
+              />
+            ))}
+          </div>
+        </details>
+      )}
+      <details className="rounded-xl border border-border p-5">
+        <summary className="cursor-pointer text-sm">Case activity</summary>
+        <ol className="mt-4 space-y-3 text-xs text-muted-foreground">
+          {c.events
+            .slice()
+            .reverse()
+            .map((e, i) => (
+              <li key={i}>
+                {new Date(e.at).toLocaleString()} ·{" "}
+                {e.action.replace(/-/g, " ")}
+              </li>
+            ))}
+        </ol>
+      </details>
     </div>
+  );
+}
+type Perform = (
+  path: string,
+  body: unknown,
+  method?: string,
+) => Promise<CareCase | undefined>;
+type PanelProps = { c: CareCase; busy: boolean; perform: Perform };
+function LabOrder({ c, busy, perform }: PanelProps) {
+  const [details, setDetails] = useState(c.labRequest?.details || "");
+  const [reference, setReference] = useState(
+    c.labRequest?.externalReference || "",
+  );
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <h3 className="text-xl">Lab order request</h3>
+      <p className="my-4 text-sm leading-7 text-muted-foreground">
+        Arrange testing through your laboratory or ordering system, then record
+        the issued order here. Saving this form does not place an order with a
+        lab.
+      </p>
+      <Label htmlFor="order-details">
+        Ordered tests and customer instructions
+      </Label>
+      <Textarea
+        id="order-details"
+        className="my-2"
+        value={details}
+        onChange={(e) => setDetails(e.target.value)}
+      />
+      <Label htmlFor="order-reference">External order reference</Label>
+      <Input
+        id="order-reference"
+        className="my-2"
+        value={reference}
+        onChange={(e) => setReference(e.target.value)}
+      />
+      <Button
+        className="mt-4"
+        disabled={
+          busy ||
+          details.trim().length < 3 ||
+          reference.trim().length < 2 ||
+          !!c.reports.length
+        }
+        onClick={() =>
+          perform("/lab-order", {
+            revision: c.revision,
+            details,
+            externalReference: reference,
+          })
+        }
+      >
+        Record issued lab order
+      </Button>
+    </section>
+  );
+}
+function LabEditor({
+  c,
+  document: d,
+  busy,
+  aiAvailable,
+  perform,
+}: PanelProps & { document: Document; aiAvailable: boolean }) {
+  const empty: Extraction = {
+    patientName: "",
+    collectionDate: "",
+    laboratory: "",
+    uncertainty: "",
+    results: [],
+  };
+  const [extraction, setExtraction] = useState<Extraction>(
+    d.extraction || empty,
+  );
+  const [identity, setIdentity] = useState(false);
+  const [note, setNote] = useState(d.verificationNote || "");
+  useEffect(() => {
+    setExtraction(d.extraction || empty);
+    setIdentity(false);
+  }, [d.extraction]);
+  const changeRow = (i: number, key: keyof LabRow, value: string) =>
+    setExtraction({
+      ...extraction,
+      results: extraction.results.map((row, j) =>
+        j === i ? { ...row, [key]: value } : row,
+      ),
+    });
+  return (
+    <details open className="rounded-2xl border border-border bg-card p-6">
+      <summary className="cursor-pointer break-all font-serif text-lg">
+        {d.name} · {d.verifiedAt ? "Verified" : "Needs verification"}
+      </summary>
+      <div className="my-5 flex flex-wrap gap-3">
+        <a
+          className="rounded-lg border border-border px-4 py-2 text-sm underline"
+          href={`/api/cases/${c.id}/documents/${d.id}`}
+        >
+          Download original
+        </a>
+        <Button
+          variant="outline"
+          disabled={busy || !aiAvailable || !!c.reports.length}
+          onClick={() =>
+            perform(`/labs/${d.id}/extract`, { revision: c.revision })
+          }
+        >
+          {busy ? "Processing…" : "Extract lab facts with AI"}
+        </Button>
+      </div>
+      {!aiAvailable && (
+        <p className="mb-5 text-xs leading-6 text-muted-foreground">
+          AI extraction needs server configuration and the customer’s AI
+          permission. You can enter values from the original document below.
+        </p>
+      )}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {(["patientName", "collectionDate", "laboratory"] as const).map(
+          (key) => (
+            <div key={key}>
+              <Label htmlFor={`${d.id}-${key}`}>
+                {key === "patientName"
+                  ? "Patient name on document"
+                  : key === "collectionDate"
+                    ? "Collection date on document"
+                    : "Laboratory"}
+              </Label>
+              <Input
+                id={`${d.id}-${key}`}
+                className="mt-2"
+                value={extraction[key]}
+                onChange={(e) =>
+                  setExtraction({ ...extraction, [key]: e.target.value })
+                }
+              />
+            </div>
+          ),
+        )}
+      </div>
+      <p className="my-5 text-xs leading-6 text-muted-foreground">
+        Copy the original result, unit and laboratory reference interval. Do not
+        substitute an “optimal” range or infer a flag that is absent from the
+        source. Flag critical results for prompt clinical review.
+      </p>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] text-left text-xs">
+          <thead>
+            <tr>
+              {[
+                "Marker",
+                "Result",
+                "Unit",
+                "Reference range",
+                "Source flag",
+                "Page",
+                "",
+              ].map((t) => (
+                <th className="p-2 font-medium" key={t}>
+                  {t}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {extraction.results.map((row, i) => (
+              <tr key={i}>
+                {(["name", "value", "unit", "referenceRange"] as const).map(
+                  (key) => (
+                    <td key={key} className="p-1">
+                      <Input
+                        aria-label={`${key} for result ${i + 1}`}
+                        className="min-w-20 px-2 text-xs"
+                        value={row[key]}
+                        onChange={(e) => changeRow(i, key, e.target.value)}
+                      />
+                    </td>
+                  ),
+                )}
+                <td className="p-1">
+                  <select
+                    aria-label={`Flag for result ${i + 1}`}
+                    className="rounded-lg border bg-background p-2"
+                    value={row.flag}
+                    onChange={(e) => changeRow(i, "flag", e.target.value)}
+                  >
+                    {["unknown", "normal", "high", "low", "critical"].map(
+                      (o) => (
+                        <option key={o}>{o}</option>
+                      ),
+                    )}
+                  </select>
+                </td>
+                <td className="p-1">
+                  <Input
+                    aria-label={`Source page for result ${i + 1}`}
+                    value={row.sourcePage}
+                    className="w-16 px-2 text-xs"
+                    onChange={(e) => changeRow(i, "sourcePage", e.target.value)}
+                  />
+                </td>
+                <td>
+                  <Button
+                    aria-label={`Remove result ${i + 1}`}
+                    size="sm"
+                    variant="ghost"
+                    onClick={() =>
+                      setExtraction({
+                        ...extraction,
+                        results: extraction.results.filter((_, j) => j !== i),
+                      })
+                    }
+                  >
+                    ×
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="my-4"
+        onClick={() =>
+          setExtraction({
+            ...extraction,
+            results: [
+              ...extraction.results,
+              {
+                name: "",
+                value: "",
+                unit: "",
+                referenceRange: "",
+                flag: "unknown",
+                sourcePage: "",
+              },
+            ],
+          })
+        }
+      >
+        Add lab result
+      </Button>
+      <div>
+        <Label htmlFor={`${d.id}-uncertainty`}>
+          Extraction uncertainties or missing information
+        </Label>
+        <Textarea
+          id={`${d.id}-uncertainty`}
+          className="mt-2"
+          value={extraction.uncertainty}
+          onChange={(e) =>
+            setExtraction({ ...extraction, uncertainty: e.target.value })
+          }
+        />
+      </div>
+      <label className="my-5 flex items-start gap-3 text-sm leading-6">
+        <input
+          type="checkbox"
+          className="mt-1 h-4 w-4 accent-primary"
+          checked={identity}
+          onChange={(e) => setIdentity(e.target.checked)}
+        />
+        I checked the document’s patient identity and collection date against
+        this customer, and reviewed every result against the original.
+      </label>
+      <Label htmlFor={`${d.id}-verification`}>Verification note</Label>
+      <Textarea
+        id={`${d.id}-verification`}
+        className="mt-2"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Record corrections and any limitations."
+      />
+      <Button
+        className="mt-5"
+        disabled={
+          busy ||
+          !identity ||
+          note.trim().length < 3 ||
+          !extraction.results.length ||
+          !!c.reports.length
+        }
+        onClick={() =>
+          perform(
+            `/labs/${d.id}/verify`,
+            {
+              revision: c.revision,
+              extraction,
+              identityConfirmed: identity,
+              verificationNote: note,
+            },
+            "PUT",
+          )
+        }
+      >
+        Save verified lab facts
+      </Button>
+    </details>
+  );
+}
+function ReviewNotes({ c, busy, perform }: PanelProps) {
+  const [notes, setNotes] = useState(c.practitionerNotes);
+  const [followup, setFollowup] = useState(c.followupRequest);
+  useEffect(() => {
+    setNotes(c.practitionerNotes);
+    setFollowup(c.followupRequest);
+  }, [c.practitionerNotes, c.followupRequest]);
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <h3 className="mb-5 text-xl">Practitioner review</h3>
+      <Label htmlFor="practitioner-notes">Private clinical notes</Label>
+      <Textarea
+        id="practitioner-notes"
+        className="my-2 min-h-28"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+      />
+      <p className="mb-5 text-xs leading-6 text-muted-foreground">
+        These notes are kept out of the customer dashboard. They may be used for
+        report drafting if the customer allows AI processing.
+      </p>
+      <Label htmlFor="followup-request">
+        Information requested from the customer
+      </Label>
+      <Textarea
+        id="followup-request"
+        className="my-2"
+        value={followup}
+        onChange={(e) => setFollowup(e.target.value)}
+      />
+      <p className="mb-4 text-xs text-muted-foreground">
+        This message appears in the customer dashboard. Clear it once the
+        question is resolved.
+      </p>
+      <Button
+        disabled={busy}
+        onClick={() =>
+          perform(
+            "/review",
+            {
+              revision: c.revision,
+              practitionerNotes: notes,
+              followupRequest: followup,
+            },
+            "PUT",
+          )
+        }
+      >
+        Save review notes
+      </Button>
+    </section>
+  );
+}
+function ReportEditor({
+  c,
+  busy,
+  aiAvailable,
+  perform,
+}: PanelProps & { aiAvailable: boolean }) {
+  const [content, setContent] = useState<Report>(
+    c.draft?.content || blankReport,
+  );
+  const [approve, setApprove] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  useEffect(() => {
+    setContent(c.draft?.content || blankReport);
+    setDirty(false);
+    setApprove(false);
+  }, [c.draft]);
+  const ready =
+    !!c.intakeSubmittedAt &&
+    !c.followupRequest &&
+    c.documents.some((d) => d.purpose === "lab") &&
+    c.documents.filter((d) => d.purpose === "lab").every((d) => d.verifiedAt);
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <p className="mb-3 text-xs uppercase tracking-[.15em] text-muted-foreground">
+        Practitioner-only draft
+      </p>
+      <h3 className="text-2xl">The combined care report</h3>
+      <p className="my-4 text-sm leading-7 text-muted-foreground">
+        Write in everyday language. Keep lab evidence and TCM hypotheses
+        distinct. Review proposed supplements, vitamins and TCM services against
+        medications, allergies and other contraindications before release.
+      </p>
+      {!ready && (
+        <p className="mb-5 rounded-lg bg-secondary/50 p-4 text-xs leading-6">
+          Submit the intake, verify every lab document and resolve follow-up
+          requests to enable drafting and release.
+        </p>
+      )}
+      <Button
+        variant="outline"
+        className="mb-6"
+        disabled={busy || !ready || !aiAvailable}
+        onClick={() => perform("/draft", { revision: c.revision, ai: true })}
+      >
+        {busy ? "Working…" : "Create AI-assisted draft"}
+      </Button>
+      {!aiAvailable && (
+        <p className="mb-5 text-xs text-muted-foreground">
+          Manual report editing is available. AI drafting requires customer
+          permission and a configured server key.
+        </p>
+      )}
+      <div className="space-y-6">
+        {Object.entries(reportFields).map(([key, label]) => (
+          <div key={key}>
+            <Label htmlFor={`report-${key}`}>{label}</Label>
+            <Textarea
+              className="mt-2 min-h-28"
+              id={`report-${key}`}
+              value={content[key as keyof Report]}
+              onChange={(e) => {
+                setContent({ ...content, [key]: e.target.value });
+                setDirty(true);
+                setApprove(false);
+              }}
+            />
+          </div>
+        ))}
+      </div>
+      <Button
+        variant="outline"
+        className="mt-6"
+        disabled={busy || !ready}
+        onClick={() =>
+          perform("/draft", { revision: c.revision, content, ai: false })
+        }
+      >
+        Save report draft
+      </Button>
+      <label className="my-6 flex items-start gap-3 text-sm leading-6">
+        <input
+          type="checkbox"
+          className="mt-1 h-4 w-4 accent-primary"
+          checked={approve}
+          onChange={(e) => setApprove(e.target.checked)}
+        />
+        I reviewed the verified lab source and intake, checked the
+        recommendations and safety considerations, and approve this report for
+        the customer.
+      </label>
+      <Button
+        disabled={
+          busy ||
+          !ready ||
+          !approve ||
+          !c.draft ||
+          dirty ||
+          Object.values(content).some((v) => !v.trim())
+        }
+        onClick={() =>
+          perform("/approve", { revision: c.revision, confirmation: true })
+        }
+      >
+        Approve and release report
+      </Button>
+      {dirty && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Save your edits before releasing the report.
+        </p>
+      )}
+      <p className="mt-4 text-xs leading-6 text-muted-foreground">
+        Release creates a saved report version in the customer’s dashboard.
+        Email delivery is not configured.
+      </p>
+    </section>
   );
 }
