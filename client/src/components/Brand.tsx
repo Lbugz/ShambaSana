@@ -28,16 +28,7 @@ export function Brand({ light = false }: { light?: boolean }) {
           strokeLinejoin="round"
         />
       </svg>
-      <span>
-        <span className="block font-serif text-xl tracking-wide">
-          Shamba Sana
-        </span>
-        <span
-          className={`block text-[9px] uppercase tracking-[.22em] ${light ? "text-white/70" : "text-muted-foreground"}`}
-        >
-          Cultivating wellbeing
-        </span>
-      </span>
+      <span className="font-serif text-xl tracking-wide">Shamba Sana</span>
     </Link>
   );
 }
