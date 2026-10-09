@@ -102,3 +102,12 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-[hsl(155,91%,22%)];
   }
 }
+
+@media print {
+  body { background: white; color: #172b23; }
+  main > * { display: none !important; }
+  main:has(.report-view) > *:has(.report-view), .report-view { display: block !important; }
+  main:has(.report-view) > *:has(.report-view) > * { display: none !important; }
+  main:has(.report-view) > *:has(.report-view) > .report-view { display: block !important; }
+  .report-view h2, .report-view h3 { color: #172b23; }
+}
