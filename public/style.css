@@ -99,6 +99,7 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
 .text-link { display: inline-block; margin-top: 10px; padding-bottom: 4px; border-bottom: 1px solid var(--green); color: var(--green); font-size: 12px; }
 .text-link:hover { color: var(--green-soft); }
 
+
 .sanctuary-heading { align-items: end; gap: 7%; margin-bottom: 38px; }
 .sanctuary-heading h2 { margin-bottom: 0; }
 .sanctuary-intro { margin: 0; color: var(--muted); }
@@ -184,3 +185,4 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
