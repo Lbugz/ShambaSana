@@ -8,7 +8,7 @@
     <title>Cultivate the wisdom to live well | Shamba Sana</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
@@ -18,11 +18,14 @@
         <img src="assets/shamba-logo-transparent.png" alt="" width="54" height="58">
         <span class="brand-name">SHAMBA SANA<small>ANCIENT WISDOM · MODERN WELLNESS</small></span>
       </a>
-      <nav aria-label="Main navigation">
+      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="main-navigation">
+        <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
+      <nav id="main-navigation" aria-label="Main navigation">
         <a href="#institute">Institute</a>
         <a href="https://newhealth.replit.app/" target="_blank" rel="noopener noreferrer">Remote Care <span aria-hidden="true">↗</span></a>
         <a href="#vision">Our vision</a>
-        <a class="nav-cta" href="#pathways">Explore Shamba Sana <span aria-hidden="true">↗</span></a>
+        <a class="nav-cta" href="#pathways">Explore Pathways <span aria-hidden="true">↗</span></a>
       </nav>
     </header>
 
@@ -194,6 +197,7 @@
       </nav>
       <p class="copyright">© 2026 Shamba Sana</p>
     </footer>
+    <script src="assets/site-navigation.js" defer></script>
   </body>
 </html>
 
