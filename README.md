@@ -1,6 +1,6 @@
 # Shamba Sana
 
-Main sanctuary landing page and Institute course catalog, instructor introduction and standalone registration page. Remote Care links to the existing MVP. Payment and automatic student onboarding are not implemented yet.
+Main sanctuary landing page and Institute course catalog, instructor introduction and standalone registration page. Integrative Care links to the existing MVP. Payment and automatic student onboarding are not implemented yet.
 
 ## Course registration
 
