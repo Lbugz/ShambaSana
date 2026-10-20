@@ -1,0 +1,132 @@
+Pulse Meridian — Patient Assessment Form Breakdown
+Document Type: Product Reference
+Application: Pulse Meridian Clinical Reader
+Version: Current
+Date: April 2026
+
+Overview
+The Pulse Meridian assessment form is a 6-step intake process designed to collect comprehensive patient data for use in generating AI-powered TCM diagnostic reports. The form is available in two modes:
+
+Public Mode — Patients complete it online before their visit; submission goes into a pending queue for practitioner review.
+Admin/Practitioner Mode — Practitioners complete it in real-time during an office visit.
+Both modes collect identical data.
+
+Form Structure at a Glance
+Step	Name	Purpose
+1	Patient Information	Identity and contact details
+2	Current Health & Symptoms	How the patient feels today
+3	Medical History	Past conditions, medications, allergies
+4	Vitals & Physical Data	Measurable clinical data
+5	TCM Assessment	Tongue exam, pulse, constitution
+6	Lifestyle & Harmony	Diet, movement, stress, life balance
+Step 1 — Patient Information
+Title: "Tell us about yourself"
+Purpose: Establish patient identity and ensure results can be delivered.
+
+Field	Type	Required	Notes
+Full Name	Text input	Yes	Validated on entry
+Age	Number input	No	Range: 1–120
+Gender Identity	Dropdown	No	Male / Female / Non-binary / Prefer not to say
+Phone Number	Tel input	No	For appointment reminders
+Email Address	Email input	Yes	Report delivery address; format validated
+Assessment Date	Date picker	Yes	Auto-filled with today's date
+Step 2 — Current Health & Symptoms
+Title: "How are you feeling today?"
+Purpose: Capture the patient's immediate health state, symptoms, and subjective wellbeing indicators.
+
+Text Fields
+Field	Type	Description
+Current Health Concerns	Long text	Free-form description of symptoms, discomfort, and health challenges
+Interactive Sliders (0–10 scale)
+Slider	Scale Description	Labels
+Physical Comfort Level	Pain scale	0 = No Discomfort → 10 = Severe Pain
+Energy Level	Vitality	0 = Depleted → 10 = High Energy
+Sleep Quality	Rest quality	0 = Very Restless → 10 = Deeply Restorative
+Stress Level	Mental load	0 = Very Calm → 10 = Overwhelmed
+Slider Interpretations:
+
+Pain: 0–3 = Low, 4–6 = Moderate, 7–10 = Severe
+Energy: 0–3 = Low, 4–6 = Moderate, 7–8 = Good, 9–10 = High
+Sleep: 0–3 = Poor, 4–6 = Fair, 7–8 = Good, 9–10 = Excellent
+Stress: 0–3 = Low, 4–6 = Moderate, 7–8 = High, 9–10 = Very High
+Step 3 — Medical History
+Title: "Your Health Journey"
+Purpose: Understand ongoing treatments and contraindications that may influence the TCM diagnosis.
+
+Field	Type	Description
+Current Medications & Supplements	Long text	Lists all medications, herbs, supplements and their purpose
+Allergies & Sensitivities	Long text	Food, medication, and environmental allergies
+Step 4 — Vitals & Physical Data
+Title: Vitals
+Purpose: Capture objective clinical measurements that inform the diagnosis.
+
+Field	Type	Example Input	Notes
+Blood Pressure	Text	120/80	Optional; if known
+Heart Rate	Text	72	Beats per minute; optional
+Temperature	Text	98.6°F	Optional; if known
+Weight	Text	Your weight	Optional
+Height	Text	Your height	Optional
+Step 5 — TCM Assessment
+Title: "Energy & Balance"
+Purpose: The core TCM diagnostic section. Captures tongue examination, pulse quality, and constitutional body type — the primary tools of Traditional Chinese Medicine diagnosis.
+
+5a. Body Constitution
+Field	Type	Description
+Body Constitution	Long text	Patient describes temperature preferences, thirst patterns, preference for warm or cold — used to identify Yin/Yang balance
+Prompt: "Do you tend to feel cold or hot? Are you often thirsty? Do you prefer warm or cold drinks?"
+
+5b. Tongue Examination
+Patients can either upload a tongue photo or manually select characteristics:
+
+Photo Upload:
+
+Drag & drop or click to upload
+Accepts all image formats
+Files stored securely on the server
+Manual Tongue Characteristics (Dropdowns):
+
+Field	Options
+Tongue Color	Pale / Normal pink / Red / Dark red / Purple
+Tongue Coating	Thin white / Thick white / Yellow / Gray / Black
+Tongue Shape	Normal / Swollen / Thin / Stiff / Flaccid
+Tongue Moisture	Normal / Dry / Wet / Sticky
+Additional Observations	Free text for any other tongue notes
+5c. Pulse Diagnosis
+Field	Type	Description
+Pulse Quality	Long text	Patient or practitioner describes pulse character (strong, weak, fast, slow, irregular, wiry, slippery, etc.)
+Step 6 — Lifestyle & Harmony
+Title: "Lifestyle & Harmony"
+Purpose: Understand daily habits that affect the flow of Qi (vital energy) and overall wellbeing.
+
+Field	Label	Prompt
+Diet / Nourishment Patterns	Long text	Typical eating patterns, food preferences, dietary approaches
+Movement Practices	Long text	Exercise routine, yoga, movement activities and frequency
+Life Balance	Long text	Work-life balance, stress management, relaxation techniques, spiritual practices
+Post-Submission Flow
+Once the form is submitted:
+
+Assessment is saved to the pending queue with status: pending
+Practitioner receives notification in the Admin Portal
+Practitioner reviews data, selects an I Ching Hexagram (1–64) with moving lines
+Practitioner adds SOAP notes (Subjective, Objective, Assessment, Plan)
+System generates AI-powered report combining all data
+Assessment is marked completed
+Report is available for review and delivery to patient
+Data Collected Summary
+Category	Data Points
+Demographics	Name, Age, Gender, Phone, Email, Date
+Symptom Indicators	Health concerns, Pain scale, Energy, Sleep, Stress
+Medical History	Medications/supplements, Allergies
+Vitals	BP, Heart rate, Temperature, Weight, Height
+TCM Tongue Exam	Color, Coating, Shape, Moisture, Photo, Notes
+TCM Pulse Exam	Qualitative pulse description
+TCM Constitution	Temperature/thirst body type description
+Lifestyle	Diet habits, Exercise habits, Life balance/stress
+Total Fields	~24 structured fields + 8 free-text areas
+Validation Rules
+Field	Validation
+Full Name	Required
+Email Address	Required + must contain @
+Assessment Date	Required (auto-populated)
+All other fields	Optional — patients encouraged but not forced
+This document reflects the current state of the Pulse Meridian assessment form as implemented in the application.
