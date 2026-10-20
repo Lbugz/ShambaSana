@@ -1,0 +1,70 @@
+I pulled up the “Pulse Meridian” project you’ve been working on in Replit to get a sense of the current aesthetic.  The hero section uses a bold purple‑to‑orange gradient and white type, which feels energetic but not necessarily aligned with the earthy, apothecary‑inspired vibe you described.  To make the interface feel warmer and closer to your “Jade & Meridian” style, you can adjust a few core design tokens and interactions.
+
+Here are detailed steps you can follow within your Replit project:
+
+### 1. Define a Jade & Meridian theme
+
+1. **Create a theme file or CSS variables** (e.g., `theme.css` or a Tailwind config) to centralise colours, fonts and spacing.  For example:
+
+   ```css
+   :root {
+     --color-primary: #0e4634;   /* deep jade */
+     --color-background: #f6f1e7; /* soft cream/ivory */
+     --color-accent-qi: #056a41;    /* emerald for Qi */
+     --color-accent-blood: #b95e5a; /* rose for Blood */
+     --color-accent-spirit: #6e5773;/* muted purple for Spirit */
+     --color-text-heading: #0e4634;
+     --color-text-body: #2a2a2a;
+     --font-heading: "Lora", serif;
+     --font-body: "Plus Jakarta Sans", sans-serif;
+     --border-radius: 12px;
+     --shadow-default: 0 2px 4px rgba(0,0,0,0.1);
+     --shadow-hover: 0 4px 8px rgba(0,0,0,0.15);
+   }
+   ```
+
+   Linking Lora and Plus Jakarta Sans through Google Fonts in your `<head>` ensures the typography matches your brief.
+
+2. **Apply these variables in your components**—e.g., set the body background to `var(--color-background)`, headings to `var(--color-text-heading)` with the Lora font, and buttons to `var(--color-primary)` with rounded corners and subtle shadows.
+
+### 2. Redesign the hero section
+
+* Replace the multi‑colour gradient with a **jade‑to‑cream gradient**.  For example:
+
+  ```css
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-background) 100%);
+  ```
+
+* Use a **single warm accent illustration** (e.g., a subtle pattern of botanicals or a Qi‑flow motif) instead of a bright gradient.  This keeps the focus on the headline while conveying a sense of heritage.
+
+* Set the headline (“Where Qi Moves, Healing Follows”) in Lora, in a deep jade colour, and use a secondary line of copy in Plus Jakarta Sans with ample line spacing.  Make sure the button (“Begin My Healing Journey”) uses the jade palette with a gentle hover state that lightens the background and deepens the shadow.
+
+### 3. Update cards, badges and filter chips
+
+* Ensure all cards and badges have **rounded corners** (using `var(--border-radius)`) and a light shadow (`var(--shadow-default)`), which increases to `var(--shadow-hover)` on hover.  This creates a soft, tactile feel.
+
+* Use **earth‑tone accent colours** for different categories (Qi, Blood, Spirit, etc.) to make the interface intuitive.  For instance, a “Qi” tag could use the emerald tone with white text, while a “Blood” tag uses rose.  This colour‑coding ties into the TCM taxonomy.
+
+* Add **subtle hover animations**: on hover, cards can scale up slightly (`transform: scale(1.02)`) and fade in deeper shadows.  Filter chips can fill with their accent colour when active and revert to outline style when inactive.
+
+### 4. Refine typography and spacing
+
+* Headings (H1–H3) should use Lora with generous letter‑spacing and line height to evoke classical texts.  Body copy should be set in Plus Jakarta Sans, sized comfortably for readability (e.g., 16–18 px), with a dark grey text colour for low contrast but high legibility.
+
+* Use plenty of **white (cream) space** between sections to give the layout a calm, breathing quality.  Group related elements together and align them consistently to maintain a modern clinical precision.
+
+### 5. Enhance interactions
+
+* Introduce **smooth fade‑in and slide‑up animations** as elements enter the viewport (e.g., using `IntersectionObserver` or a React animation library like Framer Motion).  Keep durations short (200–300 ms) and easing gentle (ease‑in‑out) to avoid overwhelming users.
+
+* For sticky elements such as a filter bar, add a **glass‑like backdrop blur** by setting `backdrop-filter: blur(10px);` and a semi‑transparent background using `rgba()` with your cream tone.  This creates a modern feel while remaining warm.
+
+* When users hover over actionable items (cards, buttons), reveal secondary actions like “Favourite” or “View Details” via icons that fade in, using your accent colours for the icons.
+
+### 6. Test and iterate
+
+* After updating the CSS and components, preview the site within Replit to ensure colour contrast meets accessibility standards (consider tools like WebAIM’s contrast checker).
+
+* Get feedback from potential users or stakeholders about the warmth and usability of the new design.  Iteratively tweak hues (e.g., adjust jade saturation), shadows or animations based on their reactions.
+
+In creating these recommendations, I reviewed your recent Replit projects such as “Pulse Meridian – Powered by NTU Global Medicine” to understand the current gradient‑heavy aesthetic.  The steps above should help you transition to the “Jade & Meridian” look you described while keeping the modern feel you like.  Let me know if this aligns with your vision or if there are specific areas of the design you’d like to refine further.

@@ -1,0 +1,80 @@
+### Enhancing the “What We Test” Section
+
+On the current site, the “What We Test” link in the navigation leads to a simple description of the lab panel breadth.  To reinforce both credibility and transparency, this page can be expanded into an interactive, educational explorer similar to Function Health’s menu.
+
+#### Recommendations:
+
+1. **Organise by body systems and organ functions.**
+
+   * Present categories such as Heart, Thyroid, Metabolism, Hormones, Nutrients, Liver, Kidneys, Inflammation, Toxins, Immune Regulation, Gut Health, etc.
+   * For each category, list a few representative biomarkers with one‑line explanations.  For example:
+
+     * **Cardiometabolic:** LDL‑particle size, HDL‑cholesterol, ApoB – understanding cholesterol quality and cardiovascular risk.
+     * **Hormones:** Free T3/T4, insulin, cortisol – seeing thyroid function, blood sugar regulation, stress response.
+     * **Environmental & Toxins:** Heavy metals, pesticides – checking for hidden burdens.
+   * Indicate which tests are included in the core panel and which are optional add‑ons.
+
+2. **Incorporate TCM parallels.**
+
+   * At the end of each category or on hover, show how certain biomarker trends may relate to TCM patterns.  For example:
+
+     * Low ferritin could be associated with Blood deficiency.
+     * Elevated CRP (inflammation) might map to Heat accumulation.
+   * Make clear that these parallels are interpretive and always validated by labs.
+
+3. **Add search and filter chips.**
+
+   * Allow users to filter tests by body system, test name or health goal (e.g., energy, immunity, detox).
+   * Use jade‑tone chips for quick access, similar to the “What we test” interface on Function Health but within your aesthetic.
+
+4. **Include a data‑quality statement.**
+
+   * Briefly explain that LifeRX partners with CLIA‑certified labs and provides physician‑ordered testing, ensuring accuracy and regulatory compliance.
+
+5. **Call to action.**
+
+   * End the section with a prompt to “See how these biomarkers map to your patterns” which links back to the Pattern Intelligence section or the onboarding flow.
+
+### Expanding the “Patterns” Section
+
+If the site doesn’t yet have a dedicated “Patterns” or “Pattern Intelligence” section (or if it’s only a small part of the How‑It‑Works), adding one will emphasise your moat and educate visitors on the TCM framework.
+
+#### Elements to include:
+
+1. **Pattern categories overview.**
+
+   * Introduce the major TCM pattern types you work with: Qi deficiency/stagnation, Blood deficiency/stasis, Yin deficiency, Yang excess, Dampness, Heat/Cold and combinations thereof.
+   * Use icons or simple illustrations (e.g. swirling Qi lines, droplets for Dampness) and a short description of how each pattern may feel (e.g., Qi deficiency → fatigue, shortness of breath; Dampness → heaviness, edema).
+
+2. **Diagnostic modalities.**
+
+   * Explain the tools used to detect patterns:
+
+     * **Tongue analysis:** Users upload a tongue photo; practitioners look at color, shape, coating and texture.
+     * **Pulse-informed intake:** A guided questionnaire that captures the qualities of pulse and other symptoms.
+     * **Symptom constellation mapping:** An intake that groups symptoms into pattern categories.
+     * **Constitutional typing:** Identify which of the Five Elements (Wood, Fire, Earth, Metal, Water) dominates the individual’s constitution.
+   * For each modality, show a small example (e.g., an illustrated tongue with different coatings; a diagram of a pulse quality scale).
+
+3. **Why patterns matter.**
+
+   * Emphasise that patterns provide the “why” behind biomarker trends and symptoms.  They capture system‑wide imbalances before disease labels appear.
+   * Link this to early imbalance detection and preventive care.
+
+4. **Pattern & lab interplay.**
+
+   * Provide a few case studies or examples where lab results and patterns come together:
+
+     * A person with low ferritin (lab) and pale tongue (pattern) → Blood deficiency → guided to take Si Wu Tang, iron-rich diet and mindful rest.
+     * High cortisol (lab) and wiry pulse (pattern) → Liver Qi stagnation with Heat → might be supported by Xiao Yao San and stress‑reduction techniques.
+   * Show how labs either confirm or refine patterns and how the protocol is adjusted accordingly.
+
+5. **Self‑assessment tool or quiz (optional).**
+
+   * Offer an interactive quiz that asks about energy levels, digestion, emotions and sleep to give a provisional pattern insight, with a disclaimer that a full evaluation requires lab data and practitioner review.  At the end, invite visitors to sign up for the Core plan to get a complete assessment.
+
+6. **Call to action.**
+
+   * Encourage users to book their baseline assessment or join the Core plan with text like: “Ready to discover your pattern? Join LifeRX and start with a comprehensive lab panel and full TCM assessment.”
+
+By making the “What We Test” page more transparent and educational, and by fleshing out a dedicated Patterns section, you’ll reinforce LifeRX’s unique promise: a system that translates ancient pattern recognition into modern, data‑driven guidance.

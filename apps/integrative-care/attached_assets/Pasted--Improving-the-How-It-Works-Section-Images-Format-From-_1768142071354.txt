@@ -1,0 +1,54 @@
+### Improving the “How It Works” Section: Images & Format
+
+From your description and the current live site, it sounds like the visual assets and layout in the “How It Works” section don’t fully support the story you want to tell.  To make this section feel cohesive and intuitive, you should choose images that correspond directly to each step and refine the layout so it reads like a journey rather than a static grid.
+
+#### 1. Match Images to Each Step
+
+Choose imagery that reflects the essence of each stage of the LifeRX process and aligns with your Jade & Meridian aesthetic (earth tones, botanical motifs, modern‑meets‑ancient):
+
+1. **Start With Your Story / Pattern Intake**
+
+   * Image suggestion: a calm portrait of a person holding a smartphone up to their tongue (cropped to focus on the gesture) or a stylised illustration of a tongue with botanical overlays.  Alternatively, an abstract depiction of Qi flow (e.g., gentle waves) combined with a journal or questionnaire.
+   * Purpose: conveys self‑reflection and pattern awareness.
+
+2. **Validate With Comprehensive Diagnostics**
+
+   * Image suggestion: a flat‑lay of lab vials and a sprig of ginkgo or reishi to blend Western science with herbal motifs.  Avoid clinical microscope photos (as these feel cold); opt for warm lighting and natural textures.
+   * Purpose: signals scientific rigor without losing the holistic vibe.
+
+3. **Integrate Patterns & Data**
+
+   * Image suggestion: a practitioner (silhouette or back view) at a desk with both a computer screen showing lab charts and an open classical TCM text or meridian chart.  Alternatively, an abstract illustration combining data graphs with yin‑yang or five‑element symbols.
+   * Purpose: communicates the synthesis of modern analysis and ancient wisdom.
+
+4. **Personalised Protocol & Botanical Fulfillment**
+
+   * Image suggestion: a cup of herbal tea with herbs scattered artfully, or hands preparing an herbal blend in a mortar and pestle.  This visually introduces botanical support as part of the protocol.
+   * Purpose: shows the “action” stage without looking like a supplement ad.
+
+5. **Monitor, Learn & Adapt**
+
+   * Image suggestion: a dashboard on a phone or tablet next to a notebook and a sprig of mint; or an abstract seasonal landscape (e.g., a tree through four seasons) to represent ongoing tracking.
+   * Purpose: conveys continuity and evolution over time.
+
+All images should share a consistent color palette (deep jade, cream, muted earth tones) and avoid stark clinical whites or bright synthetic colours.  Consider commissioning simple illustrations or using stock photos with filters/textures to match your look.
+
+#### 2. Refine the Layout & Format
+
+* **Use a timeline or flow chart layout.**  Instead of a series of equal‑sized blocks, arrange the steps in a horizontal or vertical sequence with connecting arrows or lines.  This visually tells a story from start to finish.
+* **Number or title each step clearly.**  Use succinct headings (“1. Discover Your Pattern”, “2. Test & Validate”, “3. Integrate & Interpret”, “4. Personalised Protocol”, “5. Monitor & Renew”) with short explanatory text beneath.
+* **Balance text and imagery.**  Each step should have a clear image on one side and a text block on the other.  Keep text concise and focus on user benefits.
+* **Add small icons.**  Use a consistent icon set (e.g. a tongue icon for pattern intake, test tubes for labs, a yin‑yang symbol for integration, a leaf for protocols, a calendar for monitoring) to reinforce each step at a glance.
+* **Consider a sticky progress indicator** if the section is long.  As users scroll, a sidebar or top bar could highlight the current step and show progress through the five stages.
+
+#### 3. Integrate Micro‑Interactions
+
+* **On hover or tap**, allow the image to gently zoom or fade while a short tooltip or micro‑animation appears (e.g., a line connecting a symptom to a pattern).
+* **On scroll**, let each step slide up or fade in with a subtle easing function, giving a sense of progression.
+
+#### 4. Provide Context Links
+
+* Under each step, include a small “Learn more” link that takes the user to the relevant deep‑dive page (e.g. “Pattern Intelligence”, “What We Test”, “Formula Library”).
+* If you have a self‑assessment or intake questionnaire, link to it from the first step with a button (“Discover My Pattern”).
+
+By curating images that embody each stage of the LifeRX journey and arranging them in an intuitive, narrative flow, the “How It Works” section will better communicate the holistic, pattern‑first philosophy of the platform.  Consistent colour treatment and micro‑interactions will make the experience feel polished and aligned with your Jade & Meridian aesthetic.
