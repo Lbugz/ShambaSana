@@ -57,6 +57,8 @@ import TcmAssessment from "@/pages/TcmAssessment";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Policies from "@/pages/Policies";
+import BillingDashboard from "@/pages/BillingDashboard";
+import CoursePayment from "@/pages/CoursePayment";
 
 function Router() {
   const [location] = useLocation();
@@ -70,6 +72,7 @@ function Router() {
     location.startsWith("/dashboard") ||
     location.startsWith("/auth") ||
     location.startsWith("/formula-library") ||
+    location.startsWith("/course-payment") ||
     location.startsWith("/tcm-assessment") ||
     location.startsWith("/admin");
 
@@ -89,6 +92,8 @@ function Router() {
         </Route>
         <Route path="/admin" component={AdminLogin} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
+        <Route path="/admin/billing" component={BillingDashboard} />
+        <Route path="/course-payment" component={CoursePayment} />
         <Route path="/privacy">
           <Policies kind="privacy" />
         </Route>

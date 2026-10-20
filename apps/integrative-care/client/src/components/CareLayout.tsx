@@ -41,6 +41,7 @@ export function CareLayout({
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-5">
           <Brand />
           <div className="flex items-center gap-3">
+            {practitioner && <Link className="text-sm hover:underline" href="/admin/billing">Billing &amp; enrollments</Link>}
             <Link
               className="text-sm hover:underline"
               href={practitioner ? "/admin/dashboard" : "/dashboard"}

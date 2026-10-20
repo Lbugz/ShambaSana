@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Pool } from "pg";
+import { migrations } from "./migrations";
 
 export class ConflictError extends Error {
   constructor() {
@@ -86,13 +87,21 @@ export class PostgresStore implements CareStore {
     this.pool = new Pool({ connectionString: url });
   }
   async init() {
-    await this.pool.query(`CREATE TABLE IF NOT EXISTS shamba_records (
-      kind TEXT NOT NULL, id TEXT NOT NULL, body JSONB NOT NULL, revision INTEGER NOT NULL DEFAULT 0,
-      PRIMARY KEY (kind, id)
-    )`);
-    await this.pool.query(
-      "CREATE INDEX IF NOT EXISTS shamba_case_owner ON shamba_records ((body->>'customerId')) WHERE kind='case'",
-    );
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("SELECT pg_advisory_xact_lock(735221)");
+      await client.query("CREATE TABLE IF NOT EXISTS shamba_schema_migrations (version INTEGER PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())");
+      for (const migration of migrations) {
+        const existing = await client.query("SELECT version FROM shamba_schema_migrations WHERE version=$1", [migration.version]);
+        if (!existing.rowCount) {
+          await client.query(migration.sql);
+          await client.query("INSERT INTO shamba_schema_migrations(version) VALUES($1)", [migration.version]);
+        }
+      }
+      await client.query("COMMIT");
+    } catch (error) { await client.query("ROLLBACK"); throw error; }
+    finally { client.release(); }
   }
   async get<T>(kind: string, id: string) {
     return (

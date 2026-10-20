@@ -21,7 +21,15 @@ npm run build
 
 The integration suite covers authentication and role enforcement, ownership of private documents, complete intake persistence, lab verification, consent, schema-validated AI responses, private drafts, report approval and version preservation, concurrent saves, signed payment webhooks and refunds. It makes no real AI requests or charges. Set `SHAMBA_TEST_DATABASE_URL` to a disposable PostgreSQL database to run the same suite against PostgreSQL. Do not point tests at the care database.
 
-## Replit deployment
+## Railway and shared billing
+
+This app is now maintained inside the Shamba Sana repository at `apps/integrative-care/`. Follow the root README for the Railway service, private PostgreSQL database, shared Institute payment flow and production opening flags. The code import includes the original history, not the disposable Replit test records. The Replit instructions below are retained as historical deployment context.
+
+The backend uses one Stripe configuration and a durable purchase ledger for care episodes and course tuition. Staff access `/#/admin/billing`; students receive private `/#/course-payment` invitations after cohort/policy review. Production checkout requires `BILLING_ENABLED=true`. One-time tuition is $1,350; installments and automatic Classroom invitations are not implemented. Register `/api/billing/webhook` in Stripe; `/api/stripe/webhook` is an alias. Preserve this service's secrets separately from the public website service.
+
+The real database schema is versioned in `server/migrations.ts` and applied transactionally on startup. The previous template `db:push` script has been removed; `shared/schema.ts` and `server/storage.ts` are unused legacy templates, not the active care persistence layer.
+
+## Historical Replit deployment
 
 This app requires a running Node server. `.replit` starts `npm run dev` in the workspace. For publishing it selects Autoscale using Replit's `deploymentTarget = "cloudrun"`, builds with `npm run build`, and runs `npm run start`. Static hosting cannot run private care APIs or use server secrets.
 

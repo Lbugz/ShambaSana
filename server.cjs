@@ -82,7 +82,7 @@ async function handleRegistration(req, res) {
   try {
     const response = await fetch(settings.webhook, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(process.env.COURSE_REGISTRATION_SERVICE_TOKEN ? { Authorization: `Bearer ${process.env.COURSE_REGISTRATION_SERVICE_TOKEN}` } : {}) },
       body: JSON.stringify(registration),
       signal: AbortSignal.timeout(8000),
     });

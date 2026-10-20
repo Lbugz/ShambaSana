@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-export function Brand({ light = false }: { light?: boolean }) {
+export function Brand({ light = false, subtitle = "INTEGRATIVE CARE" }: { light?: boolean; subtitle?: string }) {
   return (
     <Link
       href="/"
@@ -16,7 +16,7 @@ export function Brand({ light = false }: { light?: boolean }) {
       <span className="font-sans text-sm font-semibold tracking-[.16em] sm:text-base">
         SHAMBA SANA
         <span className="mt-1 block text-[9px] font-normal tracking-[.18em]">
-          INTEGRATIVE CARE
+          {subtitle}
         </span>
       </span>
     </Link>

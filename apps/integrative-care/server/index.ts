@@ -5,6 +5,11 @@ import { createServer } from "http";
 
 const app = express();
 const httpServer = createServer(app);
+app.use((_req, res, next) => {
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  next();
+});
 if (process.env.NODE_ENV === "production") {
   if (
     !process.env.APP_BASE_URL ||

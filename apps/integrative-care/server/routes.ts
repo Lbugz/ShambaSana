@@ -1,14 +1,16 @@
+import { platform } from "./platform";
+import { billingConfigured } from "./billing";
 import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
 import {
   randomBytes,
   randomUUID,
-  scryptSync,
+  scrypt,
   timingSafeEqual,
   createHash,
-  createHmac,
 } from "node:crypto";
 import { z } from "zod";
+import { promisify } from "node:util";
 import {
   blankIntake,
   intakeSchema,
@@ -45,20 +47,16 @@ const price = () => {
     throw new Error("PILOT_PRICE_CENTS must be a valid amount.");
   return value;
 };
-const checkoutConfigured = () =>
-  !!(
-    process.env.STRIPE_SECRET_KEY &&
-    process.env.STRIPE_WEBHOOK_SECRET &&
-    process.env.APP_BASE_URL
-  );
+const checkoutConfigured = billingConfigured;
 const now = () => new Date().toISOString();
-function passwordHash(password: string) {
+const derivePassword = promisify(scrypt);
+async function passwordHash(password: string) {
   const salt = randomBytes(16).toString("hex");
-  return `${salt}:${scryptSync(password, salt, 64).toString("hex")}`;
+  return `${salt}:${((await derivePassword(password, salt, 64)) as Buffer).toString("hex")}`;
 }
-function verifyPassword(password: string, stored: string) {
+async function verifyPassword(password: string, stored: string) {
   const [salt, key] = stored.split(":");
-  const computed = scryptSync(password, salt, 64);
+  const computed = (await derivePassword(password, salt, 64)) as Buffer;
   const expected = Buffer.from(key, "hex");
   return (
     computed.length === expected.length && timingSafeEqual(computed, expected)
@@ -92,6 +90,19 @@ export async function registerRoutes(
   suppliedStore?: CareStore,
 ): Promise<Server> {
   const store = suppliedStore || (await createCareStore());
+  app.get("/health", route(async (_req, res) => {
+    await store.list("health-probe");
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ status: "ok" });
+  }));
+  if (!suppliedStore) {
+    const shutdown = () => {
+      httpServer.close(() => { void store.close().then(() => process.exit(0)); });
+      setTimeout(() => process.exit(1), 10_000).unref();
+    };
+    process.once("SIGTERM", shutdown);
+    process.once("SIGINT", shutdown);
+  }
   price();
   const practitionerEmail = normalizeEmail(
     process.env.PRACTITIONER_EMAIL || "",
@@ -113,7 +124,7 @@ export async function registerRoutes(
         name: process.env.PRACTITIONER_NAME || "Care practitioner",
         email: practitionerEmail,
         role: "practitioner",
-        passwordHash: passwordHash(process.env.PRACTITIONER_PASSWORD),
+        passwordHash: await passwordHash(process.env.PRACTITIONER_PASSWORD),
       });
     }
   }
@@ -152,7 +163,7 @@ export async function registerRoutes(
     res.setHeader("X-Content-Type-Options", "nosniff");
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
-      req.path !== "/stripe/webhook"
+      !["/stripe/webhook", "/billing/webhook", "/institute/registrations"].includes(req.path)
     ) {
       const expected = process.env.APP_BASE_URL
         ? new URL(process.env.APP_BASE_URL).origin
@@ -220,7 +231,7 @@ export async function registerRoutes(
         email,
         name: data.name,
         role: "customer",
-        passwordHash: passwordHash(data.password),
+        passwordHash: await passwordHash(data.password),
       };
       await store.put("user", id, u);
       await session(res, u);
@@ -233,7 +244,7 @@ export async function registerRoutes(
       authLimit(req);
       const data = authSchema.parse(req.body);
       const u = await store.get<User>("user", hash(normalizeEmail(data.email)));
-      const valid = verifyPassword(
+      const valid = await verifyPassword(
         data.password,
         u?.passwordHash || `${"0".repeat(32)}:${"0".repeat(128)}`,
       );
@@ -684,178 +695,18 @@ export async function registerRoutes(
       res.json(c);
     }),
   );
+  const billing = platform(app, store);
   app.post(
     "/api/cases/:id/checkout",
     route(async (req, res) => {
       const [c, u] = await getCase(req, "customer");
       const expected = revision(req, c);
-      if (!checkoutConfigured()) failure(503, "Payment is not configured.");
-      if (c.payment.status !== "pending")
-        failure(409, "This case does not need a payment.");
-      if (c.payment.checkoutId) {
-        const previous = await fetch(
-          `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(c.payment.checkoutId)}`,
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
-            },
-            signal: AbortSignal.timeout(20000),
-          },
-        );
-        if (!previous.ok)
-          failure(
-            502,
-            "Unable to check your existing payment session. Please try again.",
-          );
-        const existing = (await previous.json()) as {
-          status: string;
-          url?: string;
-        };
-        if (
-          existing.status === "open" &&
-          existing.url?.startsWith("https://checkout.stripe.com/")
-        ) {
-          res.json({ url: existing.url });
-          return;
-        }
-        if (existing.status === "complete")
-          failure(
-            409,
-            "Your checkout is complete. Refresh your case while payment confirmation arrives.",
-          );
-        if (existing.status !== "expired")
-          failure(409, "Unable to open another payment session yet.");
-      }
-      const base = new URL(process.env.APP_BASE_URL!).origin;
-      const body = new URLSearchParams({
-        mode: "payment",
-        "line_items[0][price_data][currency]": "usd",
-        "line_items[0][price_data][unit_amount]": String(c.payment.amount),
-        "line_items[0][price_data][product_data][name]":
-          "Shamba Sana Integrative Care Pilot",
-        "line_items[0][quantity]": "1",
-        "metadata[caseId]": c.id,
-        "payment_intent_data[metadata][caseId]": c.id,
-        client_reference_id: c.id,
-        customer_email: u.email,
-        success_url: `${base}/#/dashboard?payment=returned`,
-        cancel_url: `${base}/#/dashboard?payment=canceled`,
-      });
-      const payment = await fetch(
-        "https://api.stripe.com/v1/checkout/sessions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
-            "Idempotency-Key": `shamba-${c.id}-${expected}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body,
-          signal: AbortSignal.timeout(20000),
-        },
-      );
-      if (!payment.ok)
-        failure(
-          502,
-          "Payment service is unavailable. No payment status was changed.",
-        );
-      const result = (await payment.json()) as { id: string; url: string };
-      if (!result.id || !result.url?.startsWith("https://checkout.stripe.com/"))
-        failure(502, "Payment service returned an invalid session.");
-      c.payment.checkoutId = result.id;
+      if (c.payment.status !== "pending") failure(409, "This case does not need a payment.");
+      const purchase = await billing.order("care", c.id, u.email, "Shamba Sana Integrative Care Pilot", c.payment.amount);
+      const result = await billing.checkout(purchase.id, "/#/dashboard?payment=returned");
+      c.payment.checkoutId = result.order.checkoutId;
       await save(c, expected, u.id, "checkout-created");
       res.json({ url: result.url });
-    }),
-  );
-  app.post(
-    "/api/stripe/webhook",
-    route(async (req, res) => {
-      if (!process.env.STRIPE_WEBHOOK_SECRET)
-        failure(503, "Payment webhook is not configured.");
-      const parts = (req.get("stripe-signature") || "").split(",");
-      const timestamp = parts.find((p) => p.startsWith("t="))?.slice(2) || "";
-      const wanted = createHmac("sha256", process.env.STRIPE_WEBHOOK_SECRET!)
-        .update(`${timestamp}.`)
-        .update(req.rawBody as Buffer)
-        .digest();
-      const valid =
-        /^\d+$/.test(timestamp) &&
-        Math.abs(Date.now() / 1000 - Number(timestamp)) < 300 &&
-        parts
-          .filter((p) => p.startsWith("v1="))
-          .some((p) => {
-            const b = Buffer.from(p.slice(3), "hex");
-            return b.length === wanted.length && timingSafeEqual(b, wanted);
-          });
-      if (!valid) failure(400, "Invalid payment signature.");
-      const event = req.body;
-      if (
-        [
-          "checkout.session.completed",
-          "checkout.session.async_payment_succeeded",
-        ].includes(event.type)
-      ) {
-        const obj = event.data?.object;
-        const id = obj?.metadata?.caseId;
-        for (let attempt = 0; attempt < 3; attempt++) {
-          const c =
-            typeof id === "string"
-              ? await store.get<CareCase>("case", id)
-              : undefined;
-          if (!c || c.payment.status === "paid") break;
-          if (
-            obj.payment_status !== "paid" ||
-            obj.id !== c.payment.checkoutId ||
-            obj.amount_total !== c.payment.amount ||
-            obj.currency !== "usd"
-          )
-            failure(400, "Payment does not match the case.");
-          const expected = c.revision;
-          c.payment.status = "paid";
-          c.payment.paymentIntent =
-            typeof obj.payment_intent === "string"
-              ? obj.payment_intent
-              : undefined;
-          try {
-            await save(c, expected, "stripe", "payment-confirmed");
-            break;
-          } catch (e) {
-            if (!(e instanceof ConflictError) || attempt === 2) throw e;
-          }
-        }
-      }
-      if (event.type === "charge.refunded") {
-        const obj = event.data?.object;
-        const id = obj?.metadata?.caseId;
-        for (let attempt = 0; attempt < 3; attempt++) {
-          const c =
-            typeof id === "string"
-              ? await store.get<CareCase>("case", id)
-              : undefined;
-          if (
-            !c ||
-            c.payment.status === "refunded" ||
-            obj.amount_refunded < obj.amount
-          )
-            break;
-          if (
-            obj.payment_intent !== c.payment.paymentIntent ||
-            obj.amount !== c.payment.amount ||
-            obj.currency !== "usd"
-          )
-            failure(400, "Refund does not match the case.");
-          const expected = c.revision;
-          c.payment.status = "refunded";
-          c.draft = undefined;
-          try {
-            await save(c, expected, "stripe", "full-refund-recorded");
-            break;
-          } catch (e) {
-            if (!(e instanceof ConflictError) || attempt === 2) throw e;
-          }
-        }
-      }
-      res.json({ received: true });
     }),
   );
   app.use("/api", (_req, res) =>
