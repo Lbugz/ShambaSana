@@ -128,7 +128,7 @@ const steps = [
     alt: "An illustrated tree moving through the seasons, with roots and leaves in jade and gold",
     tone: "bg-violet-50 text-violet-800 border-violet-200",
     href: "/pricing",
-    link: "Explore the remote care pilot",
+    link: "Explore the integrative care pilot",
   },
 ];
 

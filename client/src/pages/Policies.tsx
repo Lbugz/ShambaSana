@@ -43,7 +43,7 @@ export default function Policies({ kind }: { kind: "privacy" | "terms" }) {
         ) : (
           <>
             <p>
-              The remote care pilot covers one care episode: a health and TCM
+              The integrative care pilot covers one care episode: a health and TCM
               questionnaire, review of existing labs, and a
               practitioner-approved personal report. New laboratory tests,
               supplements and in-person treatments are additional services and

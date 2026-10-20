@@ -7,7 +7,7 @@ export function PilotOffer() {
   return (
     <div className="mx-auto max-w-3xl rounded-3xl border border-primary/15 bg-card p-7 shadow-sm md:p-12">
       <p className="mb-4 text-xs font-semibold uppercase tracking-[.2em] text-muted-foreground">
-        One starting point · Remote care pilot
+        One starting point · Integrative Care pilot
       </p>
       <h2 className="text-3xl md:text-4xl">Your health, brought together.</h2>
       <p className="mt-4 leading-7 text-muted-foreground">

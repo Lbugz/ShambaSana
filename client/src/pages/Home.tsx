@@ -34,7 +34,7 @@ export default function Home() {
         <div className="relative mx-auto max-w-6xl px-6">
           <p className="mb-7 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-card/70 px-4 py-2.5 text-xs font-semibold uppercase tracking-[.16em] text-primary/80">
             <Leaf aria-hidden="true" className="h-4 w-4" />
-            Shamba Sana · Remote integrative care
+            Shamba Sana · Integrative Care
           </p>
           <h1 className="max-w-3xl text-5xl leading-[1.12] md:text-7xl">
             Your body speaks
@@ -337,7 +337,7 @@ export default function Home() {
           around you.
         </h2>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/75">
-          Shamba Sana begins with remote care. Our longer-term vision brings
+          Shamba Sana begins with integrative care. Our longer-term vision brings
           together learning, community and spaces for wellbeing.
         </p>
       </section>

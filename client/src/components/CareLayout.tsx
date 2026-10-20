@@ -58,7 +58,7 @@ export function CareLayout({
         {children}
       </main>
       <p className="mx-auto max-w-6xl px-5 py-8 text-xs text-muted-foreground print:hidden">
-        Shamba Sana remote care pilot. This service is not monitored for
+        Shamba Sana integrative care pilot. This service is not monitored for
         emergencies.
       </p>
     </div>

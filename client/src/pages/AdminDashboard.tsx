@@ -144,7 +144,7 @@ function PractitionerCase({ id }: { id: string }) {
     <div className="space-y-6">
       <header className="rounded-2xl bg-primary p-6">
         <p className="mb-3 text-xs uppercase tracking-[.15em] text-white/65">
-          {c.payment.status === "unpaid-pilot" ? "Unpaid pilot" : "Remote care"}{" "}
+          {c.payment.status === "unpaid-pilot" ? "Unpaid pilot" : "Integrative Care"}{" "}
           · Revision {c.revision}
         </p>
         <h2 className="text-2xl text-white">{c.customerName}</h2>

@@ -10,11 +10,11 @@ export function Footer() {
               Shamba Sana
             </h3>
             <p className="text-muted-foreground text-sm max-w-xs">
-              Cultivating wellbeing through remote care, your health story and
+              Cultivating wellbeing through integrative care, your health story and
               practitioner-reviewed guidance.
             </p>
             <p className="text-xs text-muted-foreground font-medium pt-2 uppercase tracking-wider">
-              Remote care pilot
+              Integrative Care pilot
             </p>
           </div>
 
@@ -25,7 +25,7 @@ export function Footer() {
                 <Link href="/how-it-works">Our approach</Link>
               </li>
               <li>
-                <Link href="/pricing">Remote care pilot</Link>
+                <Link href="/pricing">Integrative Care pilot</Link>
               </li>
               <li>
                 <Link

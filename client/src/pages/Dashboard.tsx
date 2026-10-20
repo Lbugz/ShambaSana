@@ -67,7 +67,7 @@ export default function Dashboard() {
       {cases.isLoading && <p>Loading your care records…</p>}
       {cases.isSuccess && (!cases.data.length || newCase) ? (
         <section className="max-w-2xl rounded-2xl border border-border bg-card p-7">
-          <h2 className="text-2xl">Enroll in the remote care pilot</h2>
+          <h2 className="text-2xl">Enroll in the integrative care pilot</h2>
           <p className="mt-4 text-sm leading-7 text-muted-foreground">
             A TCM intake, review of existing labs and a practitioner-approved
             report.{" "}
@@ -233,7 +233,7 @@ function CustomerCase({ id }: { id: string }) {
         <p className="mb-3 text-xs uppercase tracking-[.16em] text-white/65">
           {c.payment.status === "unpaid-pilot"
             ? "Unpaid pilot case"
-            : "Remote care case"}
+            : "Integrative Care case"}
         </p>
         <h2 className="text-2xl text-white">{caseStatus(c)}</h2>
         <ol className="mt-7 grid grid-cols-2 gap-5 sm:grid-cols-4">

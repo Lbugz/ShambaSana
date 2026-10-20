@@ -6,7 +6,7 @@ export default function Pricing() {
         <p className="mb-4 text-xs uppercase tracking-[.2em] text-muted-foreground">
           Begin with clarity
         </p>
-        <h1 className="text-4xl md:text-5xl">The remote care pilot</h1>
+        <h1 className="text-4xl md:text-5xl">The integrative care pilot</h1>
         <p className="mt-5 leading-7 text-muted-foreground">
           One complete journey from your intake and existing labs to
           practitioner-reviewed guidance.

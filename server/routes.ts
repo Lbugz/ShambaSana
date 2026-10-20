@@ -732,7 +732,7 @@ export async function registerRoutes(
         "line_items[0][price_data][currency]": "usd",
         "line_items[0][price_data][unit_amount]": String(c.payment.amount),
         "line_items[0][price_data][product_data][name]":
-          "Shamba Sana Remote Care Pilot",
+          "Shamba Sana Integrative Care Pilot",
         "line_items[0][quantity]": "1",
         "metadata[caseId]": c.id,
         "payment_intent_data[metadata][caseId]": c.id,

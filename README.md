@@ -1,6 +1,6 @@
-# Shamba Sana remote care pilot
+# Shamba Sana Integrative Care pilot
 
-A connected pilot for one remote care episode: account and enrollment, saved TCM intake, private lab documents, practitioner verification, editable assessment, and a released customer report.
+A connected pilot for one integrative care episode: account and enrollment, saved TCM intake, private lab documents, practitioner verification, editable assessment, and a released customer report.
 
 The Gateway app is the primary service. The separate Medical I Ching repository supplies questionnaire concepts only; it is not a dependency and its patient queue is not imported.
 
