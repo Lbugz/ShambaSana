@@ -22,7 +22,10 @@
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape" && header.classList.contains("menu-open")) {
+        setMenuOpen(false);
+        toggle?.focus();
+      }
     });
 
     document.addEventListener("click", (event) => {

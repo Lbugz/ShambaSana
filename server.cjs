@@ -1,9 +1,10 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+const { randomUUID } = require('node:crypto');
 const { URLSearchParams } = require('node:url');
 const root = path.join(__dirname, 'public');
-const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.ico':'image/x-icon'};
+const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.ico':'image/x-icon'};
 
 const registrationAttempts = new Map();
 const registrationCourses = new Set([
@@ -17,66 +18,78 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+function enrollmentSettings() {
+  let webhook;
+  try { webhook = new URL(process.env.COURSE_REGISTRATION_WEBHOOK_URL); } catch { /* Intake stays closed. */ }
+  const courses = (process.env.COURSE_REGISTRATION_COURSES || 'Foundations of Chinese Medicine')
+    .split('|').map((value) => value.trim()).filter((value) => registrationCourses.has(value));
+  const open = process.env.COURSE_REGISTRATION_OPEN === 'true' && webhook?.protocol === 'https:' && courses.length > 0;
+  return { open: Boolean(open), courses: open ? courses : [], webhook };
+}
+
 async function handleRegistration(req, res) {
-  const webhook = process.env.COURSE_REGISTRATION_WEBHOOK_URL;
-  if (!webhook) {
+  const settings = enrollmentSettings();
+  if (!settings.open) {
     return sendJson(res, 503, { message: 'Course registration is not open yet. Please try again later.' });
   }
 
-  let webhookUrl;
-  try {
-    webhookUrl = new URL(webhook);
-  } catch {
-    return sendJson(res, 503, { message: 'Registration is temporarily unavailable.' });
-  }
-  if (webhookUrl.protocol !== 'https:') {
-    return sendJson(res, 503, { message: 'Registration is temporarily unavailable.' });
-  }
-
   const now = Date.now();
+  if (registrationAttempts.size > 1000) {
+    for (const [key, timestamps] of registrationAttempts) {
+      if (!timestamps.some((timestamp) => now - timestamp < 15 * 60 * 1000)) registrationAttempts.delete(key);
+    }
+  }
   const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').toString().split(',')[0].trim();
   const attempts = (registrationAttempts.get(ip) || []).filter((timestamp) => now - timestamp < 15 * 60 * 1000);
   if (attempts.length >= 5) {
     return sendJson(res, 429, { message: 'Please wait a few minutes before sending another request.' });
   }
+  if (registrationAttempts.size >= 5000 && !registrationAttempts.has(ip)) {
+    return sendJson(res, 503, { message: 'Registration is busy. Please try again later.' });
+  }
   attempts.push(now);
   registrationAttempts.set(ip, attempts);
-
-  let body = '';
+  const chunks = [];
+  let size = 0;
   for await (const chunk of req) {
-    body += chunk;
-    if (body.length > 12_000) return sendJson(res, 413, { message: 'The form is too large. Please shorten your message and try again.' });
+    size += chunk.length;
+    if (size > 12_000) return sendJson(res, 413, { message: 'The form is too large. Please shorten your message and try again.' });
+    chunks.push(chunk);
   }
 
-  const fields = new URLSearchParams(body);
+  const fields = new URLSearchParams(Buffer.concat(chunks).toString('utf8'));
   if (fields.get('website')) return sendJson(res, 200, { message: 'Thank you. Your request has been received.' });
   const registration = {
     course: (fields.get('course') || '').trim(),
     name: (fields.get('name') || '').trim(),
     email: (fields.get('email') || '').trim(),
     phone: (fields.get('phone') || '').trim(),
+    timezone: (fields.get('timezone') || '').trim(),
     message: (fields.get('message') || '').trim(),
     consent: fields.get('consent') === 'yes',
     submittedAt: new Date().toISOString(),
+    reference: 'SS-' + randomUUID(),
   };
 
-  if (!registrationCourses.has(registration.course)
+  if (!settings.courses.includes(registration.course)
       || registration.name.length < 2 || registration.name.length > 120
       || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registration.email) || registration.email.length > 254
-      || registration.phone.length > 40 || registration.message.length > 1000
+      || registration.phone.length > 40 || registration.message.length > 1000 || registration.timezone.length > 80
       || !registration.consent) {
     return sendJson(res, 400, { message: 'Please check the form fields and consent, then try again.' });
   }
 
   try {
-    const response = await fetch(webhookUrl, {
+    const response = await fetch(settings.webhook, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(registration),
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) throw new Error(`Submission destination returned ${response.status}`);
-    return sendJson(res, 200, { message: 'Your course registration has been received. We’ll follow up with cohort details and the next steps to confirm your place.' });
+    const acknowledgement = await response.json();
+    if (acknowledgement.received !== true) throw new Error('Submission destination did not acknowledge receipt');
+    return sendJson(res, 200, { received: true, reference: registration.reference });
   } catch (error) {
     console.error('Course registration delivery failed:', error.message);
     return sendJson(res, 502, { message: 'We couldn’t send your request just now. Please try again later.' });
@@ -84,16 +97,24 @@ async function handleRegistration(req, res) {
 }
 
 http.createServer(async (req, res) => {
+ try {
+  const requestUrl = new URL(req.url, 'http://localhost');
   let url;
-  try { url = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); }
+  try { url = decodeURIComponent(requestUrl.pathname); }
   catch { res.writeHead(400); return res.end(); }
+
+  if (url === '/api/course-registration/status') {
+    if (!['GET', 'HEAD'].includes(req.method)) return sendJson(res, 405, { message: 'Method not allowed.' });
+    const { open, courses } = enrollmentSettings();
+    return sendJson(res, 200, { open, courses });
+  }
 
   if (url === '/api/course-registration') {
     if (req.method !== 'POST') return sendJson(res, 405, { message: 'Method not allowed.' });
     if (!/^application\/x-www-form-urlencoded(?:\s*;|$)/i.test(req.headers['content-type'] || '')) {
       return sendJson(res, 415, { message: 'Unsupported form format.' });
     }
-    return handleRegistration(req, res);
+    return await handleRegistration(req, res);
   }
 
   if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405); return res.end(); }
@@ -106,10 +127,20 @@ http.createServer(async (req, res) => {
   let file = path.resolve(root, '.' + url);
   if (file !== root && !file.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); }
   if (url === '/health') { res.writeHead(200, { 'Content-Type': 'text/plain' }); return res.end('ok'); }
-  if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
+  if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
+    if (!url.endsWith('/')) {
+      res.writeHead(308, { Location: requestUrl.pathname + '/' + requestUrl.search });
+      return res.end();
+    }
+    file = path.join(file, 'index.html');
+  }
   fs.readFile(file, (error, data) => {
     if (error) { res.writeHead(404); return res.end('Not found'); }
     res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'X-Content-Type-Options': 'nosniff' });
     res.end(req.method === 'HEAD' ? undefined : data);
   });
+ } catch {
+  if (!res.headersSent && !req.aborted) sendJson(res, 500, { message: 'We could not process this request. Please try again later.' });
+  else if (!res.writableEnded) res.end();
+ }
 }).listen(Number(process.env.PORT) || 3000, '0.0.0.0', () => console.log('Shamba Sana server ready'));
