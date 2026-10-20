@@ -337,9 +337,18 @@ export default function Home() {
           around you.
         </h2>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/75">
-          Shamba Sana begins with integrative care. Our longer-term vision brings
-          together learning, community and spaces for wellbeing.
+          Integrative Care and the Shamba Sana Institute are our first pathways
+          toward a wider vision: urban sanctuaries where learning, care, nourishing
+          food, nature and community belong together.
         </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm">
+          <a className="underline underline-offset-4" href="https://shambasana-production.up.railway.app/">
+            Explore Shamba Sana
+          </a>
+          <a className="underline underline-offset-4" href="https://shambasana-production.up.railway.app/institute/">
+            Explore the Institute
+          </a>
+        </div>
       </section>
     </main>
   );
