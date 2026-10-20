@@ -63,8 +63,10 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
 .section-heading > p:last-child { margin: 0 auto; color: var(--muted); }
 .learning-section { background: #f0efe7; }
 .course-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; max-width: 1160px; margin: 0 auto; }
-.course-card { display: flex; flex-direction: column; padding: 27px 25px 24px; border: 1px solid #103d2b20; background: #faf9f5; }
+.course-card { display: flex; flex-direction: column; overflow: hidden; padding: 27px 25px 24px; border: 1px solid #103d2b20; background: #faf9f5; }
 .course-current { border-color: #31594075; background: #e7ebe2; }
+.course-visual { position: relative; flex: 0 0 auto; height: 142px; margin: -27px -25px 22px; overflow: hidden; border-bottom: 1px solid #b78a3f35; background: #f1e9d4; }
+.course-visual img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .course-label { margin-bottom: 20px; color: var(--sage); font-size: 9px; font-weight: 600; letter-spacing: 1.4px; }
 .course-label span { display: inline-block; margin-left: 5px; color: #777b70; font-size: 8px; letter-spacing: 1px; }
 .course-card h3 { margin: 0 0 14px; font-size: 29px; line-height: 1.15; }
@@ -76,6 +78,7 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
 .course-card ul { margin: 0 0 17px; padding-left: 18px; color: #50584e; font-size: 11px; line-height: 1.75; }
 .course-card li + li { margin-top: 6px; }
 .course-card .course-footnote { margin-top: auto; padding-top: 15px; border-top: 1px solid #103d2b20; color: #73776d !important; font-size: 10px !important; }
+.course-action { display: inline-flex; align-items: center; gap: 10px; align-self: flex-start; margin-top: 15px; color: var(--green); font-size: 11px; font-weight: 600; text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px; }
 
 .enrollment-section { background: var(--paper); }
 .enrollment-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; max-width: 1160px; margin: 0 auto; padding: 0; list-style: none; counter-reset: enrollment; }
@@ -85,6 +88,33 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
 .enrollment-steps p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.75; }
 .enrollment-note { max-width: 940px; margin: 30px auto 0; padding: 16px 19px; border: 1px solid #b78a3f66; background: #f2eee3; color: #55594f; font-size: 11px; line-height: 1.75; }
 .enrollment-note strong { color: var(--green); }
+
+.registration-section { display: grid; grid-template-columns: .82fr 1.18fr; gap: 9%; align-items: start; background: #eeeee4; }
+.registration-intro h2 { margin-bottom: 22px; }
+.registration-page { max-width: 1320px; min-height: calc(100vh - 180px); margin: 0 auto; }
+.registration-page .registration-intro h1 { margin: 0 0 22px; font-size: clamp(56px, 6vw, 78px); }
+.registration-back { color: var(--green); font-size: 12px; text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px; }
+.registration-tuition { margin-top: 24px; padding-top: 16px; border-top: 1px solid #103d2b20; color: var(--muted); font-size: 11px; }
+.registration-tuition strong { color: var(--green); }
+.registration-intro > p:not(.eyebrow) { color: var(--muted); font-size: 13px; }
+.registration-intro .registration-disclaimer { margin-top: 24px; padding: 15px 17px; border-left: 2px solid var(--gold); background: #f7f5ef; font-size: 11px !important; }
+.registration-form { display: grid; gap: 19px; padding: 30px; border: 1px solid #103d2b20; background: var(--paper); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
+.form-field { display: grid; gap: 7px; }
+.form-field label { color: var(--green); font-size: 11px; font-weight: 600; }
+.form-field label span { color: var(--muted); font-weight: 400; }
+.form-field input, .form-field select, .form-field textarea { width: 100%; min-height: 47px; border: 1px solid #103d2b40; border-radius: 0; padding: 11px 12px; background: #fffefa; color: var(--ink); font: inherit; font-size: 13px; }
+.form-field textarea { min-height: 100px; resize: vertical; }
+.form-field input:focus-visible, .form-field select:focus-visible, .form-field textarea:focus-visible, .consent-field input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.consent-field { display: flex; align-items: flex-start; gap: 10px; color: var(--muted); font-size: 11px; line-height: 1.65; }
+.consent-field input { flex: 0 0 auto; width: 17px; height: 17px; margin: 2px 0 0; accent-color: var(--green); }
+.form-honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.registration-form .button { justify-self: start; cursor: pointer; }
+.registration-form .button:disabled { cursor: wait; opacity: .7; }
+.enrollment-register { margin: 25px 0 0; text-align: center; }
+.form-status { margin: -5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.65; }
+.form-status[data-state="error"] { color: #8c2f23; }
+.form-status[data-state="success"] { color: var(--green); }
 
 .study-section { display: grid; grid-template-columns: .88fr 1.12fr; gap: 9%; align-items: start; }
 .study-heading h2 { margin: 0; }
@@ -100,18 +130,6 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
 .assessment-grid p { color: var(--muted); font-size: 12px; line-height: 1.85; }
 .assessment-note { max-width: 850px; margin: 32px auto 0; color: #73776d; font-size: 10px; text-align: center; }
 
-.student-section { display: grid; grid-template-columns: 1.2fr .8fr; gap: 8%; align-items: center; padding: 84px 8%; background: var(--green); color: #d9e0d6; }
-.student-section h2 { color: var(--paper); }
-.eyebrow-light { color: #d6bd87; }
-.student-copy > p:not(.eyebrow) { color: #c7d1c3; font-size: 13px; }
-.button-light { margin-top: 8px; border-color: #e6ebdf; color: white; }
-.button-light:hover { background: #234f39; }
-.student-help { margin-top: 20px; margin-bottom: 0; font-size: 10px !important; }
-.enrollment-card { padding: 29px; border: 1px solid #d6bd8780; background: #f5f3ea; color: var(--ink); }
-.enrollment-card .eyebrow { font-size: 8px; }
-.enrollment-card h3 { margin-bottom: 12px; font-size: 28px; }
-.enrollment-card > p:not(.eyebrow) { margin: 0; color: var(--muted); font-size: 11px; }
-.enrollment-card > a { display: inline-flex; gap: 10px; margin-top: 18px; color: var(--green); font-size: 11px; font-weight: 600; text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px; }
 .program-note { display: grid; grid-template-columns: 25px 1fr; gap: 13px; align-items: start; margin: 22px 8% 0; padding: 18px 20px; border: 1px solid #b78a3f66; background: #f2eee3; }
 .program-note > span { display: grid; width: 22px; height: 22px; place-items: center; border: 1px solid var(--gold); border-radius: 50%; color: var(--green); font-family: var(--serif); }
 .program-note p { margin: 0; color: #55594f; font-size: 10px; line-height: 1.8; }
@@ -121,7 +139,7 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
 .institute-footer > p { justify-self: end; margin: 0; color: var(--muted); font-size: 9px; }
 
 @media (min-width: 1500px) {
-  .institute-header, .institute-hero, .learning-ribbon, .section, .student-section, .institute-footer { padding-right: max(8%, calc((100vw - 1280px) / 2)); padding-left: max(8%, calc((100vw - 1280px) / 2)); }
+  .institute-header, .institute-hero, .learning-ribbon, .section, .institute-footer { padding-right: max(8%, calc((100vw - 1280px) / 2)); padding-left: max(8%, calc((100vw - 1280px) / 2)); }
   .program-note { max-width: 1120px; margin-right: auto; margin-left: auto; }
 }
 @media (max-width: 900px) {
@@ -129,9 +147,9 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
   .hero-artwork, .hero-artwork img { min-height: 310px; height: 310px; }
   .hero-artwork figcaption { position: absolute; right: 8px; bottom: 8px; left: 8px; padding: 20px 10px 8px; color: white; background: linear-gradient(transparent, #103d2bba); }
   .course-card { padding: 24px 20px; }
+  .course-visual { margin: -24px -20px 19px; }
   .course-card h3 { font-size: 25px; }
   .enrollment-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .student-section { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 640px) {
   html { scroll-padding-top: 76px; }
@@ -153,6 +171,7 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
   .section-heading { margin-bottom: 31px; }
   .course-grid { grid-template-columns: 1fr; gap: 10px; }
   .course-card { padding: 24px 22px; }
+  .course-visual { height: auto; aspect-ratio: 3 / 1; margin: -24px -22px 18px; }
   .course-card h3 { font-size: 28px; }
   .enrollment-steps { grid-template-columns: 1fr; gap: 10px; }
   .enrollment-steps li { padding-top: 13px; }
@@ -160,8 +179,9 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
   .study-section { grid-template-columns: 1fr; gap: 21px; }
   .assessment-grid { grid-template-columns: 1fr; gap: 21px; }
   .assessment-grid h3 { font-size: 23px; }
-  .student-section { grid-template-columns: 1fr; gap: 30px; padding: 60px 6%; }
-  .enrollment-card { padding: 24px; }
+  .registration-section { grid-template-columns: 1fr; gap: 27px; }
+  .registration-form { gap: 16px; padding: 22px; }
+  .form-row { grid-template-columns: 1fr; }
   .program-note { grid-template-columns: 22px 1fr; gap: 9px; margin: 14px 6% 0; padding: 15px; }
   .institute-footer { grid-template-columns: 1fr; gap: 18px; padding: 26px 6%; }
   .institute-footer nav { flex-wrap: wrap; gap: 13px 18px; }
