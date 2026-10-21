@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { createHmac, randomBytes } from "node:crypto";
+import { createHmac, randomBytes, randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import express from "express";
 import { registerRoutes } from "./routes";
@@ -755,8 +755,63 @@ test("Shamba Sana pilot: persisted care, access control, verified labs and repor
           (await request(`/api/cases/${c.id}`)).data.payment.status,
           "refunded",
         );
+        // A late payment-success delivery must not restore access after a full refund.
+        assert.equal((await webhook(session)).response.status, 200);
+        assert.equal((await request(`/api/cases/${c.id}`)).data.payment.status, "refunded");
       },
     );
+    await t.test("Institute tuition uses the same ledger with private invitations and verified payment", async () => {
+      process.env.INSTITUTE_SERVICE_TOKEN = randomBytes(32).toString("hex");
+      process.env.INSTITUTE_WEBSITE_URL = "https://institute.example.com";
+      const registration = { reference: `SS-${randomUUID()}`, course: "Foundations of Chinese Medicine", name: "Synthetic Student", email: "student@example.com", phone: "", timezone: "UTC", message: "Synthetic record", consent: true };
+      assert.equal((await request("/api/institute/registrations", "POST", registration, "")).response.status, 403);
+      const serviceHeaders = { Authorization: `Bearer ${process.env.INSTITUTE_SERVICE_TOKEN}` };
+      assert.equal((await request("/api/institute/registrations", "POST", registration, "", serviceHeaders)).response.status, 503);
+      process.env.INSTITUTE_REGISTRATION_OPEN = "true";
+      assert.equal((await request("/api/institute/registrations", "POST", registration, "", serviceHeaders)).response.status, 200);
+      assert.equal((await request("/api/billing/admin")).response.status, 403);
+      const listing = await request("/api/billing/admin", "GET", undefined, practitioner);
+      const enrollment = listing.data.enrollments.find((e: any) => e.id === registration.reference);
+      assert.equal(enrollment.status, "review");
+      const invitation = await request(`/api/institute/enrollments/${enrollment.id}/invite`, "POST", { revision: enrollment.revision, cohort: "Synthetic cohort — Tuesdays 18:00 UTC", policyUrl: "https://institute.example.com/policies", confirm: true }, practitioner);
+      assert.equal(invitation.response.status, 200);
+      const params = new URLSearchParams(invitation.data.url.split("?")[1]);
+      const token = params.get("token");
+      const paymentInput = { enrollment: enrollment.id, token };
+      assert.equal((await request("/api/institute/payment", "POST", { ...paymentInput, token: "wrong" }, "")).response.status, 404);
+      assert.equal((await request("/api/institute/payment", "POST", { ...paymentInput, checkout: true }, "")).response.status, 409);
+      const details = await request("/api/institute/payment", "POST", paymentInput, "");
+      assert.equal(details.data.amount, 135000);
+      assert.equal(details.data.status, "payment-ready");
+      const orders = (await request("/api/billing/admin", "GET", undefined, practitioner)).data.orders;
+      const order = orders.find((o: any) => o.referenceId === enrollment.id);
+      assert.equal(order.offering, "institute");
+      globalThis.fetch = async (input, init) => {
+        if (String(input).startsWith(origin)) return originalFetch(input, init);
+        if (String(input).includes("payment_intents/pi_course")) return new Response(JSON.stringify({ metadata: { orderId: order.id } }));
+        assert.equal(String(input), "https://api.stripe.com/v1/checkout/sessions");
+        const body = new URLSearchParams(String(init?.body));
+        assert.equal(body.get("line_items[0][price_data][unit_amount]"), "135000");
+        assert.equal(body.get("metadata[orderId]"), order.id);
+        return new Response(JSON.stringify({ id: "cs_course", url: "https://checkout.stripe.com/c/pay/course" }));
+      };
+      assert.equal((await request("/api/institute/payment", "POST", { ...paymentInput, checkout: true, acceptPolicies: true, amount: 1 }, "")).response.status, 200);
+      const send = async (object: unknown, type: string, id: string) => {
+        const event = { id, type, data: { object } };
+        const timestamp = String(Math.floor(Date.now() / 1000));
+        const signature = createHmac("sha256", process.env.STRIPE_WEBHOOK_SECRET!).update(`${timestamp}.${JSON.stringify(event)}`).digest("hex");
+        return request("/api/billing/webhook", "POST", event, "", { "stripe-signature": `t=${timestamp},v1=${signature}` });
+      };
+      const paid = { id: "cs_course", metadata: { orderId: order.id }, payment_status: "paid", amount_total: 135000, currency: "usd", payment_intent: "pi_course" };
+      assert.equal((await send(paid, "checkout.session.completed", "evt_course_paid")).response.status, 200);
+      assert.equal((await send(paid, "checkout.session.completed", "evt_course_paid")).response.status, 200);
+      assert.equal((await request("/api/institute/payment", "POST", paymentInput, "")).data.status, "paid");
+      // Stripe Charge metadata need not inherit PaymentIntent metadata.
+      assert.equal((await send({ metadata: {}, payment_intent: "pi_course", amount: 135000, amount_refunded: 135000, currency: "usd" }, "charge.refunded", "evt_course_refund")).response.status, 200);
+      assert.equal((await send(paid, "checkout.session.completed", "evt_course_late")).response.status, 200);
+      assert.equal((await request("/api/institute/payment", "POST", paymentInput, "")).data.status, "refunded");
+      globalThis.fetch = originalFetch;
+    });
     await t.test("sign-out invalidates the server session", async () => {
       assert.equal(
         (await request("/api/auth/logout", "POST", {})).response.status,

@@ -109,7 +109,8 @@ export class Billing {
           if (object.amount_refunded === object.amount) next = "refunded";
         } else {
           if (object.payment_status !== "paid") return res.json({ received: true });
-          if (object.id !== order!.checkoutId || object.amount_total !== order!.amount || object.currency !== order!.currency || typeof object.payment_intent !== "string") fail(409, "Payment needs reconciliation.");
+          if (!order!.checkoutId) fail(409, "Checkout is not ready. Retry this event.");
+          if (object.id !== order!.checkoutId || object.amount_total !== order!.amount || object.currency !== order!.currency || typeof object.payment_intent !== "string") fail(400, "Payment does not match the purchase.");
           if (order!.status === "pending") next = "paid";
           intent = object.payment_intent;
         }
