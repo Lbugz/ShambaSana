@@ -117,15 +117,18 @@
  .flow-heading .eyebrow { display: none; }
  .flow-heading h1,.registration-direct .flow-heading h1 { font-size: 30px; }
  .flow-heading > p:last-child { font-size: 12px; }
- .course-summary { padding: 14px 18px; }
- .course-summary h2 { font-size: 21px; }
+ .course-summary { position: relative; top: auto; padding: 16px 18px; }
+ .course-summary .summary-topline { position: absolute; top: 8px; right: 16px; margin: 0; }
+ .course-summary .summary-label { display: none; }
+ .course-summary h2 { font-size: 21px; padding-right: 60px; }
  .course-summary .course-meta { font-size: 12px; }
- .course-summary .course-note { font-size: 11px; }
+ .course-summary .course-note { display: none; }
  .flow-form,.flow-success { padding: 22px 18px; }
  .flow-progress { gap: 12px; margin-bottom: 20px; }
  .flow-progress li { font-size: 11px; gap: 7px; }
  .step-heading h2 { font-size: 25px; }
  .step-heading .step-kicker { display: none; }
+ #step-details .step-heading > p:not(.step-kicker) { display: none; }
  .step-heading { margin-bottom: 18px; }
  .flow-step .form-field { margin-bottom: 16px; }
  .flow-actions { position: sticky; bottom: 0; z-index: 2; background: #fffefa; padding: 12px 0 max(12px,env(safe-area-inset-bottom)); margin-top: 12px; }
