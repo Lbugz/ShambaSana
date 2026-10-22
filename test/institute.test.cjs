@@ -124,7 +124,7 @@ async function client({ selected = courses[1], protocol = 'https:', open = true,
 test('client preselection, closed courses, validation and friendly failure recovery', async () => {
   for (const selected of courses) {
     const ui = await client({ selected }); assert.equal(ui.course.value, selected === courses[0] ? '' : selected);
-    assert.equal(ui.details.disabled, false);
+    assert.equal(ui.details.disabled, selected === courses[0]);
   }
   for (const settings of [{ open: false }, { protocol: 'file:' }, { valid: false }]) {
     const ui = await client(settings); await ui.handlers.submit({ preventDefault() {} }); assert.equal(ui.submissions(), 0);

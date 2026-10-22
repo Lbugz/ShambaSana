@@ -27,8 +27,8 @@
           <p class="eyebrow">Shamba Sana Institute</p>
           <h1 id="registration-title">Course<br><em>registration.</em></h1>
           <p>Register for Course II in Spring 2027 or Course III in Summer 2027. Share your prerequisite status so the Institute can review your preparation. Fall 2026 Foundations registration is closed.</p>
-          <p class="registration-disclaimer">Submitting a registration does not confirm admission or a place. The Institute reviews prerequisites before acceptance. You will receive the final schedule, student policies and enrollment agreement before payment. No payment is collected on this form.</p>
-          <p class="registration-tuition"><strong>Tuition:</strong> $1,350 per course. Any installment arrangement requires separate written approval; online installments are not currently available.</p>
+          <p class="registration-disclaimer">The Institute reviews prerequisites before admission. You’ll receive confirmed course details and enrollment terms before payment. This form does not collect payment or reserve a place.</p>
+          <p class="registration-tuition"><strong>Tuition:</strong> $1,350 per course. <a href="student-information.html#tuition">View tuition information</a>.</p>
           <p class="registration-availability" id="registration-availability" role="status">Spring and Summer 2027 registration are open for eligible learners. Checking online form availability…</p>
         </div>
         <form class="registration-form" id="course-registration-form" action="/api/course-registration" method="post">
@@ -42,7 +42,7 @@
             </select>
           </div>
           <div class="registration-course-note" id="registration-course-note" aria-live="polite">Choose a course to see its term and prerequisites.</div>
-          <fieldset id="registration-details">
+          <fieldset id="registration-details" disabled>
             <legend>Your details and preparation</legend>
 
           <div class="form-row">
@@ -86,12 +86,13 @@
             <label for="registration-cohort">Earlier course cohort(s) <span>(optional)</span></label>
             <input id="registration-cohort" name="priorCohort" maxlength="240" placeholder="For example, Foundations — Fall 2026">
           </div>
-          <p class="preparation-note">You may register while completing an earlier course. Prerequisites must be completed before your selected course starts, and the Institute verifies completion before final admission.</p>
+          <p class="preparation-note">You may register while completing an earlier course. All prerequisites must be completed before your selected course starts.</p>
           <label class="consent-field"><input type="checkbox" name="prerequisiteAcknowledgement" value="yes" required><span>I understand the course sequence and that registration and payment do not replace prerequisite review.</span></label>
           <p><a href="student-information.html" target="_blank" rel="noopener noreferrer">Read student information <span class="sr-only">(opens in a new tab)</span> ↗</a>. Final enrollment terms will be provided separately before payment.</p>
           <div class="form-field">
             <label for="registration-message">Additional information <span>(optional)</span></label>
-            <textarea id="registration-message" name="message" rows="4" maxlength="1000"></textarea>
+            <textarea id="registration-message" name="message" rows="4" maxlength="1000" aria-describedby="registration-message-help"></textarea>
+            <p class="field-help" id="registration-message-help">Include questions about your preparation or cohort. Do not include personal health information.</p>
           </div>
           <label class="consent-field">
             <input type="checkbox" name="consent" value="yes" required>
@@ -103,7 +104,7 @@
             <input id="registration-website" name="website" tabindex="-1" autocomplete="off">
           </div>
           <button class="button button-solid" type="submit" disabled>Checking online submission…</button>
-          <p class="form-status" id="registration-status" role="status" aria-live="polite" tabindex="-1">You can prepare your registration here. No details are sent before you submit. This form does not collect payment.</p>
+          <p class="form-status" id="registration-status" role="status" aria-live="polite" tabindex="-1">Select a course to begin. Your details are sent only when you submit.</p>
           <noscript><p>Please enable JavaScript to check course availability and complete registration.</p></noscript>
         </form>
       </section>

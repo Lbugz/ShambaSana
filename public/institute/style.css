@@ -64,7 +64,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
 .learning-section { background: #f0efe7; }
 .course-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; max-width: 1160px; margin: 0 auto; }
 .course-card { display: flex; flex-direction: column; overflow: hidden; padding: 27px 25px 24px; border: 1px solid #103d2b20; background: #faf9f5; }
-.course-current { border-color: #31594075; background: #e7ebe2; }
+.course-open { border-color: #31594075; background: #eef1e9; }
 .course-visual { position: relative; flex: 0 0 auto; aspect-ratio: 3 / 1; margin: -27px -25px 22px; overflow: hidden; background: #e8deca; }
 .course-label { margin-bottom: 20px; color: var(--sage); font-size: 12px; font-weight: 600; letter-spacing: 1.4px; }
 .course-label span { display: inline-block; margin-left: 5px; color: #555d50; font-size: 12px; letter-spacing: 1px; }
@@ -76,7 +76,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
 .course-facts dd { margin: 0; color: var(--green); font-weight: 600; text-align: right; }
 .course-card ul { margin: 0 0 17px; padding-left: 18px; color: #50584e; font-size: 14px; line-height: 1.75; }
 .course-card li + li { margin-top: 6px; }
-.course-card .course-footnote { margin-top: auto; padding-top: 15px; border-top: 1px solid #103d2b20; color: #555d50 !important; font-size: 12px !important; }
+.course-card .course-footnote { margin-top: 0; padding-top: 15px; border-top: 1px solid #103d2b20; color: #555d50 !important; font-size: 13px !important; }
 .course-action { display: inline-flex; align-items: center; gap: 10px; align-self: flex-start; margin-top: 15px; color: var(--green); font-size: 12px; font-weight: 600; text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px; }
 
 .enrollment-section { background: var(--paper); }
@@ -96,7 +96,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
 .registration-tuition { margin-top: 24px; padding-top: 16px; border-top: 1px solid #103d2b20; color: var(--muted); font-size: 12px; }
 .registration-tuition strong { color: var(--green); }
 .registration-intro > p:not(.eyebrow) { color: var(--muted); font-size: 13px; }
-.registration-intro .registration-disclaimer { margin-top: 24px; padding: 15px 17px; border-left: 2px solid var(--gold); background: #f7f5ef; font-size: 12px !important; }
+.registration-intro .registration-disclaimer { margin-top: 24px; padding: 15px 17px; border-left: 2px solid var(--gold); background: #f7f5ef; font-size: 13px !important; }
 .registration-form { display: grid; gap: 19px; padding: 30px; border: 1px solid #103d2b20; background: var(--paper); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
 .form-field { display: grid; gap: 7px; min-width: 0; }
@@ -282,3 +282,12 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
 .student-information details { border-bottom: 1px solid #103d2b30; padding: 18px 0; }
 .student-information summary { cursor: pointer; font-weight: 600; color: var(--green); }
 @media (max-width: 700px) { .student-grid { grid-template-columns: 1fr; } }
+
+/* Keep course decisions prominent and long outlines on the student page. */
+.hero-course-summary { color: var(--green); font-size: 13px; font-weight: 600; }
+.course-outline { margin-top: 16px; font-size: 13px; text-decoration: underline; text-underline-offset: 4px; }
+.course-card .course-action { margin-top: auto; padding-top: 15px; font-size: 14px; }
+.student-information p a, .registration-form p a, .registration-intro p a, .assessment-note a, .enrollment-note a { text-decoration: underline; text-underline-offset: 3px; }
+.field-help { margin-top: 6px; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.student-information details { scroll-margin-top: 100px; }
+.registration-form fieldset:disabled { opacity: .55; }
