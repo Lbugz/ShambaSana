@@ -133,7 +133,7 @@ export class Billing {
 }
 
 export const courseNames = ["Foundations of Chinese Medicine", "The Psyche in Chinese Medicine", "Advanced Diagnosis & Treatment"] as const;
-export type Enrollment = { id: string; revision: number; course: string; name: string; email: string; phone: string; timezone: string; message: string; consent: true; createdAt: string; status: "review" | "payment-ready" | "paid" | "refunded"; purchaseId?: string; accessHash?: string; policyUrl?: string; cohort?: string; policyAcceptedAt?: string };
+export type Enrollment = { id: string; revision: number; course: string; name: string; email: string; phone: string; timezone: string; message: string; consent: true; createdAt: string; term?: string; foundationsStatus?: string; psycheStatus?: string; priorCohort?: string; prerequisiteAcknowledgement?: true; prerequisitesReviewedAt?: string; status: "review" | "payment-ready" | "paid" | "refunded"; purchaseId?: string; accessHash?: string; policyUrl?: string; cohort?: string; policyAcceptedAt?: string };
 export const coursePrice = 135_000;
 export function verifyServiceKey(req: Request) {
   const secret = process.env.INSTITUTE_SERVICE_TOKEN;

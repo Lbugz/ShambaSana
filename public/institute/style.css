@@ -261,3 +261,24 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
   .instructor-portrait { width: 120px; }
   .registration-back { flex-basis: 100%; }
 }
+
+/* Program and student information */
+.course-label { flex-wrap: wrap; gap: 8px; }
+.course-label span { line-height: 1.6; }
+.course-reading, .registration-course-note, .preparation-note { font-size: 13px; color: var(--muted); line-height: 1.8; }
+.registration-course-note { border-block: 1px solid #103d2b30; padding: 16px 0; }
+.registration-form [hidden] { display: none; }
+.student-information { max-width: 1180px; margin: 0 auto; }
+.student-information .section { padding-inline: 6%; }
+.student-information h1 { max-width: 850px; }
+.student-information h2 { font-size: clamp(30px, 4vw, 44px); }
+.student-information p, .student-information li { line-height: 1.85; }
+.student-intro { max-width: 780px; color: var(--muted); }
+.student-index { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 24px 0; border-block: 1px solid #103d2b30; margin-top: 30px; }
+.student-information .section + .section { border-top: 1px solid #103d2b25; }
+.student-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 40px; }
+.student-grid h3 { font-size: 25px; }
+.student-policy-note { background: #e7ebe2; padding: 20px 24px; border-left: 2px solid var(--sage); margin-top: 24px; }
+.student-information details { border-bottom: 1px solid #103d2b30; padding: 18px 0; }
+.student-information summary { cursor: pointer; font-weight: 600; color: var(--green); }
+@media (max-width: 700px) { .student-grid { grid-template-columns: 1fr; } }

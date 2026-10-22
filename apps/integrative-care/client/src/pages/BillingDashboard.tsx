@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api, money, useAuth } from "@/lib/care";
 
-type Enrollment = { id: string; revision: number; course: string; name: string; email: string; status: string; cohort?: string; policyUrl?: string };
+type Enrollment = { id: string; revision: number; course: string; name: string; email: string; status: string; cohort?: string; policyUrl?: string; term?: string; foundationsStatus?: string; psycheStatus?: string; priorCohort?: string; message?: string };
 type Order = { id: string; offering: string; referenceId: string; email: string; amount: number; status: string };
 export default function BillingDashboard() {
   const auth = useAuth("practitioner");
@@ -28,21 +28,24 @@ function Invitation({ enrollment: e, refresh }: { enrollment: Enrollment; refres
   const [cohort, setCohort] = useState(e.cohort || "");
   const [policyUrl, setPolicy] = useState(e.policyUrl || "");
   const [confirm, setConfirm] = useState(false);
+  const [prerequisitesReviewed, setPrerequisitesReviewed] = useState(false);
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>();
   async function invite() {
     setBusy(true); setError(undefined); setUrl("");
-    try { const result = await api<{ url: string }>(`/institute/enrollments/${e.id}/invite`, "POST", { revision: e.revision, cohort, policyUrl, confirm }); setUrl(result.url); refresh(); }
+    try { const result = await api<{ url: string }>(`/institute/enrollments/${e.id}/invite`, "POST", { revision: e.revision, cohort, policyUrl, confirm, prerequisitesReviewed }); setUrl(result.url); refresh(); }
     catch (error) { setError(error); } finally { setBusy(false); }
   }
   return <section className="rounded-xl border border-border p-6">
     <h3 className="text-xl">{e.name} · {e.course}</h3><p className="my-3 text-sm">{e.email} · {e.status}</p>
+    <dl className="my-4 space-y-2 text-sm"><div><dt className="font-semibold">Requested term</dt><dd>{e.term || "Not recorded — confirm with student"}</dd></div><div><dt className="font-semibold">Foundations status (student reported)</dt><dd>{e.foundationsStatus || "Not recorded"}</dd></div>{e.psycheStatus && <div><dt className="font-semibold">Psyche status (student reported)</dt><dd>{e.psycheStatus}</dd></div>}<div><dt className="font-semibold">Earlier cohort(s)</dt><dd>{e.priorCohort || "Not provided"}</dd></div>{e.message && <div><dt className="font-semibold">Additional information</dt><dd className="whitespace-pre-wrap">{e.message}</dd></div>}</dl>
     {["review", "payment-ready"].includes(e.status) && <>
       <label className="my-4 block text-sm">Confirmed cohort dates, time zone and session times<Input className="mt-2" value={cohort} onChange={event => setCohort(event.target.value)} maxLength={500} /></label>
       <label className="my-4 block text-sm">Published student policy URL<Input type="url" className="mt-2" value={policyUrl} onChange={event => setPolicy(event.target.value)} /></label>
       <label className="my-4 flex gap-3 text-sm"><input type="checkbox" checked={confirm} onChange={event => setConfirm(event.target.checked)} />I have reviewed this registration, confirmed the course details and published the final student policies. Tuition is $1,350, paid in full.</label>
-      <Button disabled={busy || !confirm || !cohort.trim() || !policyUrl.trim()} onClick={invite}>{busy ? "Creating…" : "Create payment invitation"}</Button>
+      <label className="my-4 flex gap-3 text-sm"><input type="checkbox" checked={prerequisitesReviewed} onChange={event => setPrerequisitesReviewed(event.target.checked)} />I have reviewed prerequisite records and confirmed eligibility or documented the required completion conditions with this student. Registration or payment alone does not satisfy prerequisites.</label>
+      <Button disabled={busy || !confirm || !prerequisitesReviewed || !cohort.trim() || !policyUrl.trim()} onClick={invite}>{busy ? "Creating…" : "Create payment invitation"}</Button>
       <p className="mt-3 text-xs text-muted-foreground">Creating another invitation replaces the previous invitation. Send it to the student using your normal contact process; email delivery is not automated.</p>
     </>}
     <ErrorMessage error={error} />

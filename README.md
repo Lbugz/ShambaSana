@@ -29,7 +29,16 @@ Before opening enrollment, finalize cohort dates, session times, entry requireme
 
 - `COURSE_REGISTRATION_WEBHOOK_URL`: HTTPS endpoint that durably stores registration data. It must return HTTP 2xx with JSON `{ "received": true }` after successful storage. Failed or missing acknowledgement does not produce a success confirmation.
 - `COURSE_REGISTRATION_OPEN`: set to `true` to open the configured courses; any other value keeps intake closed.
-- `COURSE_REGISTRATION_COURSES`: optional pipe-separated list of exact course names from the catalog. Defaults to `Foundations of Chinese Medicine`. Planned courses are not enabled automatically.
+- `COURSE_REGISTRATION_COURSES`: pipe-separated list of exact course names. Defaults to `The Psyche in Chinese Medicine|Advanced Diagnosis & Treatment` for Spring and Summer 2027. Fall 2026 Foundations is closed and is rejected even if an old environment value includes it. The master open flag and delivery configuration are still required.
+
+### Institute 2026–2027 enrollment update
+
+- Public course availability: Foundations (Fall 2026) closed; Psyche (Spring 2027) and Advanced Diagnosis & Treatment (Summer 2027) open for registration, subject to prerequisite review. Exact dates and hours remain unconfirmed. Tuition stays $1,350 per course.
+- Deploy both the website and `apps/integrative-care` changes together. Registration now includes a server-derived `term`, `foundationsStatus`, optional `psycheStatus` (required for Course III), `priorCohort` and `prerequisiteAcknowledgement`. The backend validates and stores these fields, and staff can review them in Billing and course enrollments. Legacy enrollments remain readable.
+- Existing Railway allowlists must both be updated to `The Psyche in Chinese Medicine|Advanced Diagnosis & Treatment`: `COURSE_REGISTRATION_COURSES` on the website and `INSTITUTE_OPEN_COURSES` on the backend. Do not assume the new defaults overwrite existing environment variables.
+- Online submission still requires the shared service token, durable webhook and both registration flags. The form explains temporary submission unavailability when these are not configured; public term availability alone does not enable data collection or payments.
+- Payment invitations require staff prerequisite review, with its timestamp saved. Review may document conditions for a student still completing earlier courses; this is not an automatic academic completion check. Staff must verify completion before final admission/course start.
+- `public/institute/student-information.html` is a program summary, not final enrollment terms. Do not use it as the final payment policy document. Confirm schedules, hours, financial policies, administrative contacts and the enrollment agreement before issuing payment invitations. No installment billing or automated classroom/email onboarding is added by this update.
 
 The webhook receives the selected course, name, email, optional phone/time zone/message, contact consent, submission timestamp and a generated registration reference. The app does not store these records locally. The reference is returned to the student only after acknowledgement. Confirmation emails, Stripe checkout, duplicate-submission reconciliation and Classroom onboarding must be handled by a subsequent integration; they are not promised as completed actions by this site.
 
