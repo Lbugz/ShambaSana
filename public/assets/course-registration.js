@@ -24,6 +24,19 @@
   };
   const selectionTerm = () => terms[course.value]?.[semester.value];
   const params = new URLSearchParams(window.location.search);
+  function syncSelectionLink() {
+    const slug = course.value === 'Foundations of Chinese Medicine'
+      ? ({ 1: 'foundations-semester-1-catch-up', 2: 'foundations-semester-2', 3: 'foundations-semester-3' })[semester.value]
+      : course.value === 'The Psyche in Chinese Medicine' ? 'psyche-spring-2027'
+      : course.value === 'Advanced Diagnosis & Treatment' ? 'advanced-summer-2027' : null;
+    if (slug && ['http:', 'https:'].includes(location.protocol)) {
+      const prefix = location.pathname.startsWith('/institute/') ? '/institute' : '';
+      history.replaceState(null, '', `${prefix}/register/${slug}`);
+      if (document.body.classList.contains('registration-direct')) {
+        document.querySelector('#registration-title').textContent = course.value + (course.value === 'Foundations of Chinese Medicine' ? ` — Semester ${semester.value}${semester.value === '1' ? ' catch-up' : ''}` : '');
+      }
+    }
+  }
   function updateOptions() {
     const foundations = course.value === 'Foundations of Chinese Medicine';
     const previousSemester = semester.value;
@@ -78,8 +91,9 @@
     status.textContent = 'Your details are sent only when you submit. Course prerequisites will be reviewed before admission.';
     updateOptions();
     renderAvailability();
+    syncSelectionLink();
   });
-  semester.addEventListener('change', () => { updateFormat(); renderAvailability(); });
+  semester.addEventListener('change', () => { updateFormat(); renderAvailability(); syncSelectionLink(); });
   renderAvailability();
 
   if (['http:', 'https:'].includes(window.location.protocol)) {
