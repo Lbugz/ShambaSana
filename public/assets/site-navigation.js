@@ -2,7 +2,7 @@
   document.querySelectorAll("header.site-header, header.institute-header").forEach((header) => {
     const toggle = header.querySelector(".menu-toggle");
     const nav = header.querySelector("nav");
-    const sectionLinks = [...(nav?.querySelectorAll('a[href^="#"]') ?? [])];
+    const sectionLinks = [...(nav?.querySelectorAll('.chrome-section-links a[href^="#"]') ?? [])];
 
     const setMenuOpen = (open) => {
       header.classList.toggle("menu-open", open);

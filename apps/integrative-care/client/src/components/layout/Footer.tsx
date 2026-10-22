@@ -6,7 +6,7 @@ export function Footer() {
   return (
     <footer className="bg-[#eeeee5] border-t border-primary/15 mt-auto text-primary">
       <div className="mx-auto max-w-[1280px] px-6 pt-12 pb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 min-[1000px]:grid-cols-[1.5fr_1fr_1fr_1fr] gap-10">
+        <div className="grid grid-cols-1 min-[640px]:grid-cols-2 min-[1000px]:grid-cols-[1.5fr_1fr_1fr_1fr] gap-10">
           <div>
             <Brand homeUrl="https://www.shambasana.com/" subtitle="ANCIENT WISDOM · MODERN WELLNESS" />
             <p className="mt-4 max-w-[280px] text-sm leading-6 text-primary/75">Learning, integrative care and community wellbeing.</p>
