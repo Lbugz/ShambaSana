@@ -695,7 +695,7 @@ export async function registerRoutes(
       res.json(c);
     }),
   );
-  const billing = platform(app, store);
+  const billing = platform(app, store, suppliedStore ? undefined : httpServer);
   app.post(
     "/api/cases/:id/checkout",
     route(async (req, res) => {

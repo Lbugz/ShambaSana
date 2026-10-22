@@ -8,9 +8,10 @@ export type Purchase = {
   referenceId: string; email: string; description: string; amount: number;
   currency: "usd"; status: "pending" | "paid" | "refunded";
   checkoutId?: string; paymentIntent?: string; generation: number;
-  createdAt: string; updatedAt: string;
+  createdAt: string; updatedAt: string; livemode?: boolean;
 };
-export const billingConfigured = () => (process.env.NODE_ENV !== "production" || process.env.BILLING_ENABLED === "true") && !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET && process.env.APP_BASE_URL);
+export const billingMode = () => process.env.BILLING_MODE === "live" ? "live" : "sandbox";
+export const billingConfigured = () => (process.env.NODE_ENV !== "production" || process.env.BILLING_ENABLED === "true") && !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET && process.env.APP_BASE_URL) && (process.env.NODE_ENV !== "production" || process.env.STRIPE_SECRET_KEY!.startsWith(billingMode() === "live" ? "sk_live_" : "sk_test_"));
 const fail = (status: number, message: string): never => { throw Object.assign(new Error(message), { status }); };
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 const now = () => new Date().toISOString();
@@ -24,7 +25,7 @@ export class Billing {
     if (!Number.isSafeInteger(amount) || amount < 100 || amount > 1_000_000) fail(400, "Invalid purchase amount.");
     let order = await this.store.get<Purchase>("purchase", id);
     if (!order) {
-      order = { id, revision: 0, offering, referenceId, email, description, amount, currency: "usd", status: "pending", generation: 0, createdAt: now(), updatedAt: now() };
+      order = { id, revision: 0, offering, referenceId, email, description, amount, currency: "usd", status: "pending", generation: 0, createdAt: now(), updatedAt: now(), livemode: billingMode() === "live" };
       try { await this.store.put("purchase", id, order); }
       catch (error) { if (!(error instanceof ConflictError)) throw error; order = await this.store.get<Purchase>("purchase", id); }
     }
@@ -41,6 +42,7 @@ export class Billing {
     if (!billingConfigured()) fail(503, "Payment is not configured.");
     let order = await this.store.get<Purchase>("purchase", id);
     if (!order || order.status !== "pending") fail(409, "This purchase does not need a payment.");
+    if ((order!.livemode === true) !== (billingMode() === "live")) fail(409, "This order belongs to a different payment environment.");
     if (order!.checkoutId) {
       const session = await this.stripe(`checkout/sessions/${encodeURIComponent(order!.checkoutId)}`);
       if (session.status === "open" && session.url?.startsWith("https://checkout.stripe.com/")) return { url: session.url, order: order! };
@@ -62,6 +64,7 @@ export class Billing {
     const session = await this.stripe("checkout/sessions", { method: "POST", body,
       headers: { "Content-Type": "application/x-www-form-urlencoded", "Idempotency-Key": `ss-${id}-${order!.generation}` } });
     if (!session.id || !session.url?.startsWith("https://checkout.stripe.com/")) fail(502, "Invalid checkout response.");
+    if (process.env.NODE_ENV === "production" && session.livemode !== (billingMode() === "live")) fail(502, "Checkout environment mismatch.");
     const revision = order!.revision;
     order = { ...order!, revision: revision + 1, checkoutId: session.id, updatedAt: now() };
     try { await this.store.put("purchase", id, order, revision); }
@@ -89,6 +92,7 @@ export class Billing {
       const relevant = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "charge.refunded"];
       if (!relevant.includes(event.type)) return res.json({ received: true });
       const object = event.data.object;
+      if (process.env.NODE_ENV === "production" && (req.body.livemode !== (billingMode() === "live") || (typeof object.livemode === "boolean" && object.livemode !== req.body.livemode))) fail(400, "Payment environment mismatch.");
       let id = object.metadata?.orderId;
       if (!id && typeof object.metadata?.caseId === "string") id = digest(`care:${object.metadata.caseId}`);
       if (!id && event.type === "charge.refunded" && typeof object.payment_intent === "string") {
@@ -101,6 +105,7 @@ export class Billing {
       for (let attempt = 0; attempt < 5; attempt++) {
         const order = await this.store.get<Purchase>("purchase", id);
         if (!order) fail(409, "Purchase is not ready. Retry this event.");
+        if ((order!.livemode === true) !== (billingMode() === "live")) fail(400, "Purchase environment mismatch.");
         let next: Purchase["status"] = order!.status;
         let intent = order!.paymentIntent;
         if (event.type === "charge.refunded") {
@@ -133,7 +138,7 @@ export class Billing {
 }
 
 export const courseNames = ["Foundations of Chinese Medicine", "The Psyche in Chinese Medicine", "Advanced Diagnosis & Treatment"] as const;
-export type Enrollment = { id: string; revision: number; course: string; name: string; email: string; phone: string; timezone: string; message: string; consent: true; createdAt: string; term?: string; foundationsStatus?: string; psycheStatus?: string; priorCohort?: string; prerequisiteAcknowledgement?: true; prerequisitesReviewedAt?: string; status: "review" | "payment-ready" | "paid" | "refunded"; purchaseId?: string; accessHash?: string; policyUrl?: string; cohort?: string; policyAcceptedAt?: string };
+export type Enrollment = { id: string; revision: number; course: string; name: string; email: string; phone: string; timezone: string; message: string; consent: true; createdAt: string; term?: string; foundationsStatus?: string; psycheStatus?: string; priorCohort?: string; prerequisiteAcknowledgement?: true; prerequisitesReviewedAt?: string; status: "review" | "payment-ready" | "paid" | "refunded"; purchaseId?: string; accessHash?: string; policyUrl?: string; cohort?: string; policyAcceptedAt?: string; automationVersion?: number; invitationVersion?: number; sandboxPayment?: boolean; classroomCourseId?: string; orientationUrl?: string; accessApprovedAt?: string; accessVersion?: number };
 export const coursePrice = 135_000;
 export function verifyServiceKey(req: Request) {
   const secret = process.env.INSTITUTE_SERVICE_TOKEN;

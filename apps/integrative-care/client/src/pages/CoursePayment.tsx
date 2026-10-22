@@ -5,7 +5,7 @@ import { ErrorMessage } from "@/components/CareLayout";
 import { Button } from "@/components/ui/button";
 import { api, hashParams, money } from "@/lib/care";
 
-type Details = { course: string; cohort: string; policyUrl: string; amount: number; status: string };
+type Details = { course: string; cohort: string; policyUrl: string; amount: number; status: string; sandbox?: boolean; accessApproved?: boolean; orientationUrl?: string };
 export default function CoursePayment() {
   const params = hashParams();
   const enrollment = params.get("enrollment") || "";
@@ -26,9 +26,10 @@ export default function CoursePayment() {
     {query.isLoading && <p className="mt-5">Loading your course details…</p>}
     <ErrorMessage error={query.error || error} />
     {d && <section className="mt-8 rounded-xl border border-border p-6"><h2 className="text-2xl">{d.course}</h2>
-      <p className="my-5 whitespace-pre-wrap text-sm">{d.cohort}</p><p>Tuition: {money(d.amount)} · paid in full</p>
-      {d.status === "paid" ? <p role="status" className="mt-6">Payment confirmed. The Institute will provide orientation and course access separately.</p> : d.status === "refunded" ? <p className="mt-6">Your payment was refunded. Contact the Institute about your enrollment.</p> : <>
-        <label className="my-6 flex gap-3 text-sm"><input type="checkbox" checked={acceptPolicies} onChange={event => setAccept(event.target.checked)} /><span>I have reviewed the course details and accept the <a href={d.policyUrl} target="_blank" rel="noopener noreferrer" className="underline">student policies, including cancellation and refund terms</a>.</span></label>
+      {d.sandbox && <p role="status" className="my-5 font-semibold">Stripe sandbox — use test payment details only. This does not purchase a real course or grant class access.</p>}
+      <p className="my-5 whitespace-pre-wrap text-sm">{d.cohort}</p><p>Full tuition: {money(d.amount)} · one payment</p>
+      {d.status === "paid" ? <div role="status" className="mt-6"><p>{d.sandbox ? "Test payment confirmed. No real enrollment or Classroom invitation is issued." : "Payment confirmed. Your welcome message is queued for email. Class access follows verification of prerequisite completion."}</p>{d.accessApproved && <p className="mt-4">Class access approved. Check your email and <a href="https://classroom.google.com/" className="underline">Google Classroom</a> for your invitation.</p>}{d.orientationUrl && <p className="mt-4"><a className="underline" href={d.orientationUrl}>Open orientation information</a></p>}</div> : d.status === "refunded" ? <p className="mt-6">Your payment was refunded. Contact the Institute about your enrollment.</p> : <>
+        <label className="my-6 flex gap-3 text-sm"><input type="checkbox" checked={acceptPolicies} onChange={event => setAccept(event.target.checked)} /><span>{d.sandbox ? "I understand this is a sandbox payment and these are test course documents: " : "I have reviewed the course details and accept the "}<a href={d.policyUrl} target="_blank" rel="noopener noreferrer" className="underline">{d.sandbox ? "view test documents" : "student policies, including cancellation and refund terms"}</a>.</span></label>
         <Button disabled={!acceptPolicies || busy || d.status !== "payment-ready"} onClick={checkout}>{busy ? "Opening checkout…" : "Continue to Stripe checkout"}</Button>
         <p className="mt-4 text-xs text-muted-foreground">Payment is confirmed after Stripe verifies it. Returning from checkout alone does not confirm payment.</p>
       </>}
