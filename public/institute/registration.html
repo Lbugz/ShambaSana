@@ -26,23 +26,25 @@
         <div class="registration-intro">
           <p class="eyebrow">Shamba Sana Institute</p>
           <h1 id="registration-title">Course<br><em>registration.</em></h1>
-          <p>When enrollment opens, complete this form for your chosen online course. You’ll review cohort details and student policies before payment, then receive confirmation and class access.</p>
-          <p class="registration-disclaimer">Your place is confirmed after you review the course details and student policies and complete payment. No payment is collected on this form.</p>
-          <p class="registration-tuition"><strong>Tuition:</strong> $1,350 per course. Planned payment options are pay in full or three monthly installments of $450.</p>
-          <p class="registration-availability" id="registration-availability" role="status">Registration is not open yet. Cohort dates, session times and final student policies will be announced before enrollment opens.</p>
+          <p>Register for Course II in Spring 2027 or Course III in Summer 2027. Share your prerequisite status so the Institute can review your preparation. Fall 2026 Foundations registration is closed.</p>
+          <p class="registration-disclaimer">Submitting a registration does not confirm admission or a place. The Institute reviews prerequisites before acceptance. You will receive the final schedule, student policies and enrollment agreement before payment. No payment is collected on this form.</p>
+          <p class="registration-tuition"><strong>Tuition:</strong> $1,350 per course. Any installment arrangement requires separate written approval; online installments are not currently available.</p>
+          <p class="registration-availability" id="registration-availability" role="status">Spring and Summer 2027 registration are open for eligible learners. Checking online form availability…</p>
         </div>
         <form class="registration-form" id="course-registration-form" action="/api/course-registration" method="post">
           <div class="form-field">
             <label for="registration-course">Select your course</label>
             <select id="registration-course" name="course" required>
               <option value="" selected disabled>Select a course</option>
-              <option value="Foundations of Chinese Medicine">Foundations of Chinese Medicine — next cohort</option>
-              <option value="The Psyche in Chinese Medicine">The Psyche in Chinese Medicine — upcoming</option>
-              <option value="Advanced Diagnosis & Treatment">Advanced Diagnosis &amp; Treatment — upcoming</option>
+              <option value="Foundations of Chinese Medicine" disabled>Foundations — Fall 2026 · registration closed</option>
+              <option value="The Psyche in Chinese Medicine">The Psyche in Chinese Medicine — Spring 2027</option>
+              <option value="Advanced Diagnosis & Treatment">Advanced Diagnosis &amp; Treatment — Summer 2027</option>
             </select>
           </div>
-          <fieldset id="registration-details" disabled>
-            <legend>Your details</legend>
+          <div class="registration-course-note" id="registration-course-note" aria-live="polite">Choose a course to see its term and prerequisites.</div>
+          <fieldset id="registration-details">
+            <legend>Your details and preparation</legend>
+
           <div class="form-row">
             <div class="form-field">
               <label for="registration-name">Full name</label>
@@ -62,6 +64,32 @@
             <input id="registration-timezone" name="timezone" maxlength="80" placeholder="For example, America/New_York">
           </div>
           <div class="form-field">
+            <label for="registration-foundations">Course I — Foundations status</label>
+            <select id="registration-foundations" name="foundationsStatus" required>
+              <option value="" selected disabled>Select your status</option>
+              <option value="completed">Completed at Shamba Sana</option>
+              <option value="in-progress">Currently enrolled at Shamba Sana</option>
+              <option value="not-started">Not yet enrolled / completed</option>
+            </select>
+          </div>
+          <div class="form-field" id="psyche-status-field" hidden>
+            <label for="registration-psyche">Course II — Psyche status</label>
+            <select id="registration-psyche" name="psycheStatus" disabled>
+              <option value="" selected disabled>Select your status</option>
+              <option value="completed">Completed at Shamba Sana</option>
+              <option value="in-progress">Currently enrolled at Shamba Sana</option>
+              <option value="registered">Registered / awaiting admission</option>
+              <option value="not-started">Not yet registered / completed</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="registration-cohort">Earlier course cohort(s) <span>(optional)</span></label>
+            <input id="registration-cohort" name="priorCohort" maxlength="240" placeholder="For example, Foundations — Fall 2026">
+          </div>
+          <p class="preparation-note">You may register while completing an earlier course. Prerequisites must be completed before your selected course starts, and the Institute verifies completion before final admission.</p>
+          <label class="consent-field"><input type="checkbox" name="prerequisiteAcknowledgement" value="yes" required><span>I understand the course sequence and that registration and payment do not replace prerequisite review.</span></label>
+          <p><a href="student-information.html" target="_blank" rel="noopener noreferrer">Read student information <span class="sr-only">(opens in a new tab)</span> ↗</a>. Final enrollment terms will be provided separately before payment.</p>
+          <div class="form-field">
             <label for="registration-message">Additional information <span>(optional)</span></label>
             <textarea id="registration-message" name="message" rows="4" maxlength="1000"></textarea>
           </div>
@@ -74,8 +102,8 @@
             <label for="registration-website">Leave this field empty</label>
             <input id="registration-website" name="website" tabindex="-1" autocomplete="off">
           </div>
-          <button class="button button-solid" type="submit" disabled>Registration not open yet</button>
-          <p class="form-status" id="registration-status" role="status" aria-live="polite" tabindex="-1">You can review the courses above. Your details will only be collected when registration is open.</p>
+          <button class="button button-solid" type="submit" disabled>Checking online submission…</button>
+          <p class="form-status" id="registration-status" role="status" aria-live="polite" tabindex="-1">You can prepare your registration here. No details are sent before you submit. This form does not collect payment.</p>
           <noscript><p>Please enable JavaScript to check course availability and complete registration.</p></noscript>
         </form>
       </section>

@@ -763,7 +763,7 @@ test("Shamba Sana pilot: persisted care, access control, verified labs and repor
     await t.test("Institute tuition uses the same ledger with private invitations and verified payment", async () => {
       process.env.INSTITUTE_SERVICE_TOKEN = randomBytes(32).toString("hex");
       process.env.INSTITUTE_WEBSITE_URL = "https://institute.example.com";
-      const registration = { reference: `SS-${randomUUID()}`, course: "Foundations of Chinese Medicine", name: "Synthetic Student", email: "student@example.com", phone: "", timezone: "UTC", message: "Synthetic record", consent: true };
+      const registration = { reference: `SS-${randomUUID()}`, course: "The Psyche in Chinese Medicine", term: "Spring 2027", foundationsStatus: "in-progress", priorCohort: "Fall 2026", prerequisiteAcknowledgement: true, name: "Synthetic Student", email: "student@example.com", phone: "", timezone: "UTC", message: "Synthetic record", consent: true };
       assert.equal((await request("/api/institute/registrations", "POST", registration, "")).response.status, 403);
       const serviceHeaders = { Authorization: `Bearer ${process.env.INSTITUTE_SERVICE_TOKEN}` };
       assert.equal((await request("/api/institute/registrations", "POST", registration, "", serviceHeaders)).response.status, 503);
@@ -773,7 +773,7 @@ test("Shamba Sana pilot: persisted care, access control, verified labs and repor
       const listing = await request("/api/billing/admin", "GET", undefined, practitioner);
       const enrollment = listing.data.enrollments.find((e: any) => e.id === registration.reference);
       assert.equal(enrollment.status, "review");
-      const invitation = await request(`/api/institute/enrollments/${enrollment.id}/invite`, "POST", { revision: enrollment.revision, cohort: "Synthetic cohort — Tuesdays 18:00 UTC", policyUrl: "https://institute.example.com/policies", confirm: true }, practitioner);
+      const invitation = await request(`/api/institute/enrollments/${enrollment.id}/invite`, "POST", { revision: enrollment.revision, cohort: "Synthetic cohort — Tuesdays 18:00 UTC", policyUrl: "https://institute.example.com/policies", confirm: true, prerequisitesReviewed: true }, practitioner);
       assert.equal(invitation.response.status, 200);
       const params = new URLSearchParams(invitation.data.url.split("?")[1]);
       const token = params.get("token");

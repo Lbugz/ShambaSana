@@ -74,17 +74,17 @@ test('opening requires both explicit authorization and a valid destination', asy
 
 test('open course validation and acknowledged receipt; no actual external delivery', async () => {
   const app = await server({ COURSE_REGISTRATION_OPEN: 'true', COURSE_REGISTRATION_WEBHOOK_URL: 'https://example.invalid/mock' });
-  const valid = { course: courses[0], name: 'Audit Learner', email: 'audit@example.invalid', consent: 'yes', timezone: 'America/New_York' };
+  const valid = { course: courses[1], name: 'Audit Learner', email: 'audit@example.invalid', consent: 'yes', timezone: 'America/New_York', foundationsStatus: 'in-progress', prerequisiteAcknowledgement: 'yes' };
   let attempt = 0;
   const post = (fields) => fetch(app.base + '/api/course-registration', {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'x-forwarded-for': '192.0.2.' + ++attempt }, body: new URLSearchParams(fields),
   });
   try {
     const availability = await (await fetch(app.base + '/api/course-registration/status')).json();
-    assert.deepEqual(availability, { open: true, courses: [courses[0]] });
+    assert.deepEqual(availability, { open: true, courses: courses.slice(1) });
     const received = await (await post(valid)).json();
     assert.equal(received.received, true); assert.match(received.reference, /^SS-/);
-    for (const invalid of [{ ...valid, email: 'invalid' }, { ...valid, name: 'A' }, { ...valid, consent: '' }, { ...valid, course: courses[1] }, { ...valid, message: 'x'.repeat(1001) }, { ...valid, timezone: 'x'.repeat(81) }]) {
+    for (const invalid of [{ ...valid, email: 'invalid' }, { ...valid, name: 'A' }, { ...valid, consent: '' }, { ...valid, course: courses[0] }, { ...valid, message: 'x'.repeat(1001) }, { ...valid, timezone: 'x'.repeat(81) }]) {
       assert.equal((await post(invalid)).status, 400);
     }
     assert.equal((await fetch(app.base + '/api/course-registration')).status, 405);
@@ -95,23 +95,24 @@ test('open course validation and acknowledged receipt; no actual external delive
 test('destination must acknowledge receipt before student success', async () => {
   const app = await server({ COURSE_REGISTRATION_OPEN: 'true', COURSE_REGISTRATION_WEBHOOK_URL: 'https://example.invalid/mock' }, false);
   try {
-    const response = await fetch(app.base + '/api/course-registration', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ course: courses[0], name: 'Audit Learner', email: 'audit@example.invalid', consent: 'yes' }) });
+    const response = await fetch(app.base + '/api/course-registration', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ course: courses[1], name: 'Audit Learner', email: 'audit@example.invalid', consent: 'yes', foundationsStatus: 'in-progress', prerequisiteAcknowledgement: 'yes' }) });
     assert.equal(response.status, 502);
   } finally { app.child.kill(); }
 });
 
-async function client({ selected = courses[0], protocol = 'https:', open = true, response, valid = true } = {}) {
+async function client({ selected = courses[1], protocol = 'https:', open = true, response, valid = true } = {}) {
   const handlers = {};
-  const course = { value: '', options: courses.map(value => ({ value })), addEventListener: (_, fn) => { handlers.change = fn; } };
+  const course = { value: '', options: courses.map((value, index) => ({ value, disabled: index === 0 })), addEventListener: (_, fn) => { handlers.change = fn; } };
   const details = { disabled: true }, button = { disabled: true }, status = { dataset: {}, removeAttribute() {}, focus() {} }, availability = {}, timezone = {};
-  const form = { action: '/api/course-registration', querySelector: (selector) => selector.includes('course') ? course : selector.includes('timezone') ? timezone : button,
+  const psyche = {}, psycheField = {}, courseNote = {};
+  const form = { action: '/api/course-registration', querySelector: (selector) => selector.includes('course') ? course : selector.includes('timezone') ? timezone : selector.includes('psycheStatus') ? psyche : button,
     reportValidity: () => valid, addEventListener: (_, fn) => { handlers.submit = fn; }, classList: { add() {}, remove() {} }, setAttribute() {}, removeAttribute() {}, reset() { this.resetCalled = true; course.value = ''; } };
   let submissions = 0;
-  const context = { document: { querySelector: (selector) => ({ '#course-registration-form': form, '#registration-status': status, '#registration-availability': availability, '#registration-details': details })[selector] },
+  const context = { document: { querySelector: (selector) => ({ '#course-registration-form': form, '#registration-status': status, '#registration-availability': availability, '#registration-details': details, '#registration-course-note': courseNote, '#psyche-status-field': psycheField })[selector] },
     window: { location: { protocol, search: '?course=' + encodeURIComponent(selected) } }, URLSearchParams, Intl, AbortSignal,
     FormData: class { *[Symbol.iterator]() { yield ['name', 'Audit Learner']; } },
     fetch: async (url) => {
-      if (url.endsWith('/status')) return { ok: true, json: async () => ({ open, courses: open ? [courses[0]] : [] }) };
+      if (url.endsWith('/status')) return { ok: true, json: async () => ({ open, courses: open ? courses.slice(1) : [] }) };
       submissions++; return response;
     },
   };
@@ -122,8 +123,8 @@ async function client({ selected = courses[0], protocol = 'https:', open = true,
 
 test('client preselection, closed courses, validation and friendly failure recovery', async () => {
   for (const selected of courses) {
-    const ui = await client({ selected }); assert.equal(ui.course.value, selected);
-    assert.equal(ui.details.disabled, selected !== courses[0]);
+    const ui = await client({ selected }); assert.equal(ui.course.value, selected === courses[0] ? '' : selected);
+    assert.equal(ui.details.disabled, false);
   }
   for (const settings of [{ open: false }, { protocol: 'file:' }, { valid: false }]) {
     const ui = await client(settings); await ui.handlers.submit({ preventDefault() {} }); assert.equal(ui.submissions(), 0);
@@ -137,7 +138,7 @@ test('client preselection, closed courses, validation and friendly failure recov
 test('client confirms acknowledged reference and retains selected course', async () => {
   const ui = await client({ response: { ok: true, json: async () => ({ received: true, reference: 'SS-audit' }) } });
   await ui.handlers.submit({ preventDefault() {} });
-  assert.equal(ui.form.resetCalled, true); assert.equal(ui.course.value, courses[0]);
+  assert.equal(ui.form.resetCalled, true); assert.equal(ui.course.value, courses[1]);
   assert.equal(ui.status.dataset.state, 'success'); assert.ok(ui.status.textContent.includes('SS-audit'));
 });
 

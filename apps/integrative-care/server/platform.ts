@@ -45,8 +45,10 @@ export function platform(app: Express, store: CareStore) {
   app.post("/api/institute/registrations", wrap(async (req, res) => {
     verifyServiceKey(req);
     if (process.env.INSTITUTE_REGISTRATION_OPEN !== "true") fail(503, "Course registration is closed.");
-    const input = z.object({ reference: z.string().regex(/^SS-[a-f0-9-]{36}$/), course: z.enum(courseNames), name: z.string().trim().min(2).max(120), email: z.string().email().max(254), phone: z.string().max(40), timezone: z.string().max(80), message: z.string().max(1000), consent: z.literal(true) }).parse(req.body);
-    const allowed = (process.env.INSTITUTE_OPEN_COURSES || courseNames[0]).split("|");
+    const input = z.object({ reference: z.string().regex(/^SS-[a-f0-9-]{36}$/), course: z.enum(courseNames), term: z.enum(["Spring 2027", "Summer 2027"]), foundationsStatus: z.enum(["completed", "in-progress", "not-started"]), psycheStatus: z.enum(["completed", "in-progress", "registered", "not-started"]).optional(), priorCohort: z.string().trim().max(240), prerequisiteAcknowledgement: z.literal(true), name: z.string().trim().min(2).max(120), email: z.string().email().max(254), phone: z.string().max(40), timezone: z.string().max(80), message: z.string().max(1000), consent: z.literal(true) }).parse(req.body);
+    const expectedTerm = input.course === courseNames[1] ? "Spring 2027" : input.course === courseNames[2] ? "Summer 2027" : undefined;
+    if (!expectedTerm || input.term !== expectedTerm || (input.course === courseNames[2] && !input.psycheStatus)) fail(400, "Check the selected term and prerequisite information. Fall 2026 registration is closed.");
+    const allowed = (process.env.INSTITUTE_OPEN_COURSES || courseNames.slice(1).join("|")).split("|").map(course => course.trim());
     if (!allowed.includes(input.course)) fail(503, "This course is not open.");
     const enrollment: Enrollment = { ...input, id: input.reference, revision: 0, createdAt: new Date().toISOString(), status: "review" };
     try { await store.put("enrollment", enrollment.id, enrollment); }
@@ -68,7 +70,7 @@ export function platform(app: Express, store: CareStore) {
     practitioner(req);
     if (!billingConfigured()) fail(503, "Checkout is not configured.");
     if (!process.env.INSTITUTE_WEBSITE_URL) fail(503, "The Institute website is not configured.");
-    const data = z.object({ revision: z.number().int().nonnegative(), cohort: z.string().trim().min(3).max(500), policyUrl: z.string().url().max(2000), confirm: z.literal(true) }).parse(req.body);
+    const data = z.object({ revision: z.number().int().nonnegative(), cohort: z.string().trim().min(3).max(500), policyUrl: z.string().url().max(2000), confirm: z.literal(true), prerequisitesReviewed: z.literal(true) }).parse(req.body);
     const policy = new URL(data.policyUrl);
     if (policy.protocol !== "https:" || policy.origin !== new URL(process.env.INSTITUTE_WEBSITE_URL!).origin) fail(400, "Use a published student policy on the Institute website.");
     const e = await store.get<Enrollment>("enrollment", req.params.id);
@@ -77,7 +79,7 @@ export function platform(app: Express, store: CareStore) {
     const token = issuePaymentToken();
     const purchase = await billing.order("institute", e!.id, e!.email, `Shamba Sana Institute — ${e!.course}`, coursePrice);
     if (purchase.status !== "pending" || purchase.checkoutId) fail(409, "Checkout has already started. Resolve the existing payment before replacing its invitation.");
-    await store.put("enrollment", e!.id, { ...e, revision: e!.revision + 1, status: "payment-ready", purchaseId: purchase.id, accessHash: paymentTokenHash(token), policyUrl: data.policyUrl, cohort: data.cohort, policyAcceptedAt: undefined }, e!.revision);
+    await store.put("enrollment", e!.id, { ...e, revision: e!.revision + 1, status: "payment-ready", purchaseId: purchase.id, accessHash: paymentTokenHash(token), policyUrl: data.policyUrl, cohort: data.cohort, prerequisitesReviewedAt: new Date().toISOString(), policyAcceptedAt: undefined }, e!.revision);
     res.json({ url: `${new URL(process.env.APP_BASE_URL!).origin}/#/course-payment?enrollment=${encodeURIComponent(e!.id)}&token=${token}` });
   }));
   app.post("/api/institute/payment", wrap(async (req, res) => {

@@ -12,6 +12,10 @@ const registrationCourses = new Set([
   'The Psyche in Chinese Medicine',
   'Advanced Diagnosis & Treatment',
 ]);
+const registrationTerms = {
+  'The Psyche in Chinese Medicine': 'Spring 2027',
+  'Advanced Diagnosis & Treatment': 'Summer 2027',
+};
 
 function sendJson(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -21,8 +25,8 @@ function sendJson(res, status, body) {
 function enrollmentSettings() {
   let webhook;
   try { webhook = new URL(process.env.COURSE_REGISTRATION_WEBHOOK_URL); } catch { /* Intake stays closed. */ }
-  const courses = (process.env.COURSE_REGISTRATION_COURSES || 'Foundations of Chinese Medicine')
-    .split('|').map((value) => value.trim()).filter((value) => registrationCourses.has(value));
+  const courses = (process.env.COURSE_REGISTRATION_COURSES || Object.keys(registrationTerms).join('|'))
+    .split('|').map((value) => value.trim()).filter((value) => registrationCourses.has(value) && registrationTerms[value]);
   const open = process.env.COURSE_REGISTRATION_OPEN === 'true' && webhook?.protocol === 'https:' && courses.length > 0;
   return { open: Boolean(open), courses: open ? courses : [], webhook };
 }
@@ -61,6 +65,11 @@ async function handleRegistration(req, res) {
   if (fields.get('website')) return sendJson(res, 200, { message: 'Thank you. Your request has been received.' });
   const registration = {
     course: (fields.get('course') || '').trim(),
+    term: registrationTerms[(fields.get('course') || '').trim()],
+    foundationsStatus: fields.get('foundationsStatus') || '',
+    psycheStatus: fields.get('course') === 'Advanced Diagnosis & Treatment' ? fields.get('psycheStatus') || '' : undefined,
+    priorCohort: (fields.get('priorCohort') || '').trim(),
+    prerequisiteAcknowledgement: fields.get('prerequisiteAcknowledgement') === 'yes',
     name: (fields.get('name') || '').trim(),
     email: (fields.get('email') || '').trim(),
     phone: (fields.get('phone') || '').trim(),
@@ -72,6 +81,9 @@ async function handleRegistration(req, res) {
   };
 
   if (!settings.courses.includes(registration.course)
+      || !['completed', 'in-progress', 'not-started'].includes(registration.foundationsStatus)
+      || (registration.course === 'Advanced Diagnosis & Treatment' && !['completed', 'in-progress', 'registered', 'not-started'].includes(registration.psycheStatus))
+      || !registration.prerequisiteAcknowledgement || registration.priorCohort.length > 240
       || registration.name.length < 2 || registration.name.length > 120
       || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registration.email) || registration.email.length > 254
       || registration.phone.length > 40 || registration.message.length > 1000 || registration.timezone.length > 80

@@ -7,27 +7,40 @@
   const details = document.querySelector('#registration-details');
   const button = form.querySelector('button[type="submit"]');
   const timezone = form.querySelector('[name="timezone"]');
+  const courseNote = document.querySelector('#registration-course-note');
+  const psyche = form.querySelector('[name="psycheStatus"]');
+  const psycheField = document.querySelector('#psyche-status-field');
+  const terms = {
+    'The Psyche in Chinese Medicine': 'Spring 2027',
+    'Advanced Diagnosis & Treatment': 'Summer 2027',
+  };
   let readiness = { open: false, courses: [] };
   let submitting = false;
-  const closedMessage = 'Registration is not open yet. Cohort dates, session times and final student policies will be announced before enrollment opens.';
+  const closedMessage = 'Spring and Summer 2027 registration are open for eligible learners, but online submission is temporarily unavailable. You can prepare the form below; your details stay in this page until you submit. Please return once online submission is available.';
 
   const requested = new URLSearchParams(window.location.search).get('course');
-  if ([...course.options].some((option) => option.value === requested)) course.value = requested;
+  if ([...course.options].some((option) => option.value === requested && !option.disabled)) course.value = requested;
   if (timezone) timezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
 
   function renderAvailability() {
-    const enabled = readiness.open && readiness.courses.includes(course.value);
-    details.disabled = !enabled || submitting;
+    const enabled = readiness.open && readiness.courses.includes(course.value) && Boolean(terms[course.value]);
+    details.disabled = submitting;
+    const advanced = course.value === 'Advanced Diagnosis & Treatment';
+    psycheField.hidden = !advanced;
+    psyche.disabled = !advanced || submitting;
+    psyche.required = advanced;
+    courseNote.textContent = !terms[course.value] ? 'Choose a course to see its term and prerequisites.'
+      : `${terms[course.value]} · Virtual online · $1,350. ${advanced ? 'Complete Courses I and II before starting.' : 'Complete Course I before starting.'} You may register while progressing through the earlier courses; admission requires prerequisite review. Exact dates and session times will be confirmed before payment.`;
     button.disabled = !enabled || submitting;
-    button.textContent = submitting ? 'Submitting…' : enabled ? 'Submit course registration' : 'Registration not open yet';
+    button.textContent = submitting ? 'Submitting…' : enabled ? 'Submit course registration' : !course.value ? 'Select a course' : 'Online submission unavailable';
     availability.textContent = !readiness.open ? closedMessage : !course.value
       ? 'Select a course to check its registration availability.'
-      : enabled ? 'Registration is open for ' + course.value + '.'
-      : 'Registration for this upcoming course is not open yet. Please check again for cohort dates.';
+      : enabled ? 'Online registration is available for ' + terms[course.value] + '. Admission is subject to prerequisite review.'
+      : 'Online submission for this course is temporarily unavailable. Your details have not been sent.';
   }
   course.addEventListener('change', () => {
     status.removeAttribute('data-state');
-    status.textContent = 'Your details will only be collected when registration is open for your selected course.';
+    status.textContent = 'Your details are sent only when you submit. Course prerequisites will be reviewed before admission.';
     renderAvailability();
   });
   renderAvailability();
@@ -48,7 +61,7 @@
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (submitting || !readiness.open || !readiness.courses.includes(course.value) || !form.reportValidity()) return;
+    if (submitting || !readiness.open || !readiness.courses.includes(course.value) || !terms[course.value] || !form.reportValidity()) return;
     const selectedCourse = course.value;
     const body = new URLSearchParams(new FormData(form));
     submitting = true;
@@ -70,7 +83,7 @@
       if (!response.ok) {
         if (response.status === 503) {
           readiness = { open: false, courses: [] };
-          throw new Error('Registration is currently closed. Your registration has not been submitted.');
+          throw new Error('Online submission is currently unavailable. Your registration has not been submitted.');
         }
         if (response.status === 429) throw new Error('Please wait a few minutes before trying again.');
         if (response.status === 400) throw new Error('Please check your details and selected course, then try again.');
@@ -81,7 +94,7 @@
       course.value = selectedCourse;
       if (timezone) timezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
       status.dataset.state = 'success';
-      status.textContent = 'Registration received for ' + selectedCourse + '. Reference: ' + result.reference + '. We’ll follow up with cohort details and payment instructions before your place is confirmed.';
+      status.textContent = 'Registration received for ' + selectedCourse + ' — ' + terms[selectedCourse] + '. Reference: ' + result.reference + '. The Institute will review your prerequisite status and follow up with confirmed course details and enrollment terms before payment. Your place is not yet confirmed.';
       status.focus();
     } catch (error) {
       status.dataset.state = 'error';
