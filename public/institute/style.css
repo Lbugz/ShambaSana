@@ -308,6 +308,14 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
 .registration-form :is(input, select, textarea):focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 .registration-form .consent-field { min-height: 48px; align-items: start; }
 .founder-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 24px; }
+.founders-section { background: #eeeee4; }
+.founders-section .founder-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.founder-card { min-width: 0; padding-left: 22px; border-left: 2px solid var(--gold); }
+.founder-card h3 { margin: 0 0 10px; font-size: 28px; line-height: 1.25; }
+.founder-card p { font-size: 14px; color: var(--muted); }
+.founder-card .founder-role { color: var(--green); font-size: 13px; }
+.founder-card a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 13px; text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 850px) { .founders-section .founder-grid { grid-template-columns: 1fr; } }
 @media (max-width: 700px) {
   .registration-page { padding-top: 28px; gap: 20px; }
   .registration-page .registration-intro h1 { font-size: clamp(34px, 10vw, 42px); margin-bottom: 16px; }
