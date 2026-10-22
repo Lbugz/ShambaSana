@@ -1,11 +1,7 @@
 import { Link } from "wouter";
-export function Brand({ light = false, subtitle = "INTEGRATIVE CARE" }: { light?: boolean; subtitle?: string }) {
-  return (
-    <Link
-      href="/"
-      aria-label="Shamba Sana home"
-      className={`inline-flex items-center gap-3 ${light ? "text-white" : "text-primary"}`}
-    >
+export function Brand({ light = false, subtitle = "INTEGRATIVE CARE", homeUrl }: { light?: boolean; subtitle?: string; homeUrl?: string }) {
+  const className = `inline-flex items-center gap-3 ${light ? "text-white" : "text-primary"}`;
+  const content = <>
       <img
         src="/shamba-logo-transparent.png"
         alt=""
@@ -19,6 +15,8 @@ export function Brand({ light = false, subtitle = "INTEGRATIVE CARE" }: { light?
           {subtitle}
         </span>
       </span>
-    </Link>
-  );
+  </>;
+  return homeUrl
+    ? <a href={homeUrl} aria-label="Shamba Sana home" className={className}>{content}</a>
+    : <Link href="/" aria-label="Shamba Sana Integrative Care home" className={className}>{content}</Link>;
 }
