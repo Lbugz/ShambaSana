@@ -1,0 +1,137 @@
+/* Focused registration experience, shared by mobile and desktop. */
+.registration-body { background: #f7f5ef; }
+.registration-body .registration-chrome { border-bottom-color: #103d2b12; }
+.registration-flow { max-width: 1152px; margin: auto; padding: 42px 32px 60px; }
+.flow-heading { margin-bottom: 30px; }
+.flow-heading h1, .registration-direct .flow-heading h1 { font-size: clamp(32px, 4vw, 48px); letter-spacing: -1.3px; margin: 0 0 10px; }
+.flow-heading > p:last-child { font-size: 15px; color: var(--muted); margin: 0; }
+.flow-heading .eyebrow { margin-bottom: 14px; }
+.flow-layout { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 48px; align-items: start; }
+.course-summary { background: #e9ede3; padding: 28px; border: 1px solid #103d2b12; border-radius: 22px; position: sticky; top: 104px; }
+.summary-topline { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 16px; }
+.summary-label, .step-kicker { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #526642; }
+.course-summary h2 { font-size: 30px; line-height: 1.2; letter-spacing: -.6px; margin-bottom: 12px; }
+.course-summary p { font-size: 13px; line-height: 1.75; }
+.course-summary .course-meta { margin-bottom: 16px; color: #526050; }
+.course-summary .course-price { color: var(--green); font-weight: 600; font-size: 19px; margin-bottom: 5px; }
+.course-summary .course-note { margin-bottom: 22px; color: #526050; }
+.text-action { padding: 4px 0; border: 0; background: transparent; color: var(--green); text-decoration: underline; text-underline-offset: 4px; font: 600 12px/1.6 var(--sans); cursor: pointer; min-height: 44px; }
+.flow-disclosure { border-block: 1px solid #103d2b20; }
+.flow-disclosure summary { list-style: none; display: flex; gap: 12px; align-items: center; min-height: 52px; padding: 12px 0; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--green); }
+.flow-disclosure summary::-webkit-details-marker { display: none; }
+.flow-disclosure summary::marker { content: ''; }
+.flow-disclosure summary svg { margin-left: auto; width: 18px; height: 18px; flex-shrink: 0; }
+.flow-disclosure[open] .disclosure-vertical { opacity: 0; }
+.flow-disclosure > div { padding-bottom: 16px; }
+.flow-disclosure a, .summary-help a, .flow-privacy a { text-decoration: underline; text-underline-offset: 3px; }
+.course-summary .summary-help { margin: 18px 0 0; font-size: 12px; }
+.registration-flow svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.flow-workspace { min-width: 0; }
+.flow-form, .flow-success { background: #fffefa; border: 1px solid #103d2b12; border-radius: 24px; padding: 32px; box-shadow: 0 10px 40px #103d2b04; }
+.flow-progress { list-style: none; display: flex; gap: 24px; padding: 0; margin: 0 0 22px; }
+.flow-progress li { display: flex; align-items: center; gap: 9px; flex: 1; font-size: 12px; color: #71756b; line-height: 1.4; }
+.step-number { display: inline-grid; place-items: center; width: 28px; height: 28px; border: 1px solid #103d2b30; border-radius: 50%; flex-shrink: 0; }
+.flow-progress [aria-current] { color: var(--green); font-weight: 600; }
+.flow-progress [aria-current] .step-number, .flow-progress .is-complete .step-number { color: white; background: var(--green); border-color: var(--green); }
+.flow-progress .is-complete { color: var(--green); }
+.flow-availability { font-size: 12px; margin: 0 0 20px; color: #526642; }
+.flow-availability:empty { display: none; }
+.flow-availability[data-state="unavailable"] { color: #85492d; background: #f6eee6; padding: 12px 14px; border-radius: 10px; }
+.step-heading { margin-bottom: 24px; }
+.step-heading h2 { font-size: 28px; letter-spacing: -.5px; line-height: 1.2; margin-bottom: 8px; }
+.step-heading p { margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+.step-heading .step-kicker { font-size: 10px; margin-bottom: 12px; }
+.flow-step .form-field { margin-bottom: 20px; }
+.flow-form .form-field label { display: flex; align-items: baseline; gap: 8px; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: var(--green); }
+.flow-form .form-field label span { font-size: 11px; color: var(--muted); font-weight: 400; }
+.flow-form :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,textarea) { width: 100%; max-width: 100%; min-width: 0; min-height: 52px; padding: 12px 14px; border: 1px solid #103d2b30; border-radius: 11px; background: #fffefa; font: 400 16px/1.5 var(--sans); color: var(--green); transition: border-color .15s, box-shadow .15s; }
+.flow-form :is(input,select,textarea):focus-visible { outline: 2px solid #315940; outline-offset: 3px; }
+.flow-form select { appearance: none; padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23103d2b' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 18px; }
+.flow-form [aria-invalid="true"] { border-color: #a33e2d !important; }
+.flow-form .input-error { color: #9b3829; font-size: 12px; margin: 6px 0 0; line-height: 1.6; }
+.flow-actions { display: flex; align-items: center; gap: 14px; margin-top: 24px; }
+.flow-primary, .flow-back { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 52px; padding: 14px 22px; border-radius: 999px; font: 600 14px/1.5 var(--sans); cursor: pointer; }
+.flow-primary { background: var(--green); border: 1px solid var(--green); color: #fff; flex: 1; transition: background .15s, transform .15s; }
+.flow-primary:hover { background: #1c533c; }
+.flow-primary:active { transform: translateY(1px); }
+.flow-primary:disabled { opacity: .5; cursor: not-allowed; }
+.flow-actions svg { width: 18px; height: 18px; flex-shrink: 0; }
+.flow-back { background: transparent; border: 1px solid #103d2b25; color: var(--green); }
+.flow-reassurance { text-align: center; font-size: 11px; color: var(--muted); margin: 12px 0 0; }
+.choice-field { padding: 0; border: 0; margin: 0 0 24px; min-width: 0; }
+.choice-field legend { font-size: 13px; font-weight: 600; color: var(--green); padding: 0; margin-bottom: 12px; }
+.choice-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.choice-grid label { display: flex; align-items: center; gap: 9px; padding: 12px; min-height: 58px; border: 1px solid #103d2b25; border-radius: 11px; cursor: pointer; color: var(--green); font-size: 12px; line-height: 1.5; }
+.choice-grid label:has(input:checked) { background: #e9ede3; border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
+.choice-grid input { accent-color: var(--green); width: 17px; height: 17px; margin: 0; flex: 0 0 17px; }
+.optional-label { color: var(--muted); font-size: 11px; font-weight: 400; }
+.review-card { background: #f0f2e9; border-radius: 14px; padding: 18px; margin: 24px 0; }
+.review-card > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.review-card h3 { font: 600 13px/1.5 var(--sans); margin: 0; }
+.review-card dl { margin: 10px 0 14px; }
+.review-card dl > div { margin-bottom: 8px; }
+.review-card dt { color: var(--muted); font-size: 11px; }
+.review-card dd { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.review-card > p { font-size: 12px; margin: 0; color: #526050; }
+.flow-consent { display: flex; gap: 12px; align-items: flex-start; margin: 16px 0 6px; font-size: 12px; line-height: 1.8; cursor: pointer; }
+.flow-consent input { width: 20px; height: 20px; margin: 2px 0 0; flex: 0 0 20px; accent-color: var(--green); }
+.flow-privacy { font-size: 11px; color: var(--muted); margin: 20px 0 0; }
+.flow-form .form-status { margin: 14px 0 0; font-size: 12px; }
+.flow-form .form-status:empty { display: none; }
+.course-picker { width: min(480px,calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow-y: auto; padding: 28px; border: 1px solid #103d2b25; border-radius: 20px; background: #fffefa; color: var(--green); }
+.course-picker::backdrop { background: #09291e66; backdrop-filter: blur(4px); }
+.picker-heading { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+.picker-heading h2 { font-size: 28px; letter-spacing: -.5px; }
+.icon-button { display: grid; place-items: center; border: 0; background: #e9ede3; border-radius: 50%; min-width: 44px; height: 44px; color: var(--green); cursor: pointer; }
+.icon-button svg { width: 18px; height: 18px; }
+.course-picker .form-field { margin-bottom: 18px; }
+.course-picker .flow-primary { width: 100%; margin-top: 16px; }
+.flow-success h2 { font-size: 34px; margin-top: 14px; }
+.flow-success p { color: #526050; font-size: 14px; }
+.flow-success dl { background: #f0f2e9; border-radius: 12px; padding: 16px; font-size: 13px; margin: 24px 0; }
+.flow-success dd { margin: 6px 0 0; overflow-wrap: anywhere; }
+.success-mark { width: 54px; height: 54px; color: var(--green); }
+.registration-footer { max-width: 1088px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 20px; border-top: 1px solid #103d2b18; padding: 20px 0; color: var(--muted); font-size: 11px; }
+.registration-footer p { margin: 0; }
+.registration-footer nav { display: flex; flex-wrap: wrap; gap: 20px; }
+.registration-footer a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 3px; }
+.registration-flow [hidden] { display: none !important; }
+.registration-flow :is(button,summary,a):focus-visible { outline: 2px solid var(--green); outline-offset: 4px; }
+@media(max-width:800px) {
+ .registration-flow { padding: 28px 22px 32px; }
+ .flow-layout { grid-template-columns: 1fr; gap: 20px; }
+ .course-summary { position: static; border-radius: 16px; padding: 18px 20px; }
+ .course-summary h2 { font-size: 23px; margin-bottom: 8px; }
+ .summary-topline { margin-bottom: 6px; }
+ .course-summary .course-meta { margin-bottom: 6px; }
+ .course-summary .course-price { font-size: 16px; }
+ .course-summary .course-note { margin: 0; }
+ .course-summary .summary-help { display: none; }
+ .course-summary .flow-disclosure { margin-top: 12px; }
+ .flow-form,.flow-success { border-radius: 18px; padding: 24px; }
+ .registration-footer { margin: 0 22px; }
+}
+@media(max-width:480px) {
+ .registration-flow { padding: 22px 18px 24px; }
+ .flow-heading { margin-bottom: 18px; }
+ .flow-heading .eyebrow { display: none; }
+ .flow-heading h1,.registration-direct .flow-heading h1 { font-size: 30px; }
+ .flow-heading > p:last-child { font-size: 12px; }
+ .course-summary { padding: 14px 18px; }
+ .course-summary h2 { font-size: 21px; }
+ .course-summary .course-meta { font-size: 12px; }
+ .course-summary .course-note { font-size: 11px; }
+ .flow-form,.flow-success { padding: 22px 18px; }
+ .flow-progress { gap: 12px; margin-bottom: 20px; }
+ .flow-progress li { font-size: 11px; gap: 7px; }
+ .step-heading h2 { font-size: 25px; }
+ .step-heading .step-kicker { display: none; }
+ .step-heading { margin-bottom: 18px; }
+ .flow-step .form-field { margin-bottom: 16px; }
+ .flow-actions { position: sticky; bottom: 0; z-index: 2; background: #fffefa; padding: 12px 0 max(12px,env(safe-area-inset-bottom)); margin-top: 12px; }
+ #step-review .flow-primary svg { display: none; }
+ #step-review .flow-primary { white-space: nowrap; padding-inline: 14px; }
+ .registration-footer { flex-direction: column-reverse; gap: 4px; padding: 12px 0 20px; }
+ .registration-footer nav { gap: 22px; }
+}
+@media(prefers-reduced-motion:no-preference) { .flow-step { animation: step-in .2s ease-out; } @keyframes step-in { from { opacity: .4; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } } }

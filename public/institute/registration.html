@@ -1,129 +1,73 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#103d2b">
-    <meta name="description" content="Register for a virtual course with the Shamba Sana Institute.">
-    <title>Course Registration | Shamba Sana Institute</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="../assets/site-chrome.css">
-  </head>
-  <body class="registration-body">
-    <a class="skip-link" href="#main">Skip to content</a>
-    <header class="institute-header site-chrome-header registration-chrome"><div class="chrome-header-inner"><a class="brand-lockup" href="index.html" aria-label="Shamba Sana Institute home"><img src="../assets/shamba-logo-transparent.png" alt="" width="52" height="56"><span class="brand-name">SHAMBA SANA<small>THE INSTITUTE</small></span></a><span class="registration-step">Course registration</span><a class="chrome-action chrome-action-outline" href="index.html#learning-path">Back to courses</a></div></header>
-
-    <main id="main">
-      <section class="section registration-section registration-page" aria-labelledby="registration-title">
-        <div class="registration-intro">
-          <p class="eyebrow">Shamba Sana Institute</p>
-          <h1 id="registration-title">Course <br><em>registration.</em></h1>
-          <p>Choose your course, semester and study format. We’ll review your preparation and send confirmed details before you decide to pay.</p>
-          <ol class="registration-progress" aria-label="Enrollment steps"><li>Choose your study</li><li>Send your details</li><li>Review &amp; pay separately</li></ol>
-          <details class="registration-enrollment-details">
-          <summary>Tuition &amp; enrollment details</summary>
-          <p class="registration-tuition"><strong>Foundations:</strong> $2,000 per semester · three semesters. Semester 1 self-paced catch-up is also $2,000. Other course fees are confirmed before payment. <a href="student-information.html#tuition">Tuition &amp; refunds</a>.</p>
-          <p class="registration-disclaimer">This is a registration request, not automatic admission or payment. Each semester requires separate confirmation; there are no automatic continuation charges.</p>
-          <p class="registration-contact">Questions? <a href="mailto:onlineclass@liferx.us">onlineclass@liferx.us</a></p>
-          </details>
-          <p class="registration-availability" id="registration-availability" role="status">Checking online submission availability…</p>
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#103d2b">
+  <meta name="description" content="Register for online study with the Shamba Sana Institute."><title>Course Registration | Shamba Sana Institute</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="../assets/site-chrome.css"><link rel="stylesheet" href="../assets/registration-flow.css">
+</head>
+<body class="registration-body">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="institute-header site-chrome-header registration-chrome"><div class="chrome-header-inner">
+  <a class="brand-lockup" href="index.html" aria-label="Shamba Sana Institute home"><img src="../assets/shamba-logo-transparent.png" alt="" width="52" height="56"><span class="brand-name">SHAMBA SANA<small>THE INSTITUTE</small></span></a>
+  <span class="registration-step">Course registration</span><a class="chrome-action chrome-action-outline" href="index.html#learning-path">Back to courses</a>
+</div></header>
+<main id="main">
+<section class="registration-flow" aria-labelledby="registration-title">
+  <div class="flow-heading"><p class="eyebrow">Your next chapter</p><h1 id="registration-title">Let’s get you registered.</h1><p>A few details now. A thoughtful review before you pay.</p></div>
+  <div class="flow-layout">
+    <aside class="course-summary" aria-labelledby="registration-course-title">
+      <div class="summary-topline"><span class="summary-label">Your course</span><button type="button" id="change-course" class="text-action">Change<span class="sr-only"> course or semester</span></button></div>
+      <h2 id="registration-course-title">Choose your course</h2>
+      <p id="registration-course-meta" class="course-meta">Select a course and semester to begin.</p>
+      <p id="registration-course-price" class="course-price"></p>
+      <p id="registration-course-note" class="course-note">Each semester has its own registration and payment.</p>
+      <details class="flow-disclosure"><summary>Tuition &amp; enrollment details<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path class="disclosure-vertical" d="M12 5v14"/></svg></summary><div><p id="registration-tuition-detail"></p><p>Registration is reviewed before admission. Your final schedule and terms are provided before a separate payment invitation. There are no automatic continuation charges.</p><a href="student-information.html#tuition">Tuition &amp; refund information</a></div></details>
+      <p class="summary-help">A question before you begin? <a href="mailto:onlineclass@liferx.us">Contact admissions</a></p>
+    </aside>
+    <div class="flow-workspace">
+      <form id="course-registration-form" class="flow-form" action="/api/course-registration" method="post" novalidate>
+        <ol class="flow-progress" aria-label="Registration progress"><li id="progress-details" aria-current="step"><span class="step-number">1</span><span>Your details</span></li><li id="progress-review"><span class="step-number">2</span><span>Preparation &amp; review</span></li></ol>
+        <p id="registration-availability" class="flow-availability" role="status">Checking registration availability…</p>
+        <div id="registration-details">
+          <section id="step-details" class="flow-step" aria-labelledby="details-title">
+            <div class="step-heading"><p class="step-kicker">Step 1 of 2</p><h2 id="details-title" tabindex="-1">First, a little about you.</h2><p>We’ll use your email for registration and class updates.</p></div>
+            <div class="form-field"><label for="registration-name">Full name</label><input id="registration-name" name="name" autocomplete="name" minlength="2" maxlength="120" required aria-describedby="name-error"><p class="input-error" id="name-error" hidden></p></div>
+            <div class="form-field"><label for="registration-email">Email address</label><input id="registration-email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required aria-describedby="email-error"><p class="input-error" id="email-error" hidden></p></div>
+            <div class="form-field"><label for="registration-phone">Phone number <span>Optional</span></label><input id="registration-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="40"></div>
+            <input id="registration-timezone" name="timezone" type="hidden" maxlength="80">
+            <div class="flow-actions"><button type="button" id="continue-registration" class="flow-primary" disabled>Continue<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
+            <p class="flow-reassurance">No payment is collected on this form.</p>
+          </section>
+          <section id="step-review" class="flow-step" aria-labelledby="review-title" hidden>
+            <div class="step-heading"><p class="step-kicker">Step 2 of 2</p><h2 id="review-title" tabindex="-1">Your preparation &amp; next steps.</h2><p id="preparation-description">Tell us about your previous study so we can review the right next step.</p></div>
+            <fieldset id="foundations-status-field" class="choice-field"><legend>Where are you with Foundations?</legend><div class="choice-grid">
+              <label><input type="radio" name="foundationsStatus" value="completed"><span>Completed</span></label><label><input type="radio" name="foundationsStatus" value="in-progress"><span>Currently studying</span></label><label><input type="radio" name="foundationsStatus" value="registered"><span>Registered / awaiting admission</span></label><label><input type="radio" name="foundationsStatus" value="not-started"><span>Not yet started</span></label>
+            </div><p class="input-error" id="foundations-error" hidden></p></fieldset>
+            <fieldset id="psyche-status-field" class="choice-field" hidden><legend>Where are you with the Psyche course?</legend><div class="choice-grid">
+              <label><input type="radio" name="psycheStatus" value="completed"><span>Completed</span></label><label><input type="radio" name="psycheStatus" value="in-progress"><span>Currently studying</span></label><label><input type="radio" name="psycheStatus" value="registered"><span>Registered / awaiting admission</span></label><label><input type="radio" name="psycheStatus" value="not-started"><span>Not yet started</span></label>
+            </div><p class="input-error" id="psyche-error" hidden></p></fieldset>
+            <div class="form-field" id="prior-cohort-field"><label for="registration-cohort">Earlier cohort or semester <span>Optional</span></label><input id="registration-cohort" name="priorCohort" maxlength="240" placeholder="For example, Foundations — Fall 2026"></div>
+            <details class="flow-disclosure additional-disclosure"><summary>Add a question or note <span class="optional-label">Optional</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path class="disclosure-vertical" d="M12 5v14"/></svg></summary><div class="form-field"><label for="registration-message">Your note</label><textarea id="registration-message" name="message" rows="3" maxlength="1000" aria-describedby="message-help"></textarea><p class="field-help" id="message-help">Questions about preparation or enrollment only. Please omit health information.</p></div></details>
+            <div class="review-card"><div><h3>Your registration</h3><button type="button" id="edit-registration" class="text-action">Edit details</button></div><dl id="registration-review-summary"></dl><p>Staff review your preparation, confirm the semester details and send your next steps. Payment follows separately.</p></div>
+            <label class="flow-consent"><input type="checkbox" name="prerequisiteAcknowledgement" value="yes" required aria-describedby="preparation-error"><span>I understand registration requires staff review before admission and payment.</span></label><p class="input-error" id="preparation-error" hidden></p>
+            <label class="flow-consent"><input type="checkbox" name="consent" value="yes" required aria-describedby="consent-error"><span>My details are accurate, and I agree to be contacted about my enrollment.</span></label><p class="input-error" id="consent-error" hidden></p>
+            <p class="flow-privacy">Your details are used to manage Institute enrollment. <a href="registration-privacy.html">Privacy information</a> · <a href="student-information.html">Student policies</a></p>
+            <div class="flow-actions"><button type="button" id="back-registration" class="flow-back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg>Back</button><button type="submit" class="flow-primary" disabled>Submit registration<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button></div>
+          </section>
         </div>
-        <form class="registration-form" id="course-registration-form" action="/api/course-registration" method="post">
-          <div class="form-field">
-            <label for="registration-course">Select your course</label>
-            <select id="registration-course" name="course" required>
-              <option value="" selected disabled>Select a course</option>
-              <option value="Foundations of Chinese Medicine">Course I — Foundations</option>
-              <option value="The Psyche in Chinese Medicine">Course II — The Psyche</option>
-              <option value="Advanced Diagnosis & Treatment">Course III — Diagnosis</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <div class="form-field"><label for="registration-semester">Semester</label><select id="registration-semester" name="semester" required><option value="1">Semester 1</option></select></div>
-            <div class="form-field"><label for="registration-format">Study format</label><select id="registration-format" name="learningFormat" required><option value="live-online">Live online</option></select></div>
-          </div>
-          <div class="registration-course-note" id="registration-course-note" aria-live="polite">Choose a course to see its semester options and preparation.</div>
-          <fieldset id="registration-details" disabled>
-            <legend>Your details and preparation</legend>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label for="registration-name">Full name</label>
-              <input id="registration-name" name="name" autocomplete="name" minlength="2" maxlength="120" required>
-            </div>
-            <div class="form-field">
-              <label for="registration-email">Email address</label>
-              <input id="registration-email" name="email" type="email" autocomplete="email" maxlength="254" required>
-            </div>
-          </div>
-          <div class="form-field">
-            <label for="registration-phone">Phone <span>(optional)</span></label>
-            <input id="registration-phone" name="phone" type="tel" autocomplete="tel" maxlength="40">
-          </div>
-          <div class="form-field">
-            <label for="registration-timezone">Time zone <span>(optional)</span></label>
-            <input id="registration-timezone" name="timezone" maxlength="80" placeholder="For example, America/New_York">
-          </div>
-          <div class="form-field" id="foundations-status-field">
-            <label for="registration-foundations">Course I — Foundations status</label>
-            <select id="registration-foundations" name="foundationsStatus" required>
-              <option value="" selected disabled>Select your status</option>
-              <option value="completed">Completed at Shamba Sana</option>
-              <option value="in-progress">Currently enrolled at Shamba Sana</option>
-              <option value="registered">Registered / awaiting admission</option>
-              <option value="not-started">Not yet enrolled / completed</option>
-            </select>
-          </div>
-          <div class="form-field" id="psyche-status-field" hidden>
-            <label for="registration-psyche">Course II — Psyche status</label>
-            <select id="registration-psyche" name="psycheStatus" disabled>
-              <option value="" selected disabled>Select your status</option>
-              <option value="completed">Completed at Shamba Sana</option>
-              <option value="in-progress">Currently enrolled at Shamba Sana</option>
-              <option value="registered">Registered / awaiting admission</option>
-              <option value="not-started">Not yet registered / completed</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="registration-cohort">Earlier course cohort(s) <span>(optional)</span></label>
-            <input id="registration-cohort" name="priorCohort" maxlength="240" placeholder="For example, Foundations — Fall 2026">
-          </div>
-          <p class="preparation-note">Tell us where you are in the pathway. Staff confirm required preparation and any self-paced catch-up plan before admission.</p>
-          <label class="consent-field"><input type="checkbox" name="prerequisiteAcknowledgement" value="yes" required><span>I understand this request requires staff review, including prerequisite or catch-up requirements.</span></label>
-          <p><a href="student-information.html">Read student information</a>. Final enrollment terms will be provided before payment.</p>
-          <div class="form-field">
-            <label for="registration-message">Additional information <span>(optional)</span></label>
-            <textarea id="registration-message" name="message" rows="4" maxlength="1000" aria-describedby="registration-message-help"></textarea>
-            <p class="field-help" id="registration-message-help">Include questions about your preparation or cohort. Do not include personal health information.</p>
-          </div>
-          <label class="consent-field">
-            <input type="checkbox" name="consent" value="yes" required>
-            <span>I confirm these details are accurate and agree to be contacted to complete my course enrollment.</span>
-          </label>
-          </fieldset>
-          <input type="hidden" name="reference" value="">
-          <div class="form-honeypot" aria-hidden="true">
-            <label for="registration-website">Leave this field empty</label>
-            <input id="registration-website" name="website" tabindex="-1" autocomplete="off">
-          </div>
-          <p class="field-help registration-privacy">We use your contact details and previous-study information to review registration, manage enrollment and send course updates. This form does not collect payment or health information. <a href="registration-privacy.html">Registration privacy information</a>.</p>
-          <button class="button button-solid" type="submit" disabled>Checking online submission…</button>
-          <p class="form-status" id="registration-status" role="status" aria-live="polite" tabindex="-1">Select a course to begin. Your details are sent only when you submit.</p>
-          <noscript><p>Please enable JavaScript to check course availability and complete registration.</p></noscript>
-        </form>
-      </section>
-    </main>
-
-    <footer class="institute-footer site-chrome-footer"><div class="chrome-footer-grid">
-      <div class="chrome-footer-brand"><a class="brand-lockup" href="https://www.shambasana.com/" aria-label="Shamba Sana home"><img src="../assets/shamba-logo-transparent.png" alt="" width="52" height="56"><span class="brand-name">SHAMBA SANA<small>ANCIENT WISDOM · MODERN WELLNESS</small></span></a><p>Learning, integrative care and community wellbeing.</p></div>
-      <nav aria-label="Explore Shamba Sana"><h2>Explore</h2><a href="https://www.shambasana.com/">Shamba Sana</a><a href="https://institute.shambasana.com/">Institute</a><a href="https://care.shambasana.com/">Integrative Care</a></nav>
-      <nav aria-label="Institute resources"><h2>Resources</h2><a href="index.html#learning-path">Courses</a><a href="student-information.html">Student information</a><a href="registration.html">Course registration</a></nav>
-      <nav aria-label="Institute support and information"><h2>Information</h2><a href="mailto:onlineclass@liferx.us">Admissions &amp; course support</a><a href="student-information.html#tuition">Tuition &amp; policies</a><a href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer">Student access ↗<span class="sr-only"> (opens in a new tab)</span></a></nav>
-    </div><div class="chrome-footer-bottom"><p>© 2026 Shamba Sana</p><p>Ancient wisdom. Modern wellness.</p></div></footer>
-    <script src="../assets/course-registration.js" defer></script>
-    <script src="../assets/site-navigation.js" defer></script>
-  </body>
-</html>
+        <input type="hidden" name="reference" value=""><input type="hidden" name="learningFormat" value="live-online">
+        <div class="form-honeypot" aria-hidden="true"><label for="registration-website">Leave this field empty</label><input id="registration-website" name="website" tabindex="-1" autocomplete="off"></div>
+        <p class="form-status" id="registration-status" role="status" aria-live="polite" tabindex="-1"></p>
+        <dialog id="course-picker" class="course-picker" aria-labelledby="course-picker-title"><div class="picker-heading"><h2 id="course-picker-title">Choose your study</h2><button type="button" id="close-course-picker" class="icon-button" aria-label="Close course selection"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div><div class="form-field"><label for="registration-course">Course</label><select id="registration-course" name="course" required><option value="" disabled selected>Select a course</option><option value="Foundations of Chinese Medicine">Foundations of Chinese Medicine</option><option value="The Psyche in Chinese Medicine">The Psyche in Chinese Medicine</option><option value="Advanced Diagnosis &amp; Treatment">Advanced Diagnosis &amp; Treatment</option></select></div><div class="form-field" id="semester-picker-field"><label for="registration-semester">Semester</label><select id="registration-semester" name="semester" required><option value="1">Semester 1</option></select></div><p id="picker-format" class="field-help"></p><button type="button" id="apply-course" class="flow-primary">Use this selection</button></dialog>
+        <noscript><p>Registration needs JavaScript. For help, email <a href="mailto:onlineclass@liferx.us">onlineclass@liferx.us</a>.</p></noscript>
+      </form>
+      <section id="registration-success" class="flow-success" aria-labelledby="success-title" tabindex="-1" hidden><svg class="success-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22"/><path d="m14 24 7 7 13-14"/></svg><p class="step-kicker">Your registration is with us</p><h2 id="success-title">Thank you for taking<br>the next step.</h2><p id="success-course"></p><dl><dt>Registration reference</dt><dd id="success-reference"></dd></dl><p id="success-next"></p><p>Admission and your place are confirmed after review and the required enrollment steps. No payment has been taken.</p><a class="text-action" href="index.html">Return to the Institute</a></section>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="registration-footer"><p>© 2026 Shamba Sana</p><nav aria-label="Registration support"><a href="mailto:onlineclass@liferx.us">Help</a><a href="registration-privacy.html">Privacy</a><a href="student-information.html">Student policies</a></nav></footer>
+<script src="../assets/course-registration.js" defer></script><script src="../assets/site-navigation.js" defer></script>
+</body></html>
