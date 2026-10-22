@@ -34,7 +34,7 @@ Registration intake can open for the announced Spring and Summer terms while fin
 
 ### Institute 2026–2027 enrollment update
 
-- Foundations Semester 1 live enrollment is closed. A separate self-paced catch-up review route is prepared for Semester 1; Semester 2/3 live continuation requests are also prepared. These require `COURSE_FOUNDATIONS_REVIEW_OPEN=true` on the website and `INSTITUTE_FOUNDATIONS_REVIEW_OPEN=true` on the backend, in addition to general registration switches; both default closed. Psyche/Advanced requests remain under review, with unresolved prices/structure preventing new payment invitations. Foundations meets Wednesday/Friday, Eastern Time (`America/New_York`, EST/EDT), time TBD; Semester 1 ends December 11, 2026. Later exact dates/hours remain pending.
+- Foundations Semester 1 live enrollment is closed. A separate self-paced catch-up review route is prepared for Semester 1; Semester 2/3 live continuation requests are also prepared. These reviewed requests now use the general website/backend registration switches; legacy Foundations-only switches are no longer used. All requests still require staff review before payment or access. Psyche/Advanced requests remain under review, with unresolved prices/structure preventing new payment invitations. Foundations meets Wednesday/Friday, Eastern Time (`America/New_York`, EST/EDT), time TBD; Semester 1 ends December 11, 2026. Later exact dates/hours remain pending.
 - Deploy both the website and `apps/integrative-care` changes together. Registration now includes a server-derived `term`, `foundationsStatus`, optional `psycheStatus` (required for Course III), `priorCohort` and `prerequisiteAcknowledgement`. The backend validates and stores these fields, and staff can review them in Billing and course enrollments. Legacy enrollments remain readable.
 - Existing Railway allowlists must both be updated to `The Psyche in Chinese Medicine|Advanced Diagnosis & Treatment`: `COURSE_REGISTRATION_COURSES` on the website and `INSTITUTE_OPEN_COURSES` on the backend. Do not assume the new defaults overwrite existing environment variables.
 - Online submission still requires the shared service token, durable webhook and both registration flags. The form explains temporary submission unavailability when these are not configured; public term availability alone does not enable data collection or payments.
@@ -60,3 +60,9 @@ Run with Node 22 or later: `npm start`. The server binds to `0.0.0.0` and honors
 Deploy with Railway using the included Dockerfile and railway.json. Connect the GitHub repository as the service source and generate a Railway domain after deployment.
 
 Artwork comes from the Shamba Sana brand book. Sanctuary renderings are labeled as concepts.
+
+## Shareable enrollment links
+
+Use https://institute.shambasana.com/registration-links.html to copy or share course/semester links. Each /register/:slug route renders course metadata on the server for messaging previews and preselects the form. The links include Semester 1 catch-up, Foundations Semesters 2/3, Psyche Spring 2027 and Advanced Summer 2027. They do not bypass prerequisites or activate payments. Main and Institute also provide canonical Open Graph/Twitter metadata and 1200x630 PNG cards. Messaging services control preview caching and rendering.
+
+Regenerate the static sharing/privacy pages and metadata with `node scripts/prepare-institute-pages.cjs`. Regenerate graphic cards with `node scripts/generate-share-cards.cjs` when Sharp is available (or set SHARP_MODULE_PATH).

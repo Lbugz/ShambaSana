@@ -15,6 +15,7 @@ export function PilotOffer() {
         report edited and approved by your practitioner.
       </p>
       <div className="my-7">
+        {config.data?.billingMode !== "live" && <p className="mb-2 text-sm font-semibold text-primary">Sandbox package · test checkout only</p>}
         <span className="font-serif text-4xl">
           {config.data ? money(config.data.amount) : "Pilot package"}
         </span>
@@ -42,12 +43,12 @@ export function PilotOffer() {
         separately. Your practitioner can discuss which are appropriate. This
         pilot is a single care episode.
       </p>
-      <Link href="/auth?signup=true&plan=remote-pilot">
-        <Button className="h-12 rounded-full px-7">
-          Start your care journey
+      <Button asChild className="h-12 rounded-full px-7">
+        <Link href="/auth?signup=true&plan=remote-pilot">
+          {config.data?.billingMode === "live" ? "Start your care journey" : "Explore the pilot"}
           <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </Link>
+        </Link>
+      </Button>
       {config.data?.pilot && (
         <p className="mt-4 text-xs text-muted-foreground">
           An unpaid pilot path is available in your care dashboard for testing.

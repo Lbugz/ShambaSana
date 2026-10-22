@@ -23,7 +23,7 @@ export function Footer() {
             <h2 className="mb-4 text-sm font-semibold font-sans">Your care</h2>
             <ul className="space-y-3 text-sm text-primary/75">
               <li><Link className={linkStyle} href="/how-it-works">How it works</Link></li>
-              <li><Link className={linkStyle} href="/what-we-test">What we test</Link></li>
+              <li><Link className={linkStyle} href="/what-we-test">Lab guide</Link></li>
               <li><Link className={linkStyle} href="/pricing">Pricing</Link></li>
               <li><Link className={linkStyle} href="/auth">Member login</Link></li>
             </ul>

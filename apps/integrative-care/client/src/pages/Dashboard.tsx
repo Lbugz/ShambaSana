@@ -22,6 +22,7 @@ import {
   uploadDocument,
 } from "@/lib/care";
 import { caseStatus, type CareCase } from "@shared/care";
+import { SandboxNotice } from "@/components/SandboxNotice";
 
 export default function Dashboard() {
   const auth = useAuth("customer");
@@ -45,6 +46,7 @@ export default function Dashboard() {
     return <p className="p-10">Loading your care workspace…</p>;
   return (
     <CareLayout>
+      <SandboxNotice compact />
       <ErrorMessage error={auth.error || cases.error || config.error} />
       <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -104,7 +106,7 @@ export default function Dashboard() {
                 disabled={!consent || enroll.isPending}
                 onClick={() => enroll.mutate(false)}
               >
-                Enroll and continue to payment
+                {config.data?.billingMode === "live" ? "Enroll and continue to payment" : "Continue to test payment"}
               </Button>
             )}
             {config.data?.pilot && (
@@ -274,7 +276,7 @@ function CustomerCase({ id }: { id: string }) {
             onClick={checkout}
             disabled={action.isPending || !config.data?.checkout}
           >
-            Continue to secure checkout
+            {config.data?.billingMode === "live" ? "Continue to secure checkout" : "Continue to Stripe test checkout"}
           </Button>
           <Button
             className="ml-3"

@@ -1,5 +1,5 @@
 import { platform } from "./platform";
-import { billingConfigured } from "./billing";
+import { billingConfigured, billingMode } from "./billing";
 import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
 import {
@@ -195,6 +195,7 @@ export async function registerRoutes(
   app.get("/api/config", (_req, res) =>
     res.json({
       pilot: pilotMode(),
+      billingMode: billingMode(),
       checkout: checkoutConfigured(),
       ai: aiConfigured(),
       amount: price(),

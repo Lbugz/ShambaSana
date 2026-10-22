@@ -8,6 +8,7 @@ import { Brand } from "@/components/Brand";
 import { ErrorMessage } from "@/components/CareLayout";
 import { api, hashParams } from "@/lib/care";
 import type { PublicUser } from "@shared/care";
+import { SandboxNotice } from "@/components/SandboxNotice";
 export default function Auth({
   practitioner = false,
 }: {
@@ -48,6 +49,7 @@ export default function Auth({
     <main className="flex min-h-screen items-center justify-center px-5 py-10">
       <section className="w-full max-w-md rounded-3xl border border-border bg-card p-7 shadow-md md:p-10">
         <Brand />
+        {!practitioner && <SandboxNotice compact />}
         <h1 className="mt-8 text-3xl">
           {practitioner
             ? "Practitioner sign-in"
@@ -112,6 +114,7 @@ export default function Auth({
             {busy ? "Please wait…" : signup ? "Create account" : "Sign in"}
           </Button>
         </form>
+        {!practitioner && <p className="mt-5 text-xs leading-6 text-muted-foreground">Read our <Link href="/privacy" className="underline">privacy policy</Link> and <Link href="/terms" className="underline">care terms</Link> before creating an account or sharing information.</p>}
         {!practitioner && (
           <p className="mt-6 text-sm text-muted-foreground">
             {signup ? "Already have an account?" : "New to Shamba Sana?"}{" "}
@@ -127,7 +130,7 @@ export default function Auth({
           href="/"
           className="mt-6 block text-xs text-muted-foreground underline"
         >
-          Back to Shamba Sana
+          Back to Integrative Care
         </Link>
       </section>
     </main>

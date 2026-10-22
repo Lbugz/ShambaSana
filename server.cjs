@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { URLSearchParams } = require('node:url');
+const { offerings, registrationPage } = require('./registration-pages.cjs');
 const root = path.join(__dirname, 'public');
 const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.ico':'image/x-icon'};
 
@@ -28,11 +29,9 @@ function enrollmentSettings() {
   try { webhook = new URL(process.env.COURSE_REGISTRATION_WEBHOOK_URL); } catch { /* Intake stays closed. */ }
   const courses = (process.env.COURSE_REGISTRATION_COURSES || Object.keys(registrationTerms).join('|'))
     .split('|').map((value) => value.trim()).filter((value) => registrationCourses.has(value) && registrationTerms[value]);
-  if (process.env.COURSE_FOUNDATIONS_REVIEW_OPEN === 'true' && !courses.includes('Foundations of Chinese Medicine')) courses.push('Foundations of Chinese Medicine');
-  else if (process.env.COURSE_FOUNDATIONS_REVIEW_OPEN !== 'true') {
-    const index = courses.indexOf('Foundations of Chinese Medicine');
-    if (index !== -1) courses.splice(index, 1);
-  }
+  // Foundations now accepts reviewed catch-up/continuation requests. The global
+  // registration switch and authenticated backend delivery still control intake.
+  if (!courses.includes('Foundations of Chinese Medicine')) courses.push('Foundations of Chinese Medicine');
   const open = process.env.COURSE_REGISTRATION_OPEN === 'true' && webhook?.protocol === 'https:' && courses.length > 0;
   return { open: Boolean(open), courses: open ? courses : [], webhook };
 }
@@ -78,7 +77,7 @@ async function handleRegistration(req, res) {
     term,
     semester: selectedSemester,
     learningFormat: selectedFormat,
-    foundationsStatus: fields.get('foundationsStatus') || '',
+    foundationsStatus: fields.get('foundationsStatus') || (selectedCourse === 'Foundations of Chinese Medicine' && selectedSemester === 1 ? 'not-started' : ''),
     psycheStatus: fields.get('course') === 'Advanced Diagnosis & Treatment' ? fields.get('psycheStatus') || '' : undefined,
     priorCohort: (fields.get('priorCohort') || '').trim(),
     prerequisiteAcknowledgement: fields.get('prerequisiteAcknowledgement') === 'yes',
@@ -89,7 +88,7 @@ async function handleRegistration(req, res) {
     message: (fields.get('message') || '').trim(),
     consent: fields.get('consent') === 'yes',
     submittedAt: new Date().toISOString(),
-    reference: 'SS-' + randomUUID(),
+    reference: /^SS-[a-f0-9-]{36}$/i.test(fields.get('reference') || '') ? fields.get('reference') : 'SS-' + randomUUID(),
   };
 
   if (!settings.courses.includes(registration.course)
@@ -97,7 +96,7 @@ async function handleRegistration(req, res) {
       || !['live-online', 'self-paced'].includes(registration.learningFormat)
       || (registration.course !== 'Foundations of Chinese Medicine' && (registration.semester !== 1 || registration.learningFormat !== 'live-online'))
       || (registration.course === 'Foundations of Chinese Medicine' && (registration.semester === 1 ? registration.learningFormat !== 'self-paced' : registration.learningFormat !== 'live-online'))
-      || !['completed', 'in-progress', 'not-started'].includes(registration.foundationsStatus)
+      || !['completed', 'in-progress', 'registered', 'not-started'].includes(registration.foundationsStatus)
       || (registration.course === 'Advanced Diagnosis & Treatment' && !['completed', 'in-progress', 'registered', 'not-started'].includes(registration.psycheStatus))
       || !registration.prerequisiteAcknowledgement || registration.priorCohort.length > 240
       || registration.name.length < 2 || registration.name.length > 120
@@ -120,7 +119,7 @@ async function handleRegistration(req, res) {
     return sendJson(res, 200, { received: true, reference: registration.reference });
   } catch (error) {
     console.error('Course registration delivery failed:', error.message);
-    return sendJson(res, 502, { message: 'We couldn’t send your request just now. Please try again later.' });
+    return sendJson(res, 502, { message: 'Receipt is not confirmed. Contact onlineclass@liferx.us before submitting again.' });
   }
 }
 
@@ -146,6 +145,14 @@ http.createServer(async (req, res) => {
   }
 
   if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405); return res.end(); }
+  const registrationPath = url.replace(/^\/institute(?=\/)/, '');
+  const registrationSlug = registrationPath.match(/^\/register\/([a-z0-9-]+)\/?$/)?.[1];
+  if (registrationSlug || registrationPath === '/registration.html') {
+    if (registrationSlug && !offerings[registrationSlug]) { res.writeHead(404); return res.end('Course link not found'); }
+    const html = registrationPage(fs.readFileSync(path.join(root, 'institute', 'registration.html'), 'utf8'), offerings[registrationSlug], registrationSlug);
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache' });
+    return res.end(req.method === 'HEAD' ? undefined : html);
+  }
   const host = (req.headers.host || '').split(':')[0].toLowerCase();
   if (host === 'institute.shambasana.com') {
     if (url === '/') url = '/institute/';

@@ -44,6 +44,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { SandboxNotice } from "@/components/SandboxNotice";
 
 // Pages
 import Home from "@/pages/Home";
@@ -79,6 +80,7 @@ function Router() {
   return (
     <>
       {!isAppRoute && <Navbar />}
+      {!isAppRoute && <SandboxNotice />}
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/how-it-works" component={HowItWorks} />

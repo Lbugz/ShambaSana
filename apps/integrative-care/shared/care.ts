@@ -209,6 +209,7 @@ export type CareCase = {
 };
 export type CareConfig = {
   pilot: boolean;
+  billingMode: "sandbox" | "live";
   checkout: boolean;
   ai: boolean;
   amount: number;
