@@ -38,7 +38,7 @@
     const updateHeader = () => {
       header.classList.toggle("is-scrolled", window.scrollY > 20);
       let activeLink = null;
-      const activationPoint = header.getBoundingClientRect().height + 18;
+      const activationPoint = header.getBoundingClientRect().height + 32;
       sectionLinks.forEach((link) => {
         const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
         if (target && target.getBoundingClientRect().top <= activationPoint) activeLink = link;

@@ -34,6 +34,7 @@
       history.replaceState(null, '', `${prefix}/register/${slug}`);
       if (document.body.classList.contains('registration-direct')) {
         document.querySelector('#registration-title').textContent = course.value + (course.value === 'Foundations of Chinese Medicine' ? ` — Semester ${semester.value}${semester.value === '1' ? ' catch-up' : ''}` : '');
+        document.querySelector('.registration-intro > p:not(.eyebrow)').textContent = 'Complete your registration below. We review your preparation and confirm the semester details before you decide to pay.';
       }
     }
   }
