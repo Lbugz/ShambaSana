@@ -27,8 +27,7 @@ function registrationPage(html, offering, slug) {
   html = html.replace('</head>', `${socialHead({title: `${title} | Shamba Sana Institute`, description, url, image: `${origin}/assets/share-${offering?.image || 'institute'}.png`})}</head>`);
   if (offering) {
     html = html.replace('<body class="registration-body">', `<body class="registration-body registration-direct" data-course="${escape(offering.course)}" data-semester="${offering.semester}" data-format="${offering.format}">`);
-    html = html.replace(/<h1 id="registration-title">[\s\S]*?<\/h1>/, `<h1 id="registration-title">${escape(title)}</h1>`);
-    html = html.replace('Choose your course, semester and study format. We’ll review your preparation and send confirmed details before you decide to pay.', escape(description));
+    html = html.replace(/<h2 id="registration-course-title">[\s\S]*?<\/h2>/, `<h2 id="registration-course-title">${escape(offering.course)}</h2>`);
   }
   return html;
 }
