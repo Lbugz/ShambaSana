@@ -1,75 +1,46 @@
 import { Link } from "wouter";
+import { Brand } from "../Brand";
 
 export function Footer() {
+  const linkStyle = "hover:text-primary hover:underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
   return (
-    <footer className="bg-secondary/30 border-t border-border mt-auto">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-4">
-            <h3 className="text-xl font-serif font-bold text-primary">
-              Shamba Sana
-            </h3>
-            <p className="text-muted-foreground text-sm max-w-xs">
-              Cultivating wellbeing through integrative care, your health story and
-              practitioner-reviewed guidance.
-            </p>
-            <p className="text-xs text-muted-foreground font-medium pt-2 uppercase tracking-wider">
-              Integrative Care pilot
-            </p>
-          </div>
-
+    <footer className="bg-[#eeeee5] border-t border-primary/15 mt-auto text-primary">
+      <div className="mx-auto max-w-[1280px] px-6 pt-12 pb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 min-[1000px]:grid-cols-[1.5fr_1fr_1fr_1fr] gap-10">
           <div>
-            <h4 className="font-semibold mb-4 text-primary">Company</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <Link href="/how-it-works">Our approach</Link>
-              </li>
-              <li>
-                <Link href="/pricing">Integrative Care pilot</Link>
-              </li>
-              <li>
-                <Link
-                  href="/admin"
-                  className="text-emerald-700/70 hover:text-emerald-700"
-                >
-                  Practitioner Portal
-                </Link>
-              </li>
+            <Brand homeUrl="https://www.shambasana.com/" subtitle="ANCIENT WISDOM · MODERN WELLNESS" />
+            <p className="mt-4 max-w-[280px] text-sm leading-6 text-primary/75">Learning, integrative care and community wellbeing.</p>
+          </div>
+          <div>
+            <h2 className="mb-4 text-sm font-semibold font-sans">Explore</h2>
+            <ul className="space-y-3 text-sm text-primary/75">
+              <li><a className={linkStyle} href="https://www.shambasana.com/">Shamba Sana</a></li>
+              <li><a className={linkStyle} href="https://institute.shambasana.com/">Institute</a></li>
+              <li><Link className={linkStyle} href="/">Integrative Care</Link></li>
             </ul>
           </div>
-
           <div>
-            <h4 className="font-semibold mb-4 text-primary">Resources</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <Link href="/dashboard">My care</Link>
-              </li>
-              <li>
-                <Link href="/what-we-test">What We Test</Link>
-              </li>
-              <li>
-                <Link href="/formula-library">
-                  Practitioner recommendations
-                </Link>
-              </li>
+            <h2 className="mb-4 text-sm font-semibold font-sans">Your care</h2>
+            <ul className="space-y-3 text-sm text-primary/75">
+              <li><Link className={linkStyle} href="/how-it-works">How it works</Link></li>
+              <li><Link className={linkStyle} href="/what-we-test">What we test</Link></li>
+              <li><Link className={linkStyle} href="/pricing">Pricing</Link></li>
+              <li><Link className={linkStyle} href="/auth">Member login</Link></li>
             </ul>
           </div>
-
           <div>
-            <h4 className="font-semibold mb-4 text-primary">Legal</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <Link href="/privacy">Privacy Policy</Link>
-              </li>
-              <li>
-                <Link href="/terms">Terms of Service</Link>
-              </li>
+            <h2 className="mb-4 text-sm font-semibold font-sans">Information</h2>
+            <ul className="space-y-3 text-sm text-primary/75">
+              <li><Link className={linkStyle} href="/privacy">Care privacy policy</Link></li>
+              <li><Link className={linkStyle} href="/terms">Care terms of service</Link></li>
+              <li><Link className={linkStyle} href="/admin">Staff portal</Link></li>
             </ul>
+            <p className="mt-4 text-xs text-primary/75">Integrative Care pilot</p>
           </div>
         </div>
-
-        <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Shamba Sana.
+        <div className="mt-10 pt-6 border-t border-primary/15 text-xs text-primary/75 flex flex-col min-[601px]:flex-row justify-between gap-2">
+          <p>&copy; {new Date().getFullYear()} Shamba Sana</p>
+          <p>Ancient wisdom. Modern wellness.</p>
         </div>
       </div>
     </footer>

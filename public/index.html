@@ -10,24 +10,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/site-chrome.css">
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <header class="site-header">
-      <a class="brand-lockup" href="#top" aria-label="Shamba Sana home">
-        <img src="assets/shamba-logo-transparent.png" alt="" width="54" height="58">
-        <span class="brand-name">SHAMBA SANA<small>ANCIENT WISDOM · MODERN WELLNESS</small></span>
-      </a>
-      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="main-navigation">
-        <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
-      </button>
-      <nav id="main-navigation" aria-label="Main navigation">
-        <a href="/institute/">Institute</a>
-        <a href="https://care.shambasana.com/">Integrative Care <span aria-hidden="true">↗</span></a>
-        <a href="#vision">Our vision</a>
-        <a class="nav-cta" href="#pathways">Explore pathways <span aria-hidden="true">↗</span></a>
-      </nav>
-    </header>
+    <header class="site-header site-chrome-header"><div class="chrome-header-inner">
+      <a class="brand-lockup" href="https://www.shambasana.com/" aria-label="Shamba Sana home"><img src="assets/shamba-logo-transparent.png" alt="" width="52" height="56"><span class="brand-name">SHAMBA SANA<small>ANCIENT WISDOM · MODERN WELLNESS</small></span></a>
+      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="main-navigation"><span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <nav id="main-navigation" aria-label="Main navigation"><div class="chrome-section-links"><a href="https://institute.shambasana.com/">Institute</a><a href="https://care.shambasana.com/">Integrative Care</a><a href="#vision">Our vision</a></div><div class="chrome-header-actions"><a class="chrome-action chrome-action-solid" href="#pathways">Explore pathways</a></div></nav>
+    </div></header>
 
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">
@@ -208,15 +199,12 @@
       </section>
     </main>
 
-    <footer class="site-footer">
-      <a class="footer-brand" href="#top">SHAMBA SANA<small>ANCIENT WISDOM · MODERN WELLNESS</small></a>
-      <nav aria-label="Footer navigation">
-        <a href="/institute/">Institute</a>
-        <a href="https://care.shambasana.com/">Integrative Care <span aria-hidden="true">↗</span></a>
-        <a href="#founder">Our story</a>
-      </nav>
-      <p class="copyright">© 2026 Shamba Sana</p>
-    </footer>
+    <footer class="site-footer site-chrome-footer"><div class="chrome-footer-grid">
+      <div class="chrome-footer-brand"><a class="brand-lockup" href="https://www.shambasana.com/" aria-label="Shamba Sana home"><img src="assets/shamba-logo-transparent.png" alt="" width="52" height="56"><span class="brand-name">SHAMBA SANA<small>ANCIENT WISDOM · MODERN WELLNESS</small></span></a><p>Learning, integrative care and community wellbeing.</p></div>
+      <nav aria-label="Explore Shamba Sana"><h2>Explore</h2><a href="https://www.shambasana.com/">Shamba Sana</a><a href="https://institute.shambasana.com/">Institute</a><a href="https://care.shambasana.com/">Integrative Care</a></nav>
+      <nav aria-label="Main site resources"><h2>Resources</h2><a href="#vision">Our vision</a><a href="#founder">Our story</a><a href="#pathways">Explore pathways</a></nav>
+      <nav aria-label="Care policies and Institute information"><h2>Information</h2><a href="https://institute.shambasana.com/student-information.html">Institute student information</a><a href="https://care.shambasana.com/#/privacy">Care privacy policy</a><a href="https://care.shambasana.com/#/terms">Care terms</a></nav>
+    </div><div class="chrome-footer-bottom"><p>© 2026 Shamba Sana</p><p>Ancient wisdom. Modern wellness.</p></div></footer>
     <script src="assets/site-navigation.js" defer></script>
   </body>
 </html>

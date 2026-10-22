@@ -3,7 +3,6 @@
     const toggle = header.querySelector(".menu-toggle");
     const nav = header.querySelector("nav");
     const sectionLinks = [...(nav?.querySelectorAll('a[href^="#"]') ?? [])];
-    if (!nav) return;
 
     const setMenuOpen = (open) => {
       header.classList.toggle("menu-open", open);
@@ -17,7 +16,7 @@
       setMenuOpen(toggle.getAttribute("aria-expanded") !== "true");
     });
 
-    nav.addEventListener("click", (event) => {
+    nav?.addEventListener("click", (event) => {
       if (event.target.closest("a")) setMenuOpen(false);
     });
 
@@ -30,6 +29,10 @@
 
     document.addEventListener("click", (event) => {
       if (!header.contains(event.target)) setMenuOpen(false);
+    });
+
+    header.addEventListener("focusout", (event) => {
+      if (event.relatedTarget && !header.contains(event.relatedTarget)) setMenuOpen(false);
     });
 
     const updateHeader = () => {
@@ -48,7 +51,10 @@
     };
 
     window.addEventListener("scroll", updateHeader, { passive: true });
-    window.addEventListener("resize", updateHeader);
+    window.addEventListener("resize", () => {
+      if (window.innerWidth >= 1200) setMenuOpen(false);
+      updateHeader();
+    });
     updateHeader();
   });
 })();
