@@ -67,12 +67,13 @@
             <label for="registration-timezone">Time zone <span>(optional)</span></label>
             <input id="registration-timezone" name="timezone" maxlength="80" placeholder="For example, America/New_York">
           </div>
-          <div class="form-field">
+          <div class="form-field" id="foundations-status-field">
             <label for="registration-foundations">Course I — Foundations status</label>
             <select id="registration-foundations" name="foundationsStatus" required>
               <option value="" selected disabled>Select your status</option>
               <option value="completed">Completed at Shamba Sana</option>
               <option value="in-progress">Currently enrolled at Shamba Sana</option>
+              <option value="registered">Registered / awaiting admission</option>
               <option value="not-started">Not yet enrolled / completed</option>
             </select>
           </div>
@@ -92,7 +93,7 @@
           </div>
           <p class="preparation-note">Tell us where you are in the pathway. Staff confirm required preparation and any self-paced catch-up plan before admission.</p>
           <label class="consent-field"><input type="checkbox" name="prerequisiteAcknowledgement" value="yes" required><span>I understand this request requires staff review, including prerequisite or catch-up requirements.</span></label>
-          <p><a href="student-information.html" target="_blank" rel="noopener noreferrer">Read student information <span class="sr-only">(opens in a new tab)</span> ↗</a>. Final enrollment terms will be provided separately before payment.</p>
+          <p><a href="student-information.html">Read student information</a>. Final enrollment terms will be provided before payment.</p>
           <div class="form-field">
             <label for="registration-message">Additional information <span>(optional)</span></label>
             <textarea id="registration-message" name="message" rows="4" maxlength="1000" aria-describedby="registration-message-help"></textarea>
@@ -103,10 +104,12 @@
             <span>I confirm these details are accurate and agree to be contacted to complete my course enrollment.</span>
           </label>
           </fieldset>
+          <input type="hidden" name="reference" value="">
           <div class="form-honeypot" aria-hidden="true">
             <label for="registration-website">Leave this field empty</label>
             <input id="registration-website" name="website" tabindex="-1" autocomplete="off">
           </div>
+          <p class="field-help registration-privacy">We use your contact details and previous-study information to review registration, manage enrollment and send course updates. This form does not collect payment or health information. <a href="registration-privacy.html">Registration privacy information</a>.</p>
           <button class="button button-solid" type="submit" disabled>Checking online submission…</button>
           <p class="form-status" id="registration-status" role="status" aria-live="polite" tabindex="-1">Select a course to begin. Your details are sent only when you submit.</p>
           <noscript><p>Please enable JavaScript to check course availability and complete registration.</p></noscript>

@@ -351,10 +351,10 @@ export default function WhatWeTest() {
         />
         <div className="relative mx-auto max-w-3xl">
           <p className="mb-5 text-xs font-semibold uppercase tracking-[.23em] text-muted-foreground">
-            What we test · A guide to your labs
+            Understand your results
           </p>
           <h1 className="text-4xl leading-[1.15] md:text-6xl">
-            Your health, in greater detail.
+            Lab guide.
             <br />
             <span className="italic text-emerald-800/80">
               Every result has a story.

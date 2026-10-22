@@ -300,6 +300,16 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
 .student-information details { scroll-margin-top: 100px; }
 .registration-form fieldset:disabled { opacity: .55; }
 
+.registration-direct .registration-intro h1 { font-size: clamp(30px, 3.5vw, 48px); line-height: 1.15; }
+.share-course-list { display: grid; gap: 24px; margin-top: 32px; }
+.share-course-card { border: 1px solid #103d2b30; padding: clamp(20px, 4vw, 32px); background: var(--paper); min-width: 0; }
+.share-course-card h2 { font-size: clamp(24px, 3vw, 32px); }
+.share-course-card > a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; }
+.share-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.share-actions button { cursor: pointer; min-height: 48px; }
+.share-url { width: 100%; min-width: 0; padding: 12px; border: 1px solid #103d2b40; color: var(--green); background: #fff; font-family: inherit; font-size: 16px; }
+.registration-privacy { margin-bottom: 0; }
+
 /* Shared links land directly in a compact, touch-friendly enrollment form. */
 .registration-progress { padding-left: 22px; margin: 20px 0; color: var(--green); font-size: 14px; }
 .registration-progress li { padding-bottom: 7px; }
@@ -318,4 +328,5 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
   .registration-form .button { width: 100%; min-height: 48px; }
   .registration-back { min-height: 44px; display: inline-flex; align-items: center; }
   .institute-header nav a:not(.nav-button)::after { bottom: 7px; }
+  .registration-direct .registration-page .registration-intro h1 { font-size: clamp(28px, 7.5vw, 34px); letter-spacing: -1px; }
 }
