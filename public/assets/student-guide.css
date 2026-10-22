@@ -1,0 +1,99 @@
+/* A compact reference guide, separate from the Institute marketing layout. */
+.student-guide { max-width: 1180px; margin: auto; padding: 42px 32px 48px; }
+.guide-hero { margin-bottom: 38px; }
+.student-guide h1 { font-size: clamp(34px,4.5vw,52px); line-height: 1.12; letter-spacing: -1.2px; margin: 0 0 14px; }
+.guide-hero > p:not(.eyebrow) { max-width: 760px; font-size: 15px; color: #62685d; }
+.guide-facts { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; padding: 20px 24px; margin: 24px 0 16px; background: #e9ede3; border: 1px solid #103d2b12; border-radius: 15px; }
+.guide-facts div { display: flex; flex-direction: column; gap: 4px; }
+.guide-facts span { color: #526642; text-transform: uppercase; font-size: 10px; letter-spacing: 1.2px; }
+.guide-facts strong { font-size: 14px; font-weight: 600; color: #103d2b; }
+.guide-hero .guide-status { font-size: 12px; line-height: 1.75; margin: 0; }
+.guide-layout { display: grid; grid-template-columns: 205px minmax(0,1fr); gap: 52px; align-items: start; }
+.guide-sidebar { position: sticky; top: 108px; }
+.guide-nav { display: flex; flex-direction: column; gap: 4px; }
+.guide-nav-label { display: block; color: #62685d; font-size: 11px; text-transform: uppercase; letter-spacing: 1.3px; margin-bottom: 12px; }
+.guide-nav a { display: flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: 9px; font-size: 13px; color: #526050; }
+.guide-nav a:hover,.guide-nav a[aria-current="location"] { color: #103d2b; background: #e9ede3; }
+.guide-sidebar .guide-sidebar-help { margin: 24px 12px 0; font-size: 12px; color: #62685d; }
+.guide-sidebar-help a { text-decoration: underline; text-underline-offset: 3px; }
+.guide-content { min-width: 0; }
+.guide-section { padding: 0 0 32px; margin-bottom: 32px; border-bottom: 1px solid #103d2b20; scroll-margin-top: 12px; }
+.guide-section:last-child { border: 0; margin-bottom: 0; padding-bottom: 0; }
+.student-guide .guide-kicker { margin-bottom: 7px; font-size: 10px; color: #526642; text-transform: uppercase; letter-spacing: 1.5px; }
+.student-guide h2 { font-size: clamp(27px,3vw,34px); letter-spacing: -.6px; line-height: 1.2; margin: 0 0 16px; }
+.student-guide h3 { font: 600 14px/1.5 var(--sans); margin: 0 0 8px; }
+.student-guide p,.student-guide li { font-size: 14px; line-height: 1.85; }
+.student-guide p { max-width: none; margin-bottom: 18px; }
+.student-guide a:not(.button):not(.guide-nav a) { text-decoration: underline; text-underline-offset: 3px; }
+.student-guide details { border: 1px solid #103d2b20; border-radius: 13px; margin: 0 0 12px; padding: 0; background: #fffefa; scroll-margin-top: 12px; overflow: clip; }
+.student-guide details > summary { padding: 16px 20px; min-height: 56px; font-size: 14px; gap: 20px; }
+.student-guide details > summary:hover { background: #f1f3ea; }
+.student-guide details[open] > summary { background: #edf0e7; }
+.student-guide summary > span:first-child { min-width: 0; }
+.student-guide summary strong { display: block; font: 500 20px/1.3 var(--serif); margin: 4px 0; }
+.student-guide summary small { display: block; color: #526642; font-size: 10px; font-weight: 500; letter-spacing: .4px; }
+.guide-summary-meta { display: block; color: #62685d; font-size: 11px; font-weight: 400; line-height: 1.6; }
+.guide-detail-content { padding: 20px; border-top: 1px solid #103d2b12; }
+.guide-detail-content > :last-child { margin-bottom: 0; }
+.guide-detail-content ul { padding-left: 20px; margin: 0 0 18px; }
+.guide-detail-content li { margin-bottom: 8px; }
+.guide-course-facts { display: grid; gap: 10px; margin: 0 0 20px; }
+.guide-course-facts div { display: grid; grid-template-columns: 110px minmax(0,1fr); gap: 14px; }
+.guide-course-facts dt { font-size: 11px; color: #62685d; }
+.guide-course-facts dd { margin: 0; font-size: 13px; }
+.guide-text-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 13px; font-weight: 600; }
+.guide-note { margin-top: 20px; padding: 18px 20px; background: #e9ede3; border-radius: 12px; scroll-margin-top: 12px; }
+.guide-note p { font-size: 13px; margin: 0; }
+.guide-price { display: flex; justify-content: space-between; gap: 24px; align-items: center; border: 1px solid #103d2b20; border-radius: 14px; padding: 22px; margin-bottom: 20px; }
+.guide-price span { display: block; color: #62685d; font-size: 11px; margin-bottom: 8px; }
+.guide-price strong { font: 500 34px/1.2 var(--serif); color: #103d2b; }
+.guide-price strong small { font: 400 12px/1.5 var(--sans); }
+.guide-price p { font-size: 12px; margin: 0; }
+.guide-study-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; margin-bottom: 20px; }
+.guide-study-grid article { padding: 18px 20px; background: #e9ede3; border-radius: 12px; }
+.guide-study-grid p { font-size: 13px; margin-bottom: 0; }
+.student-guide .guide-boundary { font-size: 13px; color: #526050; padding-left: 16px; border-left: 2px solid #b78a3f; }
+.guide-enrollment { list-style: none; counter-reset: enrollment; display: grid; gap: 16px; margin: 0 0 24px; padding: 0; }
+.guide-enrollment li { position: relative; padding-left: 43px; counter-increment: enrollment; }
+.guide-enrollment li::before { content: counter(enrollment); display: grid; place-items: center; width: 27px; height: 27px; border-radius: 50%; background: #e9ede3; position: absolute; left: 0; top: 0; color: #103d2b; font-size: 12px; }
+.guide-enrollment strong { display: block; font-size: 13px; }
+.guide-enrollment span { display: block; font-size: 13px; color: #62685d; }
+.guide-support { margin: 24px 0 12px; padding: 22px; background: #e9ede3; border-radius: 14px; }
+.guide-support p { font-size: 13px; margin-bottom: 16px; }
+.guide-support .button { border-radius: 999px; min-height: 48px; gap: 8px; padding: 12px 22px; }
+.student-guide .guide-share { font-size: 12px; margin-bottom: 0; }
+.student-guide :is(a,summary):focus-visible { outline: 2px solid #103d2b; outline-offset: 3px; }
+@media(max-width:800px) {
+ .student-guide { padding: 28px 22px 32px; }
+ .guide-layout { display: block; }
+ .guide-sidebar { z-index: 20; top: 80px; margin: 0 -22px 24px; padding: 0 22px; background: #f7f5eff5; border-block: 1px solid #103d2b18; backdrop-filter: blur(12px); }
+ .guide-nav { flex-direction: row; gap: 8px; overflow-x: auto; scrollbar-width: thin; padding: 10px 0; }
+ .guide-nav a { flex: 0 0 auto; min-height: 40px; padding: 8px 12px; font-size: 12px; border: 1px solid #103d2b20; border-radius: 999px; white-space: nowrap; }
+ .guide-nav-label,.guide-sidebar-help { display: none; }
+ .guide-section,.student-guide details,.guide-note { scroll-margin-top: 80px; }
+ .guide-hero { margin-bottom: 24px; }
+}
+@media(max-width:480px) {
+ .student-guide { padding-inline: 18px; }
+ .student-guide h1 { font-size: 35px; }
+ .guide-hero .eyebrow { font-size: 9px; letter-spacing: 1px; }
+ .guide-hero > p:not(.eyebrow) { font-size: 13px; }
+ .guide-facts { gap: 16px; padding: 16px; grid-template-columns: 1fr 1fr; margin-top: 20px; }
+ .guide-facts > div:last-child { grid-column: 1 / -1; flex-direction: row; align-items: baseline; gap: 12px; }
+ .guide-facts strong { font-size: 12px; }
+ .guide-facts span { font-size: 9px; }
+ .guide-hero .guide-status { font-size: 11px; }
+ .guide-sidebar { margin-inline: -18px; padding-inline: 18px; }
+ .student-guide h2 { font-size: 27px; }
+ .student-guide p,.student-guide li { font-size: 13px; }
+ .student-guide details > summary { padding: 15px 16px; gap: 12px; }
+ .student-guide summary strong { font-size: 19px; }
+ .guide-detail-content { padding: 16px; }
+ .guide-course-facts div { grid-template-columns: 1fr; gap: 3px; }
+ .guide-study-grid { grid-template-columns: 1fr; gap: 12px; }
+ .guide-price { flex-direction: column; align-items: flex-start; gap: 12px; padding: 18px; }
+ .guide-price strong { font-size: 32px; }
+ .guide-price p { font-size: 12px; }
+ .guide-support { padding: 18px; }
+ .guide-support .button { width: 100%; }
+}
