@@ -17,7 +17,13 @@ function registrationPage(html, offering, slug) {
   const description = offering?.description || 'Register for online Chinese medicine study at the Shamba Sana Institute. Choose your course and semester. Admission is reviewed; payment follows separately.';
   const url = slug ? `${origin}/register/${slug}` : `${origin}/registration.html`;
   html = html.replace(/<title>[\s\S]*?<\/title>/i, '').replace(/<meta name="description"[^>]*>/i, '');
-  html = html.replace('<head>', '<head><base href="/institute/">');
+  // Root-relative resources work on nested share URLs without a <base>, which
+  // would otherwise make local #main skip links leave the registration page.
+  html = html.replace(/\b(href|src)="([^"]+)"/g, (match, attribute, value) => {
+    if (/^(?:[a-z]+:|\/|#)/i.test(value)) return match;
+    const resolved = new URL(value, `${origin}/institute/`);
+    return `${attribute}="${resolved.pathname}${resolved.search}${resolved.hash}"`;
+  });
   html = html.replace('</head>', `${socialHead({title: `${title} | Shamba Sana Institute`, description, url, image: `${origin}/assets/share-${offering?.image || 'institute'}.png`})}</head>`);
   if (offering) {
     html = html.replace('<body class="registration-body">', `<body class="registration-body registration-direct" data-course="${escape(offering.course)}" data-semester="${offering.semester}" data-format="${offering.format}">`);
