@@ -7,6 +7,7 @@ import { InstituteOnboarding, automationMode, invitationToken, type OnboardingJo
 import { googleConfigured, googleRedirect, googleScopes, instituteEmail, seal, unseal, type GoogleConnection } from "./institute-google";
 import { ConflictError, type CareStore } from "./care-store";
 import type { CareCase, User } from "../shared/care";
+import { InstituteDeliveryCheck, deliveryCheckRecipient } from "./institute-delivery-check";
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown>) => (req: Request, res: Response, next: NextFunction) => { fn(req, res).catch(next); };
 const fail = (status: number, message: string): never => { throw Object.assign(new Error(message), { status, expose: true }); };
@@ -17,6 +18,7 @@ function practitioner(req: Request) {
 
 export function platform(app: Express, store: CareStore, httpServer?: Server) {
   const onboarding = new InstituteOnboarding(store);
+  const deliveryCheck = new InstituteDeliveryCheck(store);
   const reconcile = async (e: Enrollment) => {
     try { await onboarding.reconcile(e); } catch { console.error("Institute onboarding reconciliation deferred."); }
   };
@@ -149,6 +151,19 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     res.json({ queued: true });
   }));
   app.post("/api/institute/automation/process", wrap(async (req, res) => { practitioner(req); await onboarding.tick(); res.json({ processed: true }); }));
+
+  const deliveryCheckStaff = (req: Request) => {
+    practitioner(req);
+    if ((req as Request & { careUser: User }).careUser.email.toLowerCase() !== deliveryCheckRecipient) fail(403, "Only the designated test administrator can run this check.");
+  };
+  app.get("/api/institute/delivery-check", wrap(async (req, res) => {
+    deliveryCheckStaff(req); res.setHeader("Cache-Control", "no-store"); res.json(await deliveryCheck.status());
+  }));
+  app.post("/api/institute/delivery-check", wrap(async (req, res) => {
+    deliveryCheckStaff(req);
+    const input = z.object({ revision: z.number().int().nonnegative().nullable(), confirmRealDelivery: z.literal(true), checkedProviderHistory: z.boolean().optional() }).parse(req.body);
+    res.json(await deliveryCheck.run(input.revision, input.checkedProviderHistory === true));
+  }));
 
   app.post("/api/institute/google/connect", wrap(async (req, res) => {
     practitioner(req);

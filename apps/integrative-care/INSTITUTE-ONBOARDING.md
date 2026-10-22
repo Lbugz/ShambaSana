@@ -36,6 +36,12 @@ The refresh token is encrypted at rest in PostgreSQL using AES-256-GCM with a ke
 
 ## Operations and retries
 
+### Real Google delivery check while Stripe stays sandbox
+
+Set `INSTITUTE_TEST_CLASSROOM_ID` to a dedicated test class owned/taught by the connected mailbox. Keep `BILLING_MODE=sandbox`, `INSTITUTE_AUTOMATION_MODE=sandbox`, and `INSTITUTE_LIVE_PAYMENTS_READY=false`. Sign in as `langa@liferx.us` and use **Google delivery check**. Its recipient is fixed server-side to that address; its class is fixed to the configured ID. Each click sends the next step: receipt email, payment-invitation email, welcome email, actual student invitation, then joining-instructions email. All emails are explicitly TEST ONLY and no payment is requested. This diagnostic creates no registration, purchase or real-course entitlement and does not change the enrollment worker's sandbox safeguards.
+
+Results and Google provider references are durable and revision-locked. Successful steps cannot be replayed for the same test class. Failures stop progression. Uncertain requests require checking Google Sent/the test class before retrying; never assume Gmail deduplicates Message-ID. Verify inbox receipt and accept the test invitation as the recipient separately. Remove the test-class environment variable after verification to disable further checks. Normal automation remains sandbox until a separate production activation decision.
+
 The worker runs every 15 seconds in the backend process. Deterministic job IDs prevent duplicate jobs for registration, payment or access events; revision checks claim work across processes. Stored state is reconciled after restarts and duplicate Stripe deliveries. Legacy registrations are not retroactively emailed unless staff create a new invitation for them.
 
 Gmail has no send idempotency guarantee. A timeout, server error or interrupted sending job is marked uncertain rather than automatically resent. Check Google Sent, then explicitly queue a retry if necessary. The deterministic Message-ID helps identify the message but is not treated as a delivery guarantee. HTTP 429 failures back off automatically with bounded retries. Other authorization/permission failures need staff correction before retrying. Classroom retries first check existing membership and invitations.
