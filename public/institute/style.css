@@ -100,7 +100,12 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
 .registration-tuition strong { color: var(--green); }
 .registration-intro > p:not(.eyebrow) { color: var(--muted); font-size: 13px; }
 .registration-intro .registration-disclaimer { margin-top: 24px; padding: 15px 17px; border-left: 2px solid var(--gold); background: #f7f5ef; font-size: 13px !important; }
-.registration-form { display: grid; gap: 19px; padding: 30px; border: 1px solid #103d2b20; background: var(--paper); }
+.registration-form { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 19px; padding: 30px; border: 1px solid #103d2b20; background: var(--paper); }
+.registration-page > * { min-width: 0; }
+.registration-enrollment-details { margin-top: 16px; border-block: 1px solid #103d2b25; }
+.registration-enrollment-details summary { display: list-item; min-height: 48px; padding-block: 12px; cursor: pointer; font-size: 14px; font-weight: 600; }
+.registration-enrollment-details p { font-size: 14px; color: var(--muted); }
+.registration-enrollment-details .registration-tuition { margin-top: 0; padding-top: 0; border-top: 0; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
 .form-field { display: grid; gap: 7px; min-width: 0; }
 .form-field label { color: var(--green); font-size: 12px; font-weight: 600; }
@@ -298,14 +303,14 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
 /* Shared links land directly in a compact, touch-friendly enrollment form. */
 .registration-progress { padding-left: 22px; margin: 20px 0; color: var(--green); font-size: 14px; }
 .registration-progress li { padding-bottom: 7px; }
-.registration-form :is(input, select, textarea) { max-width: 100%; font-size: 16px; min-height: 48px; }
+.registration-form :is(input, select, textarea) { min-width: 0; max-width: 100%; font-size: 16px; min-height: 48px; }
 .registration-form input[type="checkbox"] { min-height: 0; width: 20px; height: 20px; flex: 0 0 20px; }
 .registration-form :is(input, select, textarea):focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 .registration-form .consent-field { min-height: 48px; align-items: start; }
 .founder-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 24px; }
 @media (max-width: 700px) {
   .registration-page { padding-top: 28px; gap: 20px; }
-  .registration-page h1 { font-size: clamp(36px, 11vw, 48px); margin-bottom: 16px; }
+  .registration-page .registration-intro h1 { font-size: clamp(34px, 10vw, 42px); margin-bottom: 16px; }
   .registration-page h1 br { display: none; }
   .registration-intro p { margin-bottom: 13px; }
   .registration-progress { display: flex; gap: 16px; list-style-position: inside; padding-left: 0; font-size: 12px; }

@@ -101,7 +101,7 @@ export function Navbar() {
           aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
           aria-expanded={mobileMenuOpen}
           aria-controls="care-mobile-navigation"
-          className="min-[1200px]:hidden p-2 text-foreground hover:bg-black/5 rounded-full transition-colors"
+          className="min-[1200px]:hidden h-11 w-11 inline-flex items-center justify-center text-foreground hover:bg-black/5 rounded-full transition-colors"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
