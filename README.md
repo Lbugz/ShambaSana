@@ -25,10 +25,11 @@ Before switching links, validate production startup, private DB connectivity, ba
 
 Registration is closed by default, including in local file previews. The page checks `GET /api/course-registration/status` before enabling personal details or submission. Courses not explicitly open stay closed.
 
-Before opening enrollment, finalize cohort dates, session times, entry requirements, student policies and the submission destination. Configure these Railway environment variables only after those details are ready:
+Registration intake can open for the announced Spring and Summer terms while final schedules and policies are being prepared. Registrations remain under review and do not reserve a place. Finalize schedules, student policies and enrollment terms before accepting payment or confirming admission. Configure the durable submission destination and both services before enabling intake:
 
 - `COURSE_REGISTRATION_WEBHOOK_URL`: HTTPS endpoint that durably stores registration data. It must return HTTP 2xx with JSON `{ "received": true }` after successful storage. Failed or missing acknowledgement does not produce a success confirmation.
 - `COURSE_REGISTRATION_OPEN`: set to `true` to open the configured courses; any other value keeps intake closed.
+- `COURSE_REGISTRATION_SERVICE_TOKEN`: reference the backend's `INSTITUTE_SERVICE_TOKEN` in Railway as `${{Shamba-Backend.INSTITUTE_SERVICE_TOKEN}}`; do not copy secrets into source or chat.
 - `COURSE_REGISTRATION_COURSES`: pipe-separated list of exact course names. Defaults to `The Psyche in Chinese Medicine|Advanced Diagnosis & Treatment` for Spring and Summer 2027. Fall 2026 Foundations is closed and is rejected even if an old environment value includes it. The master open flag and delivery configuration are still required.
 
 ### Institute 2026–2027 enrollment update
@@ -43,6 +44,16 @@ Before opening enrollment, finalize cohort dates, session times, entry requireme
 The webhook receives the selected course, name, email, optional phone/time zone/message, contact consent, submission timestamp and a generated registration reference. The app does not store these records locally. The reference is returned to the student only after acknowledgement. Confirmation emails, Stripe checkout, duplicate-submission reconciliation and Classroom onboarding must be handled by a subsequent integration; they are not promised as completed actions by this site.
 
 The registration page opens in a new tab, preselects the chosen course and preserves entered details on submission errors. Directory URLs redirect to a trailing slash so relative links remain valid.
+
+### Registration activation checklist
+
+1. Backend: create `INSTITUTE_SERVICE_TOKEN` securely (at least 32 random characters), set `INSTITUTE_OPEN_COURSES=The Psyche in Chinese Medicine|Advanced Diagnosis & Treatment`, and set `INSTITUTE_REGISTRATION_OPEN=true`. Deploy and confirm `/health` is healthy.
+2. Website: set `COURSE_REGISTRATION_WEBHOOK_URL=https://care.shambasana.com/api/institute/registrations`, the shared token reference above, the same course allowlist in `COURSE_REGISTRATION_COURSES`, and `COURSE_REGISTRATION_OPEN=true`. Deploy.
+3. Submit a clearly labeled synthetic learner registration through the public form. A receipt reference is returned only after the backend stores the enrollment in PostgreSQL. Check both course selections; Course III asks for Course II status, while Foundations remains unavailable.
+4. Configure the practitioner identity securely in Railway before staff use `https://care.shambasana.com/#/admin` → Billing & enrollments. Review registrations there; receipt alone does not send an email or confirm admission. Set an operational admissions contact before inviting public registrations.
+5. Keep `BILLING_ENABLED=false` until final schedules, financial policies and enrollment terms are published and the separate Stripe sandbox flow has been verified. Registration intake does not require enabling payments.
+
+Course cards emphasize the open terms and link to the student information page for full outlines. Direct course links expand the relevant outline. Personal details remain disabled until the selected course is available, and the optional message field asks students to avoid health information.
 
 Run with Node 22 or later: `npm start`. The server binds to `0.0.0.0` and honors Railway's `PORT`. Health endpoint: `/health`.
 

@@ -16,7 +16,7 @@
   };
   let readiness = { open: false, courses: [] };
   let submitting = false;
-  const closedMessage = 'Spring and Summer 2027 registration are open for eligible learners, but online submission is temporarily unavailable. You can prepare the form below; your details stay in this page until you submit. Please return once online submission is available.';
+  const closedMessage = 'Spring and Summer 2027 registration are open for eligible learners, but online submission is temporarily unavailable. Please return once online submission is available. No details have been sent.';
 
   const requested = new URLSearchParams(window.location.search).get('course');
   if ([...course.options].some((option) => option.value === requested && !option.disabled)) course.value = requested;
@@ -24,13 +24,13 @@
 
   function renderAvailability() {
     const enabled = readiness.open && readiness.courses.includes(course.value) && Boolean(terms[course.value]);
-    details.disabled = submitting;
+    details.disabled = !enabled || submitting;
     const advanced = course.value === 'Advanced Diagnosis & Treatment';
     psycheField.hidden = !advanced;
-    psyche.disabled = !advanced || submitting;
-    psyche.required = advanced;
+    psyche.disabled = !advanced || !enabled || submitting;
+    psyche.required = advanced && enabled;
     courseNote.textContent = !terms[course.value] ? 'Choose a course to see its term and prerequisites.'
-      : `${terms[course.value]} · Virtual online · $1,350. ${advanced ? 'Complete Courses I and II before starting.' : 'Complete Course I before starting.'} You may register while progressing through the earlier courses; admission requires prerequisite review. Exact dates and session times will be confirmed before payment.`;
+      : `${terms[course.value]} · Virtual online · $1,350. ${advanced ? 'Complete Courses I and II before starting.' : 'Complete Course I before starting.'} Exact dates and session times will be confirmed before payment.`;
     button.disabled = !enabled || submitting;
     button.textContent = submitting ? 'Submitting…' : enabled ? 'Submit course registration' : !course.value ? 'Select a course' : 'Online submission unavailable';
     availability.textContent = !readiness.open ? closedMessage : !course.value
