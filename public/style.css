@@ -178,7 +178,8 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
   .pathway-card { padding: 30px 25px; }
   .pathway-card h3 { font-size: 38px; }
   .sanctuary-heading { gap: 18px; margin-bottom: 28px; }
-  .concept-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+  .concept-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .concept-card { min-width: 0; }
   .concept-card, .concept-card-large { grid-column: span 1; min-height: 150px; }
   .concept-card img { min-height: 150px; }
   .concept-card:first-child { grid-column: 1 / -1; }

@@ -64,7 +64,11 @@
   .site-chrome-footer.site-footer, .site-chrome-footer.institute-footer { padding: 40px 24px 24px; }
   .chrome-footer-bottom { flex-direction: column; gap: 8px; margin-top: 32px; }
 }
-@media (max-width: 639px) { .chrome-footer-grid { grid-template-columns: 1fr; gap: 32px; } }
+@media (max-width: 639px) {
+  .chrome-footer-grid { grid-template-columns: 1fr; gap: 28px; }
+  .site-chrome-footer nav { gap: 4px; }
+  .site-chrome-footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .site-chrome-header *, .site-chrome-header *::after { transition: none !important; }
 }

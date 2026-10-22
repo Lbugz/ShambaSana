@@ -23,7 +23,7 @@
     const foundations = course.value === 'Foundations of Chinese Medicine';
     const previousSemester = semester.value;
     semester.replaceChildren(...(foundations ? [1, 2, 3] : [1]).map((value) => {
-      const option = new Option(`Semester ${value}${!foundations ? ' — structure to be confirmed' : value === 2 ? ' — dates to be confirmed' : value === 3 ? ' — term to be confirmed' : ' — Fall 2026'}`, String(value));
+      const option = new Option(`Semester ${value}${!foundations ? '' : value === 2 ? ' — Spring 2027' : value === 3 ? ' — Term TBD' : ' — Fall 2026'}`, String(value));
       return option;
     }));
     if ([...semester.options].some(option => option.value === previousSemester)) semester.value = previousSemester;
@@ -31,9 +31,10 @@
   }
   function updateFormat() {
     const catchUp = course.value === 'Foundations of Chinese Medicine' && semester.value === '1';
-    format.replaceChildren(new Option(catchUp ? 'Self-paced catch-up — request for review' : 'Live online — request for review', catchUp ? 'self-paced' : 'live-online'));
+    format.replaceChildren(new Option(catchUp ? 'Self-paced catch-up' : 'Live online', catchUp ? 'self-paced' : 'live-online'));
   }
   let readiness = { open: false, courses: [] };
+  let checkingAvailability = ['http:', 'https:'].includes(window.location.protocol);
   let submitting = false;
   const closedMessage = 'Online submission is unavailable. No details have been sent. Please email onlineclass@liferx.us for enrollment support.';
 
@@ -54,10 +55,10 @@
     const foundations = course.value === 'Foundations of Chinese Medicine';
     courseNote.textContent = !selectionTerm() ? 'Choose your course, semester and study format.'
       : foundations ? `Foundations · Semester ${semester.value} · ${selectionTerm()} · $2,000 per semester. ${semester.value === '1' ? 'Self-paced catch-up: staff confirm materials, support and completion arrangements before admission.' : 'Wednesdays and Fridays · Eastern Time (EST/EDT) · Times and dates TBD. Continuation and previous study are reviewed.'} Pay only for this semester; no automatic continuation charge.`
-      : `${selectionTerm()} · Virtual online. ${advanced ? 'Foundations and Psyche' : 'Foundations'} preparation is reviewed. Semester structure, tuition and schedule are confirmed before payment.`;
+      : `${course.value} · ${selectionTerm()} · Virtual online. ${advanced ? 'Foundations and Psyche' : 'Foundations'} preparation is reviewed. Semester structure, tuition and schedule are confirmed before payment.`;
     button.disabled = !enabled || submitting;
-    button.textContent = submitting ? 'Submitting…' : enabled ? 'Submit course registration' : !course.value ? 'Select a course' : 'Online submission unavailable';
-    availability.textContent = !readiness.open ? closedMessage : !course.value
+    button.textContent = submitting ? 'Submitting…' : checkingAvailability ? 'Checking availability…' : enabled ? 'Submit course registration' : !course.value ? 'Select a course' : 'Online submission unavailable';
+    availability.textContent = checkingAvailability ? 'Checking registration availability…' : !readiness.open ? closedMessage : !course.value
       ? 'Select a course to check its registration availability.'
       : enabled ? 'Registration requests are available for this selection. Admission and any catch-up arrangements require staff review.'
       : 'Online submission for this course is not enabled yet. Email onlineclass@liferx.us to request enrollment review. Your details have not been sent.';
@@ -77,9 +78,11 @@
         if (!response.ok) throw new Error('Unavailable');
         const data = await response.json();
         readiness = { open: data.open === true, courses: Array.isArray(data.courses) ? data.courses : [] };
+        checkingAvailability = false;
         renderAvailability();
       })
       .catch(() => {
+        checkingAvailability = false;
         renderAvailability();
         availability.textContent = 'Registration availability cannot be checked right now. Please try again later.';
       });

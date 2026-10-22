@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Brand } from "../Brand";
 
 export function Footer() {
-  const linkStyle = "hover:text-primary hover:underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
+  const linkStyle = "inline-flex items-center min-h-11 min-[640px]:min-h-0 hover:text-primary hover:underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
   return (
     <footer className="bg-[#eeeee5] border-t border-primary/15 mt-auto text-primary">
       <div className="mx-auto max-w-[1280px] px-6 pt-12 pb-6">
