@@ -26,23 +26,28 @@
         <div class="registration-intro">
           <p class="eyebrow">Shamba Sana Institute</p>
           <h1 id="registration-title">Course<br><em>registration.</em></h1>
-          <p>Register for Course II in Spring 2027 or Course III in Summer 2027. Share your prerequisite status so the Institute can review your preparation. Fall 2026 Foundations registration is closed.</p>
-          <p class="registration-disclaimer">The Institute reviews prerequisites before admission. You’ll receive confirmed course details and enrollment terms before payment. This form does not collect payment or reserve a place.</p>
-          <p class="registration-tuition"><strong>Tuition:</strong> $1,350 per course. <a href="student-information.html#tuition">View tuition information</a>.</p>
-          <p class="registration-contact">Questions about your preparation or registration? <a href="mailto:onlineclass@liferx.us">Email onlineclass@liferx.us</a>. New to the pathway? Ask about the next Foundations intake.</p>
-          <p class="registration-availability" id="registration-availability" role="status">Spring and Summer 2027 registration are open for eligible learners. Checking online form availability…</p>
+          <p>Choose your course, semester and study format. We’ll review your preparation and send confirmed details before you decide to pay.</p>
+          <ol class="registration-progress" aria-label="Enrollment steps"><li>Choose your study</li><li>Send your details</li><li>Review &amp; pay separately</li></ol>
+          <p class="registration-tuition"><strong>Foundations:</strong> $2,000 per semester · three semesters. Semester 1 self-paced catch-up is also $2,000. Other course fees are confirmed before payment. <a href="student-information.html#tuition">Tuition &amp; refunds</a>.</p>
+          <p class="registration-disclaimer">This is a registration request, not automatic admission or payment. Each semester requires separate confirmation; there are no automatic continuation charges.</p>
+          <p class="registration-contact">Questions? <a href="mailto:onlineclass@liferx.us">onlineclass@liferx.us</a></p>
+          <p class="registration-availability" id="registration-availability" role="status">Checking online submission availability…</p>
         </div>
         <form class="registration-form" id="course-registration-form" action="/api/course-registration" method="post">
           <div class="form-field">
             <label for="registration-course">Select your course</label>
             <select id="registration-course" name="course" required>
               <option value="" selected disabled>Select a course</option>
-              <option value="Foundations of Chinese Medicine" disabled>Foundations — Fall 2026 · registration closed</option>
+              <option value="Foundations of Chinese Medicine">Foundations of Chinese Medicine — three semesters</option>
               <option value="The Psyche in Chinese Medicine">The Psyche in Chinese Medicine — Spring 2027</option>
               <option value="Advanced Diagnosis & Treatment">Advanced Diagnosis &amp; Treatment — Summer 2027</option>
             </select>
           </div>
-          <div class="registration-course-note" id="registration-course-note" aria-live="polite">Choose a course to see its term and prerequisites.</div>
+          <div class="form-row">
+            <div class="form-field"><label for="registration-semester">Semester</label><select id="registration-semester" name="semester" required><option value="1">Semester 1</option></select></div>
+            <div class="form-field"><label for="registration-format">Study format</label><select id="registration-format" name="learningFormat" required><option value="live-online">Live online</option></select></div>
+          </div>
+          <div class="registration-course-note" id="registration-course-note" aria-live="polite">Choose a course to see its semester options and preparation.</div>
           <fieldset id="registration-details" disabled>
             <legend>Your details and preparation</legend>
 
@@ -87,8 +92,8 @@
             <label for="registration-cohort">Earlier course cohort(s) <span>(optional)</span></label>
             <input id="registration-cohort" name="priorCohort" maxlength="240" placeholder="For example, Foundations — Fall 2026">
           </div>
-          <p class="preparation-note">You may register while completing an earlier course. All prerequisites must be completed before your selected course starts.</p>
-          <label class="consent-field"><input type="checkbox" name="prerequisiteAcknowledgement" value="yes" required><span>I understand the course sequence and that registration and payment do not replace prerequisite review.</span></label>
+          <p class="preparation-note">Tell us where you are in the pathway. Staff confirm required preparation and any self-paced catch-up plan before admission.</p>
+          <label class="consent-field"><input type="checkbox" name="prerequisiteAcknowledgement" value="yes" required><span>I understand this request requires staff review, including prerequisite or catch-up requirements.</span></label>
           <p><a href="student-information.html" target="_blank" rel="noopener noreferrer">Read student information <span class="sr-only">(opens in a new tab)</span> ↗</a>. Final enrollment terms will be provided separately before payment.</p>
           <div class="form-field">
             <label for="registration-message">Additional information <span>(optional)</span></label>

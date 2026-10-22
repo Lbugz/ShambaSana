@@ -2,6 +2,7 @@ import { createHash, createHmac } from "node:crypto";
 import type { Enrollment, Purchase } from "./billing";
 import { ConflictError, type CareStore } from "./care-store";
 import { GoogleFailure, InstituteGoogle, instituteEmail, seal, unseal } from "./institute-google";
+import { semesterDescription, tuitionText } from "./institute-offerings";
 
 type Purpose = "receipt" | "payment-invitation" | "welcome" | "classroom" | "class-access" | "refund";
 export type OnboardingJob = { id: string; revision: number; enrollmentId: string; purpose: Purpose; version: number; status: "queued" | "sending" | "sent" | "simulated" | "failed" | "uncertain" | "cancelled"; attempts: number; createdAt: string; nextAttemptAt: string; claimedAt?: string; completedAt?: string; providerId?: string; error?: string; encryptedPayload: string; sandbox: boolean };
@@ -29,18 +30,19 @@ export class InstituteOnboarding {
   }
   async reconcile(e: Enrollment) {
     if (!e.automationVersion) return; // Do not email legacy registrations retroactively.
-    const intro = `Hello ${e.name},\n\n${e.course} — ${e.term || "your requested term"}\nReference: ${e.id}\n\n`;
+    const intro = `Hello ${e.name},\n\n${semesterDescription(e)} — ${e.term || "your requested term"}\nReference: ${e.id}\n\n`;
     const footer = `\n\nQuestions? Reply to ${instituteEmail}.\nShamba Sana Institute`;
     const message = (subject: string, text: string): Payload => ({ to: e.email, subject, text: intro + text + footer });
     await this.queue(e, "receipt", 1, message("We received your course registration", "Thank you for registering. We will review your prerequisites and contact you with confirmed course details. This receipt does not confirm admission or reserve a place. No payment has been collected."));
     if (e.status === "payment-ready" && e.invitationVersion) {
       const url = invitationUrl(e);
-      if (url) await this.queue(e, "payment-invitation", e.invitationVersion, message("Your course payment invitation", `Review your confirmed course details and student policies using your private invitation:\n${url}\n\nTuition is $1,350 USD, paid in full.\n${e.cohort}\n\nDo not share this private link. Payment does not replace prerequisite completion.`), e.sandboxPayment === true);
+      const order = e.purchaseId ? await this.store.get<Purchase>("purchase", e.purchaseId) : undefined;
+      if (url && order) await this.queue(e, "payment-invitation", e.invitationVersion, message("Your semester payment invitation", `Review your confirmed semester details and student policies using your private invitation:\n${url}\n\nTuition for this invitation is ${tuitionText(order.amount)} USD, paid in one payment.\n${e.cohort}\n\nThis invitation covers only the enrollment identified above. Later semesters require a separate confirmation and payment; no automatic renewal or charge is authorized.\n\nDo not share this private link. Payment does not replace prerequisite review.`), e.sandboxPayment === true);
     }
     const purchase = e.purchaseId ? await this.store.get<Purchase>("purchase", e.purchaseId) : undefined;
     const sandbox = purchase?.livemode !== true;
     if (e.status === "paid") {
-      await this.queue(e, "welcome", 1, message("Payment confirmed — your Institute next steps", `${sandbox ? "SANDBOX SIMULATION — no real enrollment or class access is granted.\n\n" : ""}Your $1,350 USD course payment is confirmed.\n\n${e.cohort}\n\nKeep your receipt and review your course documents:\n${e.policyUrl}\n\nClass access follows verification that all prerequisites are complete. We will send separate joining instructions when your access is ready.${e.orientationUrl ? `\n\nOrientation information: ${e.orientationUrl}` : ""}`), sandbox);
+      if (purchase) await this.queue(e, "welcome", 1, message("Payment confirmed — your Institute next steps", `${sandbox ? "SANDBOX SIMULATION — no real enrollment or class access is granted.\n\n" : ""}Your ${tuitionText(purchase.amount)} USD payment is confirmed for the enrollment identified above. Later semesters require a separate confirmation and payment; you are not automatically charged.\n\n${e.cohort}\n\nKeep your receipt and review your course documents:\n${e.policyUrl}\n\nClass access follows verification of the applicable prerequisites. We will send separate joining instructions when your access is ready.${e.orientationUrl ? `\n\nOrientation information: ${e.orientationUrl}` : ""}`), sandbox);
       if (e.accessApprovedAt && e.classroomCourseId) {
         await this.queue(e, "classroom", e.accessVersion || 1, { to: e.email, subject: "Classroom invitation", text: "", courseId: e.classroomCourseId }, sandbox);
         const jobs = await this.store.list<OnboardingJob>("institute-job");

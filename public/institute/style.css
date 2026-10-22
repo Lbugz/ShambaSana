@@ -31,7 +31,10 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
 .institute-header { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 25px; padding: 17px 6%; border-bottom: 1px solid #103d2b20; background: rgb(247 245 239 / 0%); transition: background .25s ease, backdrop-filter .25s ease, border-color .25s ease, box-shadow .25s ease; }
 .institute-header.is-scrolled { border-bottom-color: #103d2b20; background: rgb(247 245 239 / 90%); backdrop-filter: blur(14px) saturate(140%); box-shadow: 0 8px 28px rgb(16 61 43 / 8%); }
 .menu-toggle { display: none; }
-.institute-header nav a.is-active:not(.nav-button), .institute-header nav a:not(.nav-button):focus-visible { text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 6px; }
+/* Match the Care navigation indicator for pointer, keyboard and current section. */
+.institute-header nav a:not(.nav-button) { position: relative; }
+.institute-header nav a:not(.nav-button)::after { content: ""; position: absolute; inset: auto 0 -5px; height: 2px; background: var(--green); transform: scaleX(0); transform-origin: left; transition: transform .3s ease; }
+.institute-header nav a:not(.nav-button):is(:hover, :focus-visible, .is-active, [aria-current="page"])::after { transform: scaleX(1); }
 .brand-lockup { display: inline-flex; align-items: center; gap: 12px; flex: 0 0 auto; }
 .brand-lockup img { width: 52px; height: 56px; object-fit: contain; }
 .brand-name { color: var(--green); font-size: 16px; font-weight: 600; letter-spacing: 2.5px; line-height: 1.4; }
@@ -291,3 +294,24 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
 .field-help { margin-top: 6px; font-size: 12px; line-height: 1.6; color: var(--muted); }
 .student-information details { scroll-margin-top: 100px; }
 .registration-form fieldset:disabled { opacity: .55; }
+
+/* Shared links land directly in a compact, touch-friendly enrollment form. */
+.registration-progress { padding-left: 22px; margin: 20px 0; color: var(--green); font-size: 14px; }
+.registration-progress li { padding-bottom: 7px; }
+.registration-form :is(input, select, textarea) { max-width: 100%; font-size: 16px; min-height: 48px; }
+.registration-form input[type="checkbox"] { min-height: 0; width: 20px; height: 20px; flex: 0 0 20px; }
+.registration-form :is(input, select, textarea):focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.registration-form .consent-field { min-height: 48px; align-items: start; }
+.founder-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 24px; }
+@media (max-width: 700px) {
+  .registration-page { padding-top: 28px; gap: 20px; }
+  .registration-page h1 { font-size: clamp(36px, 11vw, 48px); margin-bottom: 16px; }
+  .registration-page h1 br { display: none; }
+  .registration-intro p { margin-bottom: 13px; }
+  .registration-progress { display: flex; gap: 16px; list-style-position: inside; padding-left: 0; font-size: 12px; }
+  .registration-progress li { flex: 1; }
+  .registration-form { padding: 22px 18px; }
+  .registration-form .button { width: 100%; min-height: 48px; }
+  .registration-back { min-height: 44px; display: inline-flex; align-items: center; }
+  .institute-header nav a:not(.nav-button)::after { bottom: 7px; }
+}

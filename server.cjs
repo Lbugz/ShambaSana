@@ -13,6 +13,7 @@ const registrationCourses = new Set([
   'Advanced Diagnosis & Treatment',
 ]);
 const registrationTerms = {
+  'Foundations of Chinese Medicine': 'Fall 2026',
   'The Psyche in Chinese Medicine': 'Spring 2027',
   'Advanced Diagnosis & Treatment': 'Summer 2027',
 };
@@ -27,6 +28,11 @@ function enrollmentSettings() {
   try { webhook = new URL(process.env.COURSE_REGISTRATION_WEBHOOK_URL); } catch { /* Intake stays closed. */ }
   const courses = (process.env.COURSE_REGISTRATION_COURSES || Object.keys(registrationTerms).join('|'))
     .split('|').map((value) => value.trim()).filter((value) => registrationCourses.has(value) && registrationTerms[value]);
+  if (process.env.COURSE_FOUNDATIONS_REVIEW_OPEN === 'true' && !courses.includes('Foundations of Chinese Medicine')) courses.push('Foundations of Chinese Medicine');
+  else if (process.env.COURSE_FOUNDATIONS_REVIEW_OPEN !== 'true') {
+    const index = courses.indexOf('Foundations of Chinese Medicine');
+    if (index !== -1) courses.splice(index, 1);
+  }
   const open = process.env.COURSE_REGISTRATION_OPEN === 'true' && webhook?.protocol === 'https:' && courses.length > 0;
   return { open: Boolean(open), courses: open ? courses : [], webhook };
 }
@@ -63,9 +69,15 @@ async function handleRegistration(req, res) {
 
   const fields = new URLSearchParams(Buffer.concat(chunks).toString('utf8'));
   if (fields.get('website')) return sendJson(res, 200, { message: 'Thank you. Your request has been received.' });
+  const selectedCourse = (fields.get('course') || '').trim();
+  const selectedSemester = fields.has('semester') ? Number(fields.get('semester')) : 1;
+  const selectedFormat = fields.get('learningFormat') || 'live-online';
+  const term = selectedCourse === 'Foundations of Chinese Medicine' ? ({ 1: 'Fall 2026', 2: 'Spring 2027', 3: 'To be confirmed' })[selectedSemester] : registrationTerms[selectedCourse];
   const registration = {
-    course: (fields.get('course') || '').trim(),
-    term: registrationTerms[(fields.get('course') || '').trim()],
+    course: selectedCourse,
+    term,
+    semester: selectedSemester,
+    learningFormat: selectedFormat,
     foundationsStatus: fields.get('foundationsStatus') || '',
     psycheStatus: fields.get('course') === 'Advanced Diagnosis & Treatment' ? fields.get('psycheStatus') || '' : undefined,
     priorCohort: (fields.get('priorCohort') || '').trim(),
@@ -81,6 +93,10 @@ async function handleRegistration(req, res) {
   };
 
   if (!settings.courses.includes(registration.course)
+      || ![1, 2, 3].includes(registration.semester) || !registration.term
+      || !['live-online', 'self-paced'].includes(registration.learningFormat)
+      || (registration.course !== 'Foundations of Chinese Medicine' && (registration.semester !== 1 || registration.learningFormat !== 'live-online'))
+      || (registration.course === 'Foundations of Chinese Medicine' && (registration.semester === 1 ? registration.learningFormat !== 'self-paced' : registration.learningFormat !== 'live-online'))
       || !['completed', 'in-progress', 'not-started'].includes(registration.foundationsStatus)
       || (registration.course === 'Advanced Diagnosis & Treatment' && !['completed', 'in-progress', 'registered', 'not-started'].includes(registration.psycheStatus))
       || !registration.prerequisiteAcknowledgement || registration.priorCohort.length > 240

@@ -3,12 +3,18 @@
 ## Student journey
 
 1. Registration is saved to PostgreSQL under review. A registration receipt email job is created.
-2. Staff review prerequisites and supply cohort details and the published policy URL. A private $1,350 USD Stripe payment invitation is created and its email is queued.
+2. Each registration identifies its course, semester and learning format. Staff review prerequisites and supply confirmed cohort details and the published policy URL, including catch-up access/support arrangements where applicable. A private one-time payment invitation for that semester is created and its email is queued. Foundations live semesters and Semester 1 self-paced catch-up are $2,000 each. New other-course and missing-semester invitations are blocked until their pricing/terms are confirmed. Existing orders keep their historical amounts.
 3. The student opens their private link, reviews course documents and continues to Stripe Checkout.
 4. Only a verified Stripe webhook marks the payment paid. A payment confirmation and welcome checklist is queued. Redirecting back from Checkout is not payment evidence.
 5. Staff verify completion of every prerequisite, select the numeric Classroom course ID and approve access. The worker creates a STUDENT invitation through the teaching account, then queues joining instructions. Students accept the invitation themselves. It does not claim automatic enrollment or acceptance.
 
 Full refunds cancel pending payment/access jobs and queue a refund notification. Staff must review/remove any existing Classroom membership separately. Partial refunds do not automatically revoke access. This version does not implement installments, automatic prerequisite grading or certificate issuance.
+
+### Separate semester confirmation
+
+Completing or paying for a semester never creates or charges the next semester. The student submits a fresh semester-specific registration (or uses its preselected share link), staff review it, and the student accepts that semester's details before paying its distinct private Stripe invitation. There are no subscriptions, off-session charges or automatic next-semester orders. A semester payment is not an installment against an assumed full-course debt. The final policy must define any remaining obligations explicitly.
+
+Foundations review intake requires both the website `COURSE_FOUNDATIONS_REVIEW_OPEN=true` and backend `INSTITUTE_FOUNDATIONS_REVIEW_OPEN=true`, in addition to existing registration switches. Semester 1 accepts self-paced catch-up requests only; Semesters 2/3 accept live-online review requests. These flags do not activate payments, establish eligibility, or send live messages. Keep sandbox configuration until the separate production decision. Cohort schedules and prerequisites still require staff review.
 
 ## Current sandbox boundary
 
