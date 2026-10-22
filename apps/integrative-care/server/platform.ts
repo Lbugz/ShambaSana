@@ -1,6 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { z } from "zod";
-import { Billing, billingConfigured, billingMode, courseNames, coursePrice, verifyServiceKey, verifyPaymentToken, paymentTokenHash, type Enrollment, type Purchase } from "./billing";
+import { Billing, billingConfigured, billingMode, courseNames, verifyServiceKey, verifyPaymentToken, paymentTokenHash, type Enrollment, type Purchase } from "./billing";
 import type { Server } from "node:http";
 import { randomBytes, createHash } from "node:crypto";
 import { InstituteOnboarding, automationMode, invitationToken, type OnboardingJob } from "./institute-onboarding";
@@ -8,6 +8,7 @@ import { googleConfigured, googleRedirect, googleScopes, instituteEmail, seal, u
 import { ConflictError, type CareStore } from "./care-store";
 import type { CareCase, User } from "../shared/care";
 import { InstituteDeliveryCheck, deliveryCheckRecipient } from "./institute-delivery-check";
+import { semesterPrice, semesterDescription } from "./institute-offerings";
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown>) => (req: Request, res: Response, next: NextFunction) => { fn(req, res).catch(next); };
 const fail = (status: number, message: string): never => { throw Object.assign(new Error(message), { status, expose: true }); };
@@ -61,17 +62,18 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
   app.post("/api/institute/registrations", wrap(async (req, res) => {
     verifyServiceKey(req);
     if (process.env.INSTITUTE_REGISTRATION_OPEN !== "true") fail(503, "Course registration is closed.");
-    const input = z.object({ reference: z.string().regex(/^SS-[a-f0-9-]{36}$/), course: z.enum(courseNames), term: z.enum(["Spring 2027", "Summer 2027"]), foundationsStatus: z.enum(["completed", "in-progress", "not-started"]), psycheStatus: z.enum(["completed", "in-progress", "registered", "not-started"]).optional(), priorCohort: z.string().trim().max(240), prerequisiteAcknowledgement: z.literal(true), name: z.string().trim().min(2).max(120), email: z.string().email().max(254), phone: z.string().max(40), timezone: z.string().max(80), message: z.string().max(1000), consent: z.literal(true) }).parse(req.body);
-    const expectedTerm = input.course === courseNames[1] ? "Spring 2027" : input.course === courseNames[2] ? "Summer 2027" : undefined;
-    if (!expectedTerm || input.term !== expectedTerm || (input.course === courseNames[2] && !input.psycheStatus)) fail(400, "Check the selected term and prerequisite information. Fall 2026 registration is closed.");
+    const input = z.object({ reference: z.string().regex(/^SS-[a-f0-9-]{36}$/), course: z.enum(courseNames), semester: z.union([z.literal(1), z.literal(2), z.literal(3)]).default(1), learningFormat: z.enum(["live-online", "self-paced"]).default("live-online"), term: z.enum(["Fall 2026", "Spring 2027", "Summer 2027", "To be confirmed"]), foundationsStatus: z.enum(["completed", "in-progress", "not-started"]), psycheStatus: z.enum(["completed", "in-progress", "registered", "not-started"]).optional(), priorCohort: z.string().trim().max(240), prerequisiteAcknowledgement: z.literal(true), name: z.string().trim().min(2).max(120), email: z.string().email().max(254), phone: z.string().max(40), timezone: z.string().max(80), message: z.string().max(1000), consent: z.literal(true) }).parse(req.body);
+    const foundations = input.course === courseNames[0];
+    const expectedTerm = foundations ? ({ 1: "Fall 2026", 2: "Spring 2027", 3: "To be confirmed" } as const)[input.semester] : input.course === courseNames[1] ? "Spring 2027" : "Summer 2027";
+    if (input.term !== expectedTerm || (!foundations && (input.semester !== 1 || input.learningFormat !== "live-online")) || (foundations && ((input.semester === 1) !== (input.learningFormat === "self-paced"))) || (input.course === courseNames[2] && !input.psycheStatus)) fail(400, "Check the requested course, semester, format and prerequisite details.");
     const allowed = (process.env.INSTITUTE_OPEN_COURSES || courseNames.slice(1).join("|")).split("|").map(course => course.trim());
-    if (!allowed.includes(input.course)) fail(503, "This course is not open.");
+    if (foundations ? process.env.INSTITUTE_FOUNDATIONS_REVIEW_OPEN !== "true" : !allowed.includes(input.course)) fail(503, "Registration review for this course is not open.");
     const enrollment: Enrollment = { ...input, id: input.reference, revision: 0, createdAt: new Date().toISOString(), status: "review", automationVersion: 1 };
     try { await store.put("enrollment", enrollment.id, enrollment); }
     catch (error) {
       if (!(error instanceof ConflictError)) throw error;
       const old = await store.get<Enrollment>("enrollment", enrollment.id);
-      if (old?.email !== input.email || old?.course !== input.course) throw error;
+      if (old?.email !== input.email || old?.course !== input.course || (old?.semester ?? 1) !== input.semester || (old?.learningFormat ?? "live-online") !== input.learningFormat || old?.term !== input.term) throw error;
     }
     await reconcile((await store.get<Enrollment>("enrollment", enrollment.id))!);
     res.json({ received: true, reference: enrollment.id });
@@ -83,7 +85,7 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     const enrollments = await store.list<Enrollment>("enrollment");
     const connection = await store.get<GoogleConnection>("institute-google", "sender");
     const jobs = await store.list<OnboardingJob>("institute-job");
-    res.json({ orders, enrollments: enrollments.map(({ accessHash: _, ...e }) => e), automation: { mode: automationMode(), googleConfigured: googleConfigured(), connectedEmail: connection?.email, billingMode: billingMode(), checkout: billingConfigured() }, jobs: jobs.map(({ encryptedPayload: _, ...job }) => job) });
+    res.json({ orders, enrollments: enrollments.map(({ accessHash: _, ...e }) => ({ ...e, paymentAmount: semesterPrice(e) })), automation: { mode: automationMode(), googleConfigured: googleConfigured(), connectedEmail: connection?.email, billingMode: billingMode(), checkout: billingConfigured() }, jobs: jobs.map(({ encryptedPayload: _, ...job }) => job) });
   }));
   app.post("/api/institute/enrollments/:id/invite", wrap(async (req, res) => {
     practitioner(req);
@@ -97,11 +99,14 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     const e = await store.get<Enrollment>("enrollment", req.params.id);
     if (!e || !["review", "payment-ready"].includes(e.status)) fail(409, "Enrollment is not awaiting payment.");
     if (e!.revision !== data.revision) throw new ConflictError();
+    const amount = semesterPrice(e!);
+    if (!amount) fail(409, "Semester pricing or learning-format terms need confirmation before a new payment invitation.");
     const version = e!.revision + 1;
     const token = invitationToken(e!.id, version);
-    const purchase = await billing.order("institute", e!.id, e!.email, `Shamba Sana Institute — ${e!.course}`, coursePrice);
+    const purchase = await billing.order("institute", e!.id, e!.email, `Shamba Sana Institute — ${semesterDescription(e!)}`, amount!);
+    if (purchase.amount !== amount) fail(409, "An existing payment has a different price. Staff must reconcile it before proceeding.");
     if (purchase.status !== "pending" || purchase.checkoutId) fail(409, "Checkout has already started. Resolve the existing payment before replacing its invitation.");
-    const updated: Enrollment = { ...e!, revision: version, status: "payment-ready", purchaseId: purchase.id, accessHash: paymentTokenHash(token), invitationVersion: version, automationVersion: 1, sandboxPayment: purchase.livemode !== true, policyUrl: data.policyUrl, cohort: data.cohort, orientationUrl: data.orientationUrl, classroomCourseId: data.classroomCourseId, prerequisitesReviewedAt: new Date().toISOString(), policyAcceptedAt: undefined };
+    const updated: Enrollment = { ...e!, tuitionCents: purchase.amount, revision: version, status: "payment-ready", purchaseId: purchase.id, accessHash: paymentTokenHash(token), invitationVersion: version, automationVersion: 1, sandboxPayment: purchase.livemode !== true, policyUrl: data.policyUrl, cohort: data.cohort, orientationUrl: data.orientationUrl, classroomCourseId: data.classroomCourseId, prerequisitesReviewedAt: new Date().toISOString(), policyAcceptedAt: undefined };
     await store.put("enrollment", e!.id, updated, e!.revision);
     await reconcile(updated);
     res.json({ url: `${new URL(process.env.APP_BASE_URL!).origin}/#/course-payment?enrollment=${encodeURIComponent(e!.id)}&token=${token}` });
@@ -110,7 +115,9 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     const input = z.object({ enrollment: z.string().max(100), token: z.string().max(128), checkout: z.boolean().optional(), acceptPolicies: z.boolean().optional() }).parse(req.body);
     const e = await store.get<Enrollment>("enrollment", input.enrollment);
     verifyPaymentToken(input.token, e);
-    if (!input.checkout) return res.json({ course: e!.course, cohort: e!.cohort, policyUrl: e!.policyUrl, amount: coursePrice, status: e!.status, sandbox: e!.sandboxPayment === true, accessApproved: !!e!.accessApprovedAt && !e!.sandboxPayment, orientationUrl: e!.status === "paid" && !e!.sandboxPayment ? e!.orientationUrl : undefined });
+    const order = e!.purchaseId ? await store.get<Purchase>("purchase", e!.purchaseId) : undefined;
+    if (!order) fail(409, "The payment record needs staff review.");
+    if (!input.checkout) return res.json({ course: e!.course, semester: e!.semester, learningFormat: e!.learningFormat, cohort: e!.cohort, policyUrl: e!.policyUrl, amount: order!.amount, status: e!.status, sandbox: e!.sandboxPayment === true, accessApproved: !!e!.accessApprovedAt && !e!.sandboxPayment, orientationUrl: e!.status === "paid" && !e!.sandboxPayment ? e!.orientationUrl : undefined });
     if (input.acceptPolicies !== true || e!.status !== "payment-ready" || !e!.purchaseId) fail(409, "Review the course policies before checkout.");
     if (!e!.policyAcceptedAt) {
       const revision = e!.revision;

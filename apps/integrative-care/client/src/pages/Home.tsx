@@ -342,10 +342,10 @@ export default function Home() {
           food, nature and community belong together.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm">
-          <a className="underline underline-offset-4" href="https://shambasana-production.up.railway.app/">
+          <a className="underline underline-offset-4" href="https://www.shambasana.com/">
             Explore Shamba Sana
           </a>
-          <a className="underline underline-offset-4" href="https://shambasana-production.up.railway.app/institute/">
+          <a className="underline underline-offset-4" href="https://institute.shambasana.com/">
             Explore the Institute
           </a>
         </div>
