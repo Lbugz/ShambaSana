@@ -32,6 +32,7 @@
   const isBeginner = () => isFoundations() && semester.value === '1';
   const isAdvanced = () => course.value === 'Advanced Diagnosis & Treatment';
   const selectedTerm = () => terms[course.value]?.[semester.value];
+  const studyLabel = (selectedCourse = course.value, selectedSemester = semester.value, term = selectedTerm()) => [selectedCourse || 'Course not selected', selectedCourse === 'Foundations of Chinese Medicine' ? `Semester ${selectedSemester}` : '', term].filter(Boolean).join(' · ');
   const enabled = () => readiness.open && readiness.courses.includes(course.value) && !!selectedTerm();
   const inputGroups = name => [...form.querySelectorAll(`[name="${name}"]`)];
   reference.value = 'SS-' + crypto.randomUUID();
@@ -58,7 +59,10 @@
   function renderSelection() {
     format.value = isBeginner() ? 'self-paced' : 'live-online';
     document.querySelector('#registration-course-title').textContent = course.value || 'Choose your course';
-    document.querySelector('#registration-course-meta').textContent = course.value ? `Semester ${semester.value} · ${selectedTerm()} · ${isBeginner() ? 'Self-paced catch-up' : 'Live online'}` : 'Select a course and semester to begin.';
+    const intakeLabel = [isFoundations() ? `Semester ${semester.value}` : '', selectedTerm(), isBeginner() ? 'Self-paced catch-up' : 'Live online'].filter(Boolean).join(' · ');
+    document.querySelector('#registration-course-meta').textContent = course.value ? intakeLabel : 'Select a course and semester to begin.';
+    const pageTitle = !course.value ? 'Course registration' : isFoundations() ? `Foundations — Semester ${semester.value}${isBeginner() ? ' catch-up' : ''}` : `${course.value} — ${selectedTerm().replace('Proposed ', '')}`;
+    document.title = `${pageTitle} | Shamba Sana Institute`;
     document.querySelector('#registration-course-price').textContent = !course.value ? '' : isFoundations() ? '$2,000 for this semester' : 'Tuition confirmed before payment';
     document.querySelector('#registration-course-note').textContent = !course.value ? 'Choose your study, then tell us a little about you.' : isBeginner() ? 'Join after the start, with an agreed catch-up plan.' : 'Previous study is reviewed before admission.';
     document.querySelector('#registration-tuition-detail').textContent = !course.value ? 'Choose your course to see its tuition information.' : isFoundations() ? 'Foundations spans three semesters at $2,000 each ($6,000 total). You choose and pay separately for each semester. Semester 1 catch-up is also $2,000; staff confirm its materials, support and completion plan.' : 'Tuition, semester structure and the final schedule for this course are being confirmed. You will receive those details before deciding to pay.';
@@ -99,7 +103,7 @@
   }
   function renderReview() {
     const summary = $('#registration-review-summary');
-    summary.replaceChildren(summaryRow('Student', name.value.trim() || 'Your name'), summaryRow('Email', email.value.trim() || 'Your email'), summaryRow('Study', `${course.value || 'Course not selected'} · Semester ${semester.value} · ${selectedTerm() || ''}`), summaryRow('Format', isBeginner() ? 'Self-paced catch-up' : 'Live online'));
+    summary.replaceChildren(summaryRow('Student', name.value.trim() || 'Your name'), summaryRow('Email', email.value.trim() || 'Your email'), summaryRow('Study', studyLabel()), summaryRow('Format', isBeginner() ? 'Self-paced catch-up' : 'Live online'));
   }
   function setStep(number, focus = true) {
     step = number;
@@ -192,7 +196,7 @@
       }
       if(result.received !== true || !result.reference) throw new Error('Receipt is not confirmed. Contact onlineclass@liferx.us before sending again.');
       completed = true;
-      document.querySelector('#success-course').textContent = `${submitted.course} · Semester ${submitted.semester} · ${submitted.term}`;
+      document.querySelector('#success-course').textContent = studyLabel(submitted.course, submitted.semester, submitted.term);
       document.querySelector('#success-reference').textContent = result.reference;
       document.querySelector('#success-next').textContent = `The Institute will review your preparation and email ${submitted.email} with the next steps and confirmed semester details.`;
       const success = document.querySelector('#registration-success'); form.hidden = true; success.hidden = false; success.focus(); success.scrollIntoView({block:'start'});
