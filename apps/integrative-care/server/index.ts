@@ -72,7 +72,7 @@ app.use((req, res, next) => {
     const message =
       status >= 500
         ? "The care service is temporarily unavailable."
-        : "The request could not be read. Check the file or form and try again.";
+        : err.expose === true ? err.message : "The request could not be read. Check the file or form and try again.";
 
     res.status(status).json({ message });
   });
