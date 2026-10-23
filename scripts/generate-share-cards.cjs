@@ -49,16 +49,18 @@ async function photoCard(name, card) {
 const cards = [
   { name: 'main', label: 'ANCIENT WISDOM · MODERN WELLNESS', lines: ['Shamba Sana'], subtitle: 'Learning, care & community', url: 'www.shambasana.com', size: 90 },
   { name: 'institute', label: 'SHAMBA SANA INSTITUTE', lines: ['Study Chinese', 'medicine online'], subtitle: 'Courses, tuition & student registration', url: 'institute.shambasana.com', size: 76 },
-  { name: 'foundations', label: 'SHAMBA SANA INSTITUTE · COURSE I', lines: ['Foundations of', 'Chinese Medicine'], subtitle: 'Semester-by-semester registration', url: 'institute.shambasana.com', size: 76 },
-  { name: 'psyche', label: 'SHAMBA SANA INSTITUTE · COURSE II', lines: ['The Psyche in', 'Chinese Medicine'], subtitle: 'Spring 2027 · Enrollment review', url: 'institute.shambasana.com', size: 76 },
+  { name: 'foundations-v2', label: 'SHAMBA SANA INSTITUTE · COURSE I', lines: ['Foundations of', 'Traditional Chinese', 'Medicine'], subtitle: 'Semester-by-semester registration', url: 'institute.shambasana.com', size: 76 },
+  { name: 'psyche-v2', label: 'SHAMBA SANA INSTITUTE · COURSE II', lines: ['The Psyche in', 'Traditional Chinese', 'Medicine'], subtitle: 'Spring 2027 · Enrollment review', url: 'institute.shambasana.com', size: 76 },
   { name: 'advanced', label: 'SHAMBA SANA INSTITUTE · COURSE III', lines: ['Advanced Diagnosis', '& Treatment'], subtitle: 'Summer 2027 · Enrollment review', url: 'institute.shambasana.com', size: 76 },
 ];
 
 async function generate() {
   for (const card of cards) {
     if (photoCards[card.name]) { await photoCard(card.name, photoCards[card.name]); continue; }
-    const firstY = card.lines.length === 1 ? 323 : 278;
-    const heading = card.lines.map((line, index) => `<tspan x="82" y="${firstY + index * 88}">${escape(line)}</tspan>`).join('');
+    const threeLines = card.lines.length === 3;
+    const firstY = threeLines ? 245 : card.lines.length === 1 ? 323 : 278;
+    const lineHeight = threeLines ? 68 : 88;
+    const heading = card.lines.map((line, index) => `<tspan x="82" y="${firstY + index * lineHeight}">${escape(line)}</tspan>`).join('');
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="#f7f5ef"/>
   <rect x="25" y="25" width="1150" height="580" rx="3" fill="none" stroke="#d9ccb0"/>
@@ -68,7 +70,7 @@ async function generate() {
   <image href="data:image/png;base64,${logo}" x="78" y="62" width="72" height="78" preserveAspectRatio="xMidYMid meet"/>
   <text x="176" y="105" fill="#103d2b" font-family="Arial, sans-serif" font-size="19" letter-spacing="3">${escape(card.label)}</text>
   <path d="M82 183H137" stroke="#af8234" stroke-width="3"/>
-  <text fill="#103d2b" font-family="Georgia, serif" font-size="${card.size}" letter-spacing="-1">${heading}</text>
+  <text fill="#103d2b" font-family="Georgia, serif" font-size="${threeLines ? 62 : card.size}" letter-spacing="-1">${heading}</text>
   <text x="84" y="442" fill="#4f6259" font-family="Arial, sans-serif" font-size="30">${escape(card.subtitle)}</text>
   <path d="M82 502H990" stroke="#d8dcd0"/>
   <text x="84" y="552" fill="#315b46" font-family="Arial, sans-serif" font-size="23" letter-spacing="1">${escape(card.url)}</text>

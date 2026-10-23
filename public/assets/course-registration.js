@@ -1,3 +1,5 @@
+// Keep submitted course values stable; expand visible labels.
+const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chinese medicine/gi, 'Traditional Chinese Medicine');
 (() => {
   const form = document.querySelector('#course-registration-form');
   if (!form) return;
@@ -33,7 +35,7 @@
   const isAdvanced = () => course.value === 'Advanced Diagnosis & Treatment';
   const selectedPlan = () => $('[name="paymentPlan"]:checked')?.value || 'full';
   const selectedTerm = () => terms[course.value]?.[semester.value];
-  const studyLabel = (selectedCourse = course.value, selectedSemester = semester.value, term = selectedTerm()) => [selectedCourse || 'Course not selected', selectedCourse === 'Foundations of Chinese Medicine' ? `Semester ${selectedSemester}` : '', term].filter(Boolean).join(' · ');
+  const studyLabel = (selectedCourse = course.value, selectedSemester = semester.value, term = selectedTerm()) => [selectedCourse ? courseDisplayName(selectedCourse) : 'Course not selected', selectedCourse === 'Foundations of Chinese Medicine' ? `Semester ${selectedSemester}` : '', term].filter(Boolean).join(' · ');
   const enabled = () => readiness.open && readiness.courses.includes(course.value) && !!selectedTerm();
   const inputGroups = name => [...form.querySelectorAll(`[name="${name}"]`)];
   reference.value = 'SS-' + crypto.randomUUID();
@@ -59,10 +61,10 @@
   }
   function renderSelection() {
     format.value = isBeginner() ? 'self-paced' : 'live-online';
-    document.querySelector('#registration-course-title').textContent = course.value || 'Choose your course';
+    document.querySelector('#registration-course-title').textContent = course.value ? courseDisplayName(course.value) : 'Choose your course';
     const intakeLabel = [isFoundations() ? `Semester ${semester.value}` : '', selectedTerm(), isBeginner() ? 'Self-paced catch-up' : 'Live online'].filter(Boolean).join(' · ');
     document.querySelector('#registration-course-meta').textContent = course.value ? intakeLabel : 'Select a course and semester to begin.';
-    const pageTitle = !course.value ? 'Course registration' : isFoundations() ? `Foundations — Semester ${semester.value}${isBeginner() ? ' catch-up' : ''}` : `${course.value} — ${selectedTerm().replace('Proposed ', '')}`;
+    const pageTitle = !course.value ? 'Course registration' : isFoundations() ? `Foundations — Semester ${semester.value}${isBeginner() ? ' catch-up' : ''}` : `${courseDisplayName(course.value)} — ${selectedTerm().replace('Proposed ', '')}`;
     document.title = `${pageTitle} | Shamba Sana Institute`;
     document.querySelector('#registration-course-price').textContent = !course.value ? '' : isFoundations() ? '$2,000 for this semester' : 'Tuition confirmed before payment';
     document.querySelector('#registration-course-note').textContent = !course.value ? 'Choose your study, then tell us a little about you.' : isBeginner() ? 'Join after the start, with an agreed catch-up plan.' : 'Previous study is reviewed before admission.';
