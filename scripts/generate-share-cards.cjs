@@ -15,6 +15,37 @@ const root = path.resolve(__dirname, '..');
 const output = path.join(root, 'public', 'assets');
 const logo = fs.readFileSync(path.join(output, 'shamba-logo-transparent.png')).toString('base64');
 const escape = (text) => text.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[char]));
+const fonts = path.join(__dirname, 'assets', 'fonts');
+const photoCards = {
+  main: { source: 'apps/integrative-care/attached_assets/generated_images/herbal_preparation_ritual.png', heading: 'Ancient wisdom.\nModern wellness.', label: 'LEARNING · CARE · COMMUNITY', crop: 'centre' },
+  institute: { source: 'public/assets/institute-online-class-dumisani.webp', heading: 'Learn Chinese\nmedicine online.', label: 'THE INSTITUTE', crop: 'centre' },
+};
+async function type(text, family, size, maxWidth, color = '#103d2b', tracking = 0) {
+  let buffer, info;
+  do {
+    const markup = `<span foreground="${color}"${tracking ? ` letter_spacing="${tracking * 1024}"` : ''}>${escape(text)}</span>`;
+    ({ data: buffer, info } = await sharp({ text: { text: markup, font: `${family} ${size}`, fontfile: path.join(fonts, family === 'Lora' ? 'Lora.ttf' : 'PlusJakartaSans.ttf'), rgba: true, dpi: 72, spacing: 12 } }).png().toBuffer({ resolveWithObject: true }));
+    size -= 1;
+  } while (info.width > maxWidth && size > 24);
+  return { buffer, info };
+}
+async function photoCard(name, card) {
+  const panel = 480;
+  const photograph = await sharp(path.join(root, card.source)).resize(720, 630, { fit: 'cover', position: card.crop }).toBuffer();
+  const crest = await sharp(path.join(output, 'shamba-logo-transparent.png')).resize(66, 74, { fit: 'inside' }).toBuffer();
+  const brand = await type('SHAMBA SANA', 'Plus Jakarta Sans', 19, 280, '#103d2b', 2);
+  const label = await type(card.label, 'Plus Jakarta Sans', 10, 280, '#526050', 1);
+  const heading = await type(card.heading, 'Lora', 53, 392);
+  const jpg = await sharp({ create: { width: 1200, height: 630, channels: 3, background: '#f7f5ef' } }).composite([
+    { input: photograph, left: panel, top: 0 },
+    { input: crest, left: 44, top: 47 },
+    { input: brand.buffer, left: 129, top: 62 },
+    { input: label.buffer, left: 131, top: 96 },
+    { input: heading.buffer, left: 44, top: Math.round((630 - heading.info.height) / 2) + 30 },
+  ]).jpeg({ quality: 93, mozjpeg: true, chromaSubsampling: '4:4:4' }).toBuffer();
+  fs.writeFileSync(path.join(output, `share-${name}-v2.jpg`), jpg);
+  process.stdout.write(`Created share-${name}-v2.jpg (1200 × 630, ${jpg.length} bytes)\n`);
+}
 const cards = [
   { name: 'main', label: 'ANCIENT WISDOM · MODERN WELLNESS', lines: ['Shamba Sana'], subtitle: 'Learning, care & community', url: 'www.shambasana.com', size: 90 },
   { name: 'institute', label: 'SHAMBA SANA INSTITUTE', lines: ['Study Chinese', 'medicine online'], subtitle: 'Courses, tuition & student registration', url: 'institute.shambasana.com', size: 76 },
@@ -25,6 +56,7 @@ const cards = [
 
 async function generate() {
   for (const card of cards) {
+    if (photoCards[card.name]) { await photoCard(card.name, photoCards[card.name]); continue; }
     const firstY = card.lines.length === 1 ? 323 : 278;
     const heading = card.lines.map((line, index) => `<tspan x="82" y="${firstY + index * 88}">${escape(line)}</tspan>`).join('');
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
@@ -47,6 +79,7 @@ async function generate() {
     await sharp(Buffer.from(svg)).png().toFile(`${base}.png`);
     process.stdout.write(`Created share-${card.name}.png (1200 × 630)\n`);
   }
+  fs.writeFileSync(path.join(__dirname, 'assets', 'share-previews.json'), JSON.stringify({ width: 1200, height: 630, format: 'jpeg', logo: 'public/assets/shamba-logo-transparent.png', fonts: ['Lora', 'Plus Jakarta Sans'], cards: photoCards, note: 'Existing approved imagery is cropped and composed without generative changes. Institute instructor identity is preserved.' }, null, 2) + '\n');
 }
 
 generate().catch((error) => { process.stderr.write(`${error.message}\n`); process.exitCode = 1; });
