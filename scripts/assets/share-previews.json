@@ -9,7 +9,8 @@
   ],
   "cards": {
     "main": {
-      "source": "public/assets/share-main-nature-source.png",
+      "version": 4,
+      "source": "public/assets/hero-knowledge-study.webp",
       "heading": "Ancient wisdom.\nModern wellness.",
       "label": "LEARNING · CARE · COMMUNITY",
       "crop": "centre"
@@ -21,5 +22,5 @@
       "crop": "centre"
     }
   },
-  "note": "Main nature photograph generated with ImageGen; logo and text composed deterministically. Existing approved Institute imagery is cropped without generative changes; instructor identity is preserved."
+  "note": "Main shared-study banner visual originally generated with ImageGen; logo and text composed deterministically. Existing approved Institute imagery is cropped without generative changes; instructor identity is preserved."
 }
