@@ -330,3 +330,10 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-
   .institute-header nav a:not(.nav-button)::after { bottom: 7px; }
   .registration-direct .registration-page .registration-intro h1 { font-size: clamp(28px, 7.5vw, 34px); letter-spacing: -1px; }
 }
+
+/* Consistent cards and comfortable mobile tap targets. */
+.course-card { border-radius:18px; }
+.course-card .course-action { min-height:48px; padding:12px 16px; background:var(--green); color:#fff; border:1px solid var(--green); border-radius:999px; text-decoration:none; justify-content:center; line-height:1.5; }
+.course-card .course-action:hover { background:#1c533c; }
+.course-card .course-outline { display:flex; align-items:center; min-height:44px; padding-block:10px; line-height:1.6; }
+@media(max-width:760px) { .course-card .course-action { align-self:stretch; width:100%; font-size:13px; } }

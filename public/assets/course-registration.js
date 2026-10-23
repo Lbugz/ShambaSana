@@ -69,8 +69,10 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
     document.querySelector('#registration-course-price').textContent = !course.value ? '' : isFoundations() ? '$2,000 for this semester' : 'Tuition confirmed before payment';
     document.querySelector('#registration-course-note').textContent = !course.value ? 'Choose your study, then tell us a little about you.' : isBeginner() ? 'Join after the start, with an agreed catch-up plan.' : 'Previous study is reviewed before admission.';
     document.querySelector('#registration-tuition-detail').textContent = !course.value ? 'Choose your course to see its tuition information.' : isFoundations() ? 'Foundations spans three semesters at $2,000 each ($6,000 total). You choose and pay separately for each semester. Semester 1 catch-up is also $2,000; staff confirm its materials, support and completion plan.' : 'Tuition, semester structure and the final schedule for this course are being confirmed. You will receive those details before deciding to pay.';
+    document.querySelector('#registration-intro').textContent = !course.value ? 'Choose your course and semester, then add your details.' : isBeginner() ? 'Add your details, then choose full payment or a monthly plan in Stripe sandbox.' : 'Add your details and previous study. Staff will confirm eligibility and course details before payment.';
+    $('#review-progress-label').textContent = isBeginner() ? 'Review & payment' : 'Preparation & review';
     change.firstChild.textContent = course.value ? 'Change' : 'Choose course';
-    $('#preparation-description').textContent = isBeginner() ? 'No previous study is required for Foundations Semester 1. Staff will confirm your catch-up plan before admission.' : 'Tell us about your previous study. You can apply while progressing through earlier courses; staff confirm eligibility.';
+    $('#preparation-description').textContent = isBeginner() ? 'No previous study is required. Review your details and payment choice below.' : 'Tell us about your previous study. You can apply while progressing through earlier courses; staff confirm eligibility.';
     const foundationsField = $('#foundations-status-field');
     foundationsField.hidden = isBeginner();
     foundationsField.setAttribute('aria-describedby','foundations-error');
@@ -80,7 +82,7 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
     $('#payment-options').hidden = !isFoundations();
     $('#review-title').textContent = isFoundations() ? 'Review your registration & payment.' : 'Your preparation & next steps.';
     $('#payment-reassurance').textContent = isFoundations() ? 'Card details are entered securely on Stripe. Sandbox only.' : 'Tuition will be confirmed before payment.';
-    $('#registration-next-step').textContent = isBeginner() ? 'Continue directly to Stripe sandbox checkout. No real enrollment or class access is granted.' : 'Staff verify your previous study and course details before payment becomes available.';
+    $('#registration-next-step').textContent = isBeginner() ? 'Next: secure test checkout with Stripe.' : 'Staff verify your previous study and course details before payment becomes available.';
     renderPayment();
     renderControls();
     renderReview();
@@ -113,14 +115,13 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
   }
   function renderReview() {
     const summary = $('#registration-review-summary');
-    summary.replaceChildren(summaryRow('Student', name.value.trim() || 'Your name'), summaryRow('Email', email.value.trim() || 'Your email'), summaryRow('Study', studyLabel()), summaryRow('Format', isBeginner() ? 'Self-paced catch-up' : 'Live online'));
-    if (isFoundations()) summary.append(summaryRow('Payment choice', selectedPlan() === 'monthly' ? '4 monthly payments of $500 · $2,000 total' : '$2,000 in one payment'));
+    summary.replaceChildren(summaryRow('Student', name.value.trim() || 'Your name'), summaryRow('Email', email.value.trim() || 'Your email'));
   }
   function renderPayment() {
     const monthly = selectedPlan() === 'monthly';
-    $('#payment-plan-detail').textContent = monthly ? '$500 at checkout, then 3 automatic monthly payments of $500. $2,000 total. Stops after those installments. Late-start plans may extend beyond class dates; this is not a charge for a later semester.' : '$2,000 at checkout for this semester. No automatic next-semester charge.';
-    $('#payment-eligibility').textContent = isBeginner() ? 'Sandbox preview: no previous study is required. Your catch-up learning plan and access arrangements must be finalized before live enrollment.' : 'Your preference is saved. Staff must verify your previous semester before enabling payment.';
-    $('#payment-consent-label').textContent = monthly ? 'For this sandbox simulation, I authorize $500 at checkout and 3 further automatic monthly payments of $500, totaling $2,000. I understand the draft plan does not renew.' : 'I understand this is a $2,000 sandbox payment using test card details. No real tuition is collected.';
+    $('#payment-plan-detail').textContent = monthly ? '$500 today, then 3 automatic monthly payments of $500. $2,000 total; no renewal or next-semester charge. Late-start installments may extend beyond class dates.' : '$2,000 at checkout for this semester. No automatic next-semester charge.';
+    $('#payment-plan-detail').textContent = isBeginner() ? $('#payment-plan-detail').textContent : 'Choose a payment preference. Staff review your previous semester before sending a payment invitation; no payment is taken here.';
+    $('#payment-consent-label').textContent = monthly ? 'I authorize the test plan: $500 now and 3 automatic monthly payments of $500 ($2,000 total), with no renewal.' : 'I understand this is a $2,000 test payment.';
   }
   function setStep(number, focus = true) {
     step = number;
@@ -150,7 +151,7 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
       inputs.forEach(input => { if(missing) input.setAttribute('aria-invalid','true'); else input.removeAttribute('aria-invalid'); });
       if(missing && !first) first = inputs[0];
     }
-    for (const [field,errorId,message] of [['prerequisiteAcknowledgement','preparation-error','Please acknowledge the admission review.'],['consent','consent-error','Please confirm your details and contact permission.']]) {
+    for (const [field,errorId,message] of [['consent','consent-error','Please confirm your details, enrollment emails and class access requirements.']]) {
       const input = $(`[name="${field}"]`);
       if(!fieldError(input,errorId,input.checked ? '' : message) && !first) first = input;
     }
@@ -166,7 +167,7 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
   $('#edit-registration').addEventListener('click',()=>setStep(1));
   name.addEventListener('input',()=> { if(name.hasAttribute('aria-invalid') && name.value.trim().length >= 2) fieldError(name,'name-error',''); });
   email.addEventListener('input',()=> { if(email.hasAttribute('aria-invalid') && email.validity.valid && email.value) fieldError(email,'email-error',''); });
-  form.addEventListener('change',event=> { if(event.target.type === 'radio' || event.target.type === 'checkbox') { event.target.removeAttribute('aria-invalid'); const groupError = event.target.name === 'foundationsStatus' ? $('#foundations-error') : event.target.name === 'psycheStatus' ? $('#psyche-error') : event.target.name === 'consent' ? $('#consent-error') : $('#preparation-error'); if(groupError) groupError.hidden = true; } });
+  form.addEventListener('change',event=> { if(event.target.type === 'radio' || event.target.type === 'checkbox') { event.target.removeAttribute('aria-invalid'); const groupError = event.target.name === 'foundationsStatus' ? $('#foundations-error') : event.target.name === 'psycheStatus' ? $('#psyche-error') : event.target.name === 'consent' ? $('#consent-error') : null; if(groupError) groupError.hidden = true; } });
   form.addEventListener('change',event=> {
     if(event.target.name === 'paymentPlan') { $('[name="paymentConsent"]').checked = false; renderPayment(); renderReview(); }
     if(event.target.name === 'paymentConsent') $('#payment-consent-error').hidden = true;
@@ -177,7 +178,6 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
       if(!course.value) { course.focus(); return; }
       if(pickerSnapshot?.course !== course.value || pickerSnapshot?.semester !== semester.value) {
         $('[name="consent"]').checked = false;
-        $('[name="prerequisiteAcknowledgement"]').checked = false;
         $('[name="paymentConsent"]').checked = false;
       }
       pickerSnapshot = undefined;
@@ -208,6 +208,8 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
     if(!validateDetails() || !validateReview()) return;
     name.value = name.value.trim(); email.value = email.value.trim();
     const body = new URLSearchParams(new FormData(form));
+    // The combined confirmation explicitly covers the class access requirements.
+    body.set('prerequisiteAcknowledgement', $('[name="consent"]').checked ? 'yes' : 'no');
     if(isBeginner()) body.set('foundationsStatus','not-started');
     const submitted = {course:course.value,semester:semester.value,term:selectedTerm(),email:email.value};
     submitting = true; renderControls(); status.removeAttribute('data-state'); status.textContent = 'Sending your registration…';
