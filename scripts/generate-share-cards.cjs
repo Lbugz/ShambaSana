@@ -17,8 +17,8 @@ const logo = fs.readFileSync(path.join(output, 'shamba-logo-transparent.png')).t
 const escape = (text) => text.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[char]));
 const fonts = path.join(__dirname, 'assets', 'fonts');
 const photoCards = {
-  main: { source: 'apps/integrative-care/attached_assets/generated_images/herbal_preparation_ritual.png', heading: 'Ancient wisdom.\nModern wellness.', label: 'LEARNING · CARE · COMMUNITY', crop: 'centre' },
-  institute: { source: 'public/assets/institute-online-class-dumisani.webp', heading: 'Learn Chinese\nmedicine online.', label: 'THE INSTITUTE', crop: 'centre' },
+  main: { source: 'public/assets/share-main-nature-source.png', heading: 'Ancient wisdom.\nModern wellness.', label: 'LEARNING · CARE · COMMUNITY', crop: 'centre' },
+  institute: { source: 'public/assets/institute-online-class-dumisani.webp', heading: 'Learn Traditional\nChinese Medicine\n(TCM) online.', label: 'THE INSTITUTE', crop: 'centre' },
 };
 async function type(text, family, size, maxWidth, color = '#103d2b', tracking = 0) {
   let buffer, info;
@@ -43,8 +43,8 @@ async function photoCard(name, card) {
     { input: label.buffer, left: 131, top: 96 },
     { input: heading.buffer, left: 44, top: Math.round((630 - heading.info.height) / 2) + 30 },
   ]).jpeg({ quality: 93, mozjpeg: true, chromaSubsampling: '4:4:4' }).toBuffer();
-  fs.writeFileSync(path.join(output, `share-${name}-v2.jpg`), jpg);
-  process.stdout.write(`Created share-${name}-v2.jpg (1200 × 630, ${jpg.length} bytes)\n`);
+  fs.writeFileSync(path.join(output, `share-${name}-v3.jpg`), jpg);
+  process.stdout.write(`Created share-${name}-v3.jpg (1200 × 630, ${jpg.length} bytes)\n`);
 }
 const cards = [
   { name: 'main', label: 'ANCIENT WISDOM · MODERN WELLNESS', lines: ['Shamba Sana'], subtitle: 'Learning, care & community', url: 'www.shambasana.com', size: 90 },
@@ -79,7 +79,7 @@ async function generate() {
     await sharp(Buffer.from(svg)).png().toFile(`${base}.png`);
     process.stdout.write(`Created share-${card.name}.png (1200 × 630)\n`);
   }
-  fs.writeFileSync(path.join(__dirname, 'assets', 'share-previews.json'), JSON.stringify({ width: 1200, height: 630, format: 'jpeg', logo: 'public/assets/shamba-logo-transparent.png', fonts: ['Lora', 'Plus Jakarta Sans'], cards: photoCards, note: 'Existing approved imagery is cropped and composed without generative changes. Institute instructor identity is preserved.' }, null, 2) + '\n');
+  fs.writeFileSync(path.join(__dirname, 'assets', 'share-previews.json'), JSON.stringify({ width: 1200, height: 630, format: 'jpeg', logo: 'public/assets/shamba-logo-transparent.png', fonts: ['Lora', 'Plus Jakarta Sans'], cards: photoCards, note: 'Main nature photograph generated with ImageGen; logo and text composed deterministically. Existing approved Institute imagery is cropped without generative changes; instructor identity is preserved.' }, null, 2) + '\n');
 }
 
 generate().catch((error) => { process.stderr.write(`${error.message}\n`); process.exitCode = 1; });

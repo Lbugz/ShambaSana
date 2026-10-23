@@ -9,17 +9,17 @@
   ],
   "cards": {
     "main": {
-      "source": "apps/integrative-care/attached_assets/generated_images/herbal_preparation_ritual.png",
+      "source": "public/assets/share-main-nature-source.png",
       "heading": "Ancient wisdom.\nModern wellness.",
       "label": "LEARNING · CARE · COMMUNITY",
       "crop": "centre"
     },
     "institute": {
       "source": "public/assets/institute-online-class-dumisani.webp",
-      "heading": "Learn Chinese\nmedicine online.",
+      "heading": "Learn Traditional\nChinese Medicine\n(TCM) online.",
       "label": "THE INSTITUTE",
       "crop": "centre"
     }
   },
-  "note": "Existing approved imagery is cropped and composed without generative changes. Institute instructor identity is preserved."
+  "note": "Main nature photograph generated with ImageGen; logo and text composed deterministically. Existing approved Institute imagery is cropped without generative changes; instructor identity is preserved."
 }
