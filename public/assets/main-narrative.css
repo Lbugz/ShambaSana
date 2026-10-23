@@ -1,0 +1,24 @@
+/* Main-page narrative preview. Shared navigation and identity stay consistent. */
+.hero-image-frame { border: 0; border-radius: 5px; }
+.hero-image-frame img { height: auto; aspect-ratio: 3/2; object-position: center; }
+.hero-intro { max-width: 490px; }
+.hero .image-caption { max-width: 490px; font-size: 11px; }
+.pathway-card { overflow: hidden; border: 0; border-radius: 5px; }
+.pathway-photograph { margin: -40px -40px 30px; overflow: hidden; }
+.pathway-photograph img { width: 100%; height: 130px; object-fit: cover; object-position: center 44%; }
+.care-pathway-visual { display: flex; flex-direction: column; justify-content: center; gap: 22px; height: 235px; margin: -40px -40px 30px; padding: 35px 40px; background: radial-gradient(ellipse at 100% 0%, #c6cdbb 0%, transparent 68%), #e0e5d7; color: var(--green); }
+.care-pathway-visual > span { font: 400 41px/1.15 var(--serif); }
+.care-pathway-visual small { font-size: 10px; letter-spacing: 1.2px; }
+.community-note { border-radius: 5px; }
+@media (max-width: 760px) {
+  .hero { padding-top: 38px; }
+  .hero-image-frame img { height: auto; aspect-ratio: 3/2; }
+  .pathway-photograph, .care-pathway-visual { margin: -30px -25px 25px; }
+  .care-pathway-visual { padding: 30px 25px; }
+  .care-pathway-visual > span { font-size: 36px; }
+  .care-pathway-visual small { font-size: 9px; letter-spacing: .6px; }
+}
+
+/* Equal compact photographic strips on the two current pathways. */
+.pathway-photograph-care img { object-position: center 44%; }
+@media (max-width:760px) { .pathway-photograph img { height:130px; } }

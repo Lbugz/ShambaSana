@@ -49,8 +49,8 @@ async function photoCard(name, card) {
 const cards = [
   { name: 'main', label: 'ANCIENT WISDOM · MODERN WELLNESS', lines: ['Shamba Sana'], subtitle: 'Learning, care & community', url: 'www.shambasana.com', size: 90 },
   { name: 'institute', label: 'SHAMBA SANA INSTITUTE', lines: ['Study Chinese', 'medicine online'], subtitle: 'Courses, tuition & student registration', url: 'institute.shambasana.com', size: 76 },
-  { name: 'foundations-v2', label: 'SHAMBA SANA INSTITUTE · COURSE I', lines: ['Foundations of', 'Traditional Chinese', 'Medicine'], subtitle: 'Semester-by-semester registration', url: 'institute.shambasana.com', size: 76 },
-  { name: 'psyche-v2', label: 'SHAMBA SANA INSTITUTE · COURSE II', lines: ['The Psyche in', 'Traditional Chinese', 'Medicine'], subtitle: 'Spring 2027 · Enrollment review', url: 'institute.shambasana.com', size: 76 },
+  { name: 'foundations-v3', label: 'SHAMBA SANA INSTITUTE · COURSE I', lines: ['Foundations of', 'Chinese Medicine'], subtitle: 'Semester-by-semester registration', url: 'institute.shambasana.com', size: 76 },
+  { name: 'psyche-v3', label: 'SHAMBA SANA INSTITUTE · COURSE II', lines: ['The Psyche in', 'Chinese Medicine'], subtitle: 'Spring 2027 · Enrollment review', url: 'institute.shambasana.com', size: 76 },
   { name: 'advanced', label: 'SHAMBA SANA INSTITUTE · COURSE III', lines: ['Advanced Diagnosis', '& Treatment'], subtitle: 'Summer 2027 · Enrollment review', url: 'institute.shambasana.com', size: 76 },
 ];
 
