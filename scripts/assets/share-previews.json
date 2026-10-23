@@ -1,0 +1,25 @@
+{
+  "width": 1200,
+  "height": 630,
+  "format": "jpeg",
+  "logo": "public/assets/shamba-logo-transparent.png",
+  "fonts": [
+    "Lora",
+    "Plus Jakarta Sans"
+  ],
+  "cards": {
+    "main": {
+      "source": "apps/integrative-care/attached_assets/generated_images/herbal_preparation_ritual.png",
+      "heading": "Ancient wisdom.\nModern wellness.",
+      "label": "LEARNING · CARE · COMMUNITY",
+      "crop": "centre"
+    },
+    "institute": {
+      "source": "public/assets/institute-online-class-dumisani.webp",
+      "heading": "Learn Chinese\nmedicine online.",
+      "label": "THE INSTITUTE",
+      "crop": "centre"
+    }
+  },
+  "note": "Existing approved imagery is cropped and composed without generative changes. Institute instructor identity is preserved."
+}

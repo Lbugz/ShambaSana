@@ -9,7 +9,7 @@ const offerings = {
 };
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 function socialHead({ title, description, url, image, site = 'Shamba Sana Institute' }) {
-  const values = { 'og:type': 'website', 'og:site_name': site, 'og:title': title, 'og:description': description, 'og:url': url, 'og:image': image, 'og:image:width': '1200', 'og:image:height': '630', 'og:image:alt': title, 'twitter:card': 'summary_large_image', 'twitter:title': title, 'twitter:description': description, 'twitter:image': image };
+  const values = { 'og:type': 'website', 'og:site_name': site, 'og:title': title, 'og:description': description, 'og:url': url, 'og:image': image, 'og:image:type': image.endsWith('.jpg') ? 'image/jpeg' : 'image/png', 'og:image:width': '1200', 'og:image:height': '630', 'og:image:alt': title, 'twitter:card': 'summary_large_image', 'twitter:title': title, 'twitter:description': description, 'twitter:image': image };
   return `<title>${escape(title)}</title><meta name="description" content="${escape(description)}"><link rel="canonical" href="${escape(url)}">` + Object.entries(values).map(([key, value]) => `<meta ${key.startsWith('og:') ? 'property' : 'name'}="${key}" content="${escape(value)}">`).join('');
 }
 function registrationPage(html, offering, slug) {
@@ -24,7 +24,7 @@ function registrationPage(html, offering, slug) {
     const resolved = new URL(value, `${origin}/institute/`);
     return `${attribute}="${resolved.pathname}${resolved.search}${resolved.hash}"`;
   });
-  html = html.replace('</head>', `${socialHead({title: `${title} | Shamba Sana Institute`, description, url, image: `${origin}/assets/share-${offering?.image || 'institute'}.png`})}</head>`);
+  html = html.replace('</head>', `${socialHead({title: `${title} | Shamba Sana Institute`, description, url, image: offering?.image ? `${origin}/assets/share-${offering.image}.png` : `${origin}/assets/share-institute-v2.jpg`})}</head>`);
   if (offering) {
     html = html.replace('<body class="registration-body">', `<body class="registration-body registration-direct" data-course="${escape(offering.course)}" data-semester="${offering.semester}" data-format="${offering.format}">`);
     html = html.replace(/<h2 id="registration-course-title">[\s\S]*?<\/h2>/, `<h2 id="registration-course-title">${escape(offering.course)}</h2>`);
