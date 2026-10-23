@@ -35,6 +35,7 @@ export default function BillingDashboard() {
       <div className="flex flex-wrap gap-3"><Button variant="outline" disabled={!query.data.automation.googleConfigured} onClick={connectGoogle}>{query.data.automation.connectedEmail ? "Reconnect Google" : "Connect teaching mailbox"}</Button><Button variant="outline" disabled={processing || query.data.automation.mode === "off"} onClick={process}>{processing ? "Processing…" : "Process queued onboarding"}</Button></div><ErrorMessage error={operationError} />
     </section>}
     {auth.user?.email.toLowerCase() === "langa@liferx.us" && <GoogleDeliveryCheck enrollments={query.data?.enrollments || []} />}
+    {auth.user?.email.toLowerCase() === "langa@liferx.us" && <InstallmentClock />}
     <h2 className="mb-5 mt-10 text-2xl">Institute registrations</h2>
     {query.isLoading && <p>Loading…</p>}
     {query.data?.enrollments.length === 0 && <p>No course registrations yet.</p>}
@@ -46,6 +47,30 @@ export default function BillingDashboard() {
     <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr>{["Offering", "Reference", "Customer", "Amount", "Status"].map(label => <th className="p-3" key={label}>{label}</th>)}</tr></thead>
       <tbody>{query.data?.orders.map(o => <tr className="border-t border-border" key={o.id}><td className="p-3">{o.offering}</td><td className="p-3 break-all">{o.referenceId}</td><td className="p-3">{o.email}</td><td className="p-3">{money(o.amount)}{o.semesterPlan && <><br/><span className="text-xs">{o.semesterPlan} plan</span></>}</td><td className="p-3">{o.semesterPlan === "monthly" && o.status === "paid" ? "Installments started" : o.status}{o.paidAmount !== undefined && <><br/><span className="text-xs">Collected {money(o.paidAmount)} / {money(o.amount)}<br/>Refunded {money(o.refundedAmount || 0)}<br/>{o.planState}</span></>}</td></tr>)}</tbody></table></div>
   </CareLayout>;
+}
+function InstallmentClock() {
+  type State = { run?: { enrollmentId: string }; clock?: { time: number; status: string }; order?: { paidAmount: number; planState: string; payments: number }; schedule?: { status: string; endBehavior: string; end: number }; invoices?: { id: string; status: string; amount: number }[]; charges?: { id: string; status: string; amount: number }[]; subscriptions?: { id: string; status: string }[] };
+  const query = useQuery<State>({ queryKey: ["installment-clock"], queryFn: () => api("/institute/installment-clock") });
+  const [busy, setBusy] = useState(false); const [error, setError] = useState<unknown>();
+  async function act(action: string) {
+    setBusy(true); setError(undefined);
+    try { const result = await api<{ url?: string }>("/institute/installment-clock", "POST", { action, confirmSandbox: true }); if (result.url) window.location.assign(result.url); else await query.refetch(); }
+    catch (error) { setError(error); } finally { setBusy(false); }
+  }
+  const s = query.data;
+  return <section className="my-8 rounded-xl border border-border p-6"><h2 className="text-2xl">Sandbox installment clock</h2>
+    <p className="my-3 text-sm">Dedicated test registration for langa@liferx.us. Uses normal Stripe Checkout and webhooks. Advance through three remaining $500 payments, cancellation, and an extra month. No real payments, emails or next-semester enrollment.</p>
+    {s?.clock && <p className="my-3 text-sm">Clock: {new Date(s.clock.time * 1000).toISOString()} · {s.clock.status}</p>}
+    {s?.order && <p className="my-3">Ledger: {s.order.payments} payments · {money(s.order.paidAmount || 0)} collected · {s.order.planState}</p>}
+    {s?.schedule && <p className="my-3 text-sm">Schedule: {s.schedule.status} · end behavior: {s.schedule.endBehavior} · ends {new Date(s.schedule.end * 1000).toISOString()}</p>}
+    {s?.subscriptions?.map(sub => <p key={sub.id} className="text-sm">Subscription: {sub.status}</p>)}
+    <ul className="my-3 text-sm">{s?.charges?.map(c => <li key={c.id}>{money(c.amount)} · {c.status} · {c.id}</li>)}</ul>
+    <p className="my-3 text-sm">Stripe invoices: {s?.invoices?.length || 0} · successful charges: {s?.charges?.filter(c => c.status === "succeeded").length || 0}</p>
+    <div className="flex flex-wrap gap-3">{!s?.run && <Button disabled={busy || query.isLoading} onClick={() => act("create")}>Create sandbox clock</Button>}
+    {s?.run && !s.schedule && <Button disabled={busy} onClick={() => act("checkout")}>Pay first test installment</Button>}
+    {s?.schedule && <Button disabled={busy || s.clock?.status !== "ready"} onClick={() => act("advance")}>Advance test clock one month</Button>}
+    <Button variant="outline" disabled={busy} onClick={() => query.refetch()}>Refresh installment check</Button></div>
+    <ErrorMessage error={error || query.error} /></section>;
 }
 function GoogleDeliveryCheck({ enrollments }: { enrollments: Enrollment[] }) {
   const [enrollment, setEnrollment] = useState("");
