@@ -34,7 +34,7 @@ export default function BillingDashboard() {
       <p className="my-4 text-sm">Sandbox creates previews and simulated invitations. It sends no emails and changes no Classroom rosters. Test payments never grant real class access.</p>
       <div className="flex flex-wrap gap-3"><Button variant="outline" disabled={!query.data.automation.googleConfigured} onClick={connectGoogle}>{query.data.automation.connectedEmail ? "Reconnect Google" : "Connect teaching mailbox"}</Button><Button variant="outline" disabled={processing || query.data.automation.mode === "off"} onClick={process}>{processing ? "Processing…" : "Process queued onboarding"}</Button></div><ErrorMessage error={operationError} />
     </section>}
-    {auth.user?.email.toLowerCase() === "langa@liferx.us" && <GoogleDeliveryCheck />}
+    {auth.user?.email.toLowerCase() === "langa@liferx.us" && <GoogleDeliveryCheck enrollments={query.data?.enrollments || []} />}
     <h2 className="mb-5 mt-10 text-2xl">Institute registrations</h2>
     {query.isLoading && <p>Loading…</p>}
     {query.data?.enrollments.length === 0 && <p>No course registrations yet.</p>}
@@ -47,9 +47,10 @@ export default function BillingDashboard() {
       <tbody>{query.data?.orders.map(o => <tr className="border-t border-border" key={o.id}><td className="p-3">{o.offering}</td><td className="p-3 break-all">{o.referenceId}</td><td className="p-3">{o.email}</td><td className="p-3">{money(o.amount)}{o.semesterPlan && <><br/><span className="text-xs">{o.semesterPlan} plan</span></>}</td><td className="p-3">{o.semesterPlan === "monthly" && o.status === "paid" ? "Installments started" : o.status}{o.paidAmount !== undefined && <><br/><span className="text-xs">Collected {money(o.paidAmount)} / {money(o.amount)}<br/>Refunded {money(o.refundedAmount || 0)}<br/>{o.planState}</span></>}</td></tr>)}</tbody></table></div>
   </CareLayout>;
 }
-function GoogleDeliveryCheck() {
+function GoogleDeliveryCheck({ enrollments }: { enrollments: Enrollment[] }) {
+  const [enrollment, setEnrollment] = useState("");
   type CheckStatus = { recipient: string; courseId?: string; enabled: boolean; check?: { revision: number; results: Record<string, { status: string; providerId?: string; error?: string }> } };
-  const query = useQuery<CheckStatus>({ queryKey: ["institute-delivery-check"], queryFn: () => api("/institute/delivery-check") });
+  const query = useQuery<CheckStatus>({ queryKey: ["institute-delivery-check", enrollment], queryFn: () => api(`/institute/delivery-check${enrollment ? `?enrollment=${encodeURIComponent(enrollment)}` : ""}`) });
   const [confirm, setConfirm] = useState(false);
   const [checked, setChecked] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -59,18 +60,20 @@ function GoogleDeliveryCheck() {
   const uncertain = next && ["uncertain", "sending"].includes(query.data?.check?.results[next]?.status || "");
   async function sendNext() {
     setBusy(true); setError(undefined);
-    try { await api<CheckStatus>("/institute/delivery-check", "POST", { revision: query.data?.check?.revision ?? null, confirmRealDelivery: confirm, checkedProviderHistory: checked }); await query.refetch(); setChecked(false); }
+    try { await api<CheckStatus>("/institute/delivery-check", "POST", { revision: query.data?.check?.revision ?? null, confirmRealDelivery: confirm, enrollment: enrollment || undefined, checkedProviderHistory: checked }); await query.refetch(); setChecked(false); }
     catch (error) { setError(error); await query.refetch(); }
     finally { setBusy(false); }
   }
   return <section className="my-8 rounded-xl border border-border p-6">
     <h2 className="text-2xl">Google delivery check</h2>
     <p className="my-4 text-sm">This separate check sends four real TEST ONLY emails and one student invitation to langa@liferx.us in the configured test class. It creates no course enrollment or payment. Stripe and normal onboarding remain in sandbox.</p>
+    <label className="my-4 block text-sm">Delivery rehearsal enrollment<select className="mt-2 block w-full rounded border border-border bg-background p-3" value={enrollment} onChange={e => { setEnrollment(e.target.value); setConfirm(false); setChecked(false); }} disabled={busy}><option value="">Generic delivery check</option>{enrollments.filter(e => e.email.toLowerCase() === "langa@liferx.us" && e.status === "paid" && e.sandboxPayment).map(e => <option key={e.id} value={e.id}>{e.name} · {e.id}</option>)}</select></label>
+    <p className="text-sm">Selecting a paid test enrollment sends its generated onboarding email copy. Each enrollment is rehearsed once; existing test-class membership is preserved.</p>
     <p className="my-3 text-sm">Test class ID: {query.data?.courseId || "Not configured — set INSTITUTE_TEST_CLASSROOM_ID in Railway first."}</p>
     <ol className="my-4 space-y-2 text-sm">{steps.map(step => <li key={step}>{step}: {query.data?.check?.results[step]?.status || "not started"}{query.data?.check?.results[step]?.providerId && ` · Google reference: ${query.data.check.results[step].providerId}`}{query.data?.check?.results[step]?.error && <p>{query.data.check.results[step].error}</p>}</li>)}</ol>
     <label className="my-4 flex gap-3 text-sm"><input type="checkbox" checked={confirm} onChange={e => setConfirm(e.target.checked)} />Send real test messages and a test-class invitation only to langa@liferx.us.</label>
     {uncertain && <label className="my-4 flex gap-3 text-sm"><input type="checkbox" checked={checked} onChange={e => setChecked(e.target.checked)} />I checked Google Sent and the test class and confirmed this step needs retrying.</label>}
-    <Button variant="outline" disabled={!query.data?.enabled || !confirm || busy || !next || (!!uncertain && !checked)} onClick={sendNext}>{busy ? "Sending…" : next ? `Send test ${next}` : "Delivery check complete"}</Button>
+    <Button variant="outline" disabled={query.isFetching || !query.data?.enabled || !confirm || busy || !next || (!!uncertain && !checked)} onClick={sendNext}>{busy ? "Sending…" : next ? `Send test ${next}` : "Delivery check complete"}</Button>
     <Button variant="outline" className="ml-3" onClick={() => query.refetch()}>Refresh delivery check</Button>
     <ErrorMessage error={error || query.error} />
   </section>;

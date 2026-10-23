@@ -198,12 +198,12 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     if ((req as Request & { careUser: User }).careUser.email.toLowerCase() !== deliveryCheckRecipient) fail(403, "Only the designated test administrator can run this check.");
   };
   app.get("/api/institute/delivery-check", wrap(async (req, res) => {
-    deliveryCheckStaff(req); res.setHeader("Cache-Control", "no-store"); res.json(await deliveryCheck.status());
+    deliveryCheckStaff(req); res.setHeader("Cache-Control", "no-store"); const input = z.object({ enrollment: z.string().regex(/^SS-[a-f0-9-]{36}$/).optional() }).parse(req.query); res.json(await deliveryCheck.status(input.enrollment));
   }));
   app.post("/api/institute/delivery-check", wrap(async (req, res) => {
     deliveryCheckStaff(req);
-    const input = z.object({ revision: z.number().int().nonnegative().nullable(), confirmRealDelivery: z.literal(true), checkedProviderHistory: z.boolean().optional() }).parse(req.body);
-    res.json(await deliveryCheck.run(input.revision, input.checkedProviderHistory === true));
+    const input = z.object({ revision: z.number().int().nonnegative().nullable(), confirmRealDelivery: z.literal(true), enrollment: z.string().regex(/^SS-[a-f0-9-]{36}$/).optional(), checkedProviderHistory: z.boolean().optional() }).parse(req.body);
+    res.json(await deliveryCheck.run(input.revision, input.checkedProviderHistory === true, input.enrollment));
   }));
 
   app.post("/api/institute/google/connect", wrap(async (req, res) => {
