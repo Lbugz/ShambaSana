@@ -1,3 +1,4 @@
+import { courseDisplayName } from "@shared/course-copy";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Brand } from "@/components/Brand";
@@ -25,7 +26,7 @@ export default function CoursePayment() {
     {(!enrollment || !token) && <p className="mt-5">Open the private payment invitation sent to you by the Institute.</p>}
     {query.isLoading && <p className="mt-5">Loading your course details…</p>}
     <ErrorMessage error={query.error || error} />
-    {d && <section className="mt-8 rounded-xl border border-border p-6"><h2 className="text-2xl">{d.course}</h2>
+    {d && <section className="mt-8 rounded-xl border border-border p-6"><h2 className="text-2xl">{courseDisplayName(d.course)}</h2>
       {d.sandbox && <p role="status" className="my-5 font-semibold">Stripe sandbox — use test payment details only. This does not purchase a real course or grant class access.</p>}
       {d.semester && <p className="mt-4 font-semibold">{d.course === "Foundations of Chinese Medicine" ? `Semester ${d.semester} · ` : ""}{d.learningFormat === "self-paced" ? "Self-paced catch-up" : "Live online"}</p>}
       <p className="my-5 whitespace-pre-wrap text-sm">{d.cohort}</p><p>Tuition: {money(d.amount)} total · {d.paymentPlan === "monthly" ? "4 monthly installments of $500" : "one payment"}</p>

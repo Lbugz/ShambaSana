@@ -1,3 +1,4 @@
+import { courseDisplayName } from "../shared/course-copy";
 import type { Enrollment } from "./billing";
 
 // Each registration/payment concerns one semester. Nothing creates the next order automatically.
@@ -8,6 +9,6 @@ export function semesterPrice(e: Pick<Enrollment, "course" | "semester" | "learn
   return 200_000;
 }
 export function semesterDescription(e: Pick<Enrollment, "course" | "semester" | "learningFormat">) {
-  return `${e.course}${e.semester ? ` — Semester ${e.semester}` : ""}${e.learningFormat ? ` — ${e.learningFormat === "self-paced" ? "Self-paced catch-up" : "Live online"}` : ""}`;
+  return `${courseDisplayName(e.course)}${e.semester ? ` — Semester ${e.semester}` : ""}${e.learningFormat ? ` — ${e.learningFormat === "self-paced" ? "Self-paced catch-up" : "Live online"}` : ""}`;
 }
 export const tuitionText = (cents: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);

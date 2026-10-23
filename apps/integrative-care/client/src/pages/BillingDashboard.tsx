@@ -1,3 +1,4 @@
+import { courseDisplayName } from "@shared/course-copy";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CareLayout, ErrorMessage } from "@/components/CareLayout";
@@ -95,7 +96,7 @@ function Invitation({ enrollment: e, sandbox, refresh }: { enrollment: Enrollmen
     catch (error) { setError(error); } finally { setBusy(false); }
   }
   return <section className="rounded-xl border border-border p-6">
-    <h3 className="text-xl">{e.name} · {e.course}</h3><p className="my-3 text-sm">{e.email} · {e.status}{e.sandboxPayment && " · SANDBOX"}</p><p className="text-xs">Reference: {e.id}</p>
+    <h3 className="text-xl">{e.name} · {courseDisplayName(e.course)}</h3><p className="my-3 text-sm">{e.email} · {e.status}{e.sandboxPayment && " · SANDBOX"}</p><p className="text-xs">Reference: {e.id}</p>
     <p className="my-3 text-sm">{e.semester ? `Semester ${e.semester}` : "Semester not recorded — legacy enrollment needs review"} · {e.learningFormat === "self-paced" ? "Self-paced catch-up" : e.learningFormat === "live-online" ? "Live online" : "Format not recorded"}</p>
     <dl className="my-4 space-y-2 text-sm"><div><dt className="font-semibold">Requested term</dt><dd>{e.term || "Not recorded — confirm with student"}</dd></div><div><dt className="font-semibold">Foundations status (student reported)</dt><dd>{e.foundationsStatus || "Not recorded"}</dd></div>{e.psycheStatus && <div><dt className="font-semibold">Psyche status (student reported)</dt><dd>{e.psycheStatus}</dd></div>}<div><dt className="font-semibold">Earlier cohort(s)</dt><dd>{e.priorCohort || "Not provided"}</dd></div>{e.message && <div><dt className="font-semibold">Additional information</dt><dd className="whitespace-pre-wrap">{e.message}</dd></div>}</dl>
     {["review", "payment-ready"].includes(e.status) && <>
