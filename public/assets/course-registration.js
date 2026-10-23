@@ -1,5 +1,5 @@
 // Keep submitted course values stable; expand visible labels.
-const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chinese medicine/gi, 'Traditional Chinese Medicine');
+const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chinese medicine/gi, 'Traditional Chinese Medicine').replace('Foundations of Traditional Chinese Medicine', 'Foundations of Chinese Medicine').replace('The Psyche in Traditional Chinese Medicine', 'The Psyche in Chinese Medicine');
 (() => {
   const form = document.querySelector('#course-registration-form');
   if (!form) return;
