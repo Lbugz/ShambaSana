@@ -33,16 +33,16 @@ export class InstituteOnboarding {
     const intro = `Hello ${e.name},\n\n${semesterDescription(e)} — ${e.term || "your requested term"}\nReference: ${e.id}\n\n`;
     const footer = `\n\nQuestions? Reply to ${instituteEmail}.\nShamba Sana Institute`;
     const message = (subject: string, text: string): Payload => ({ to: e.email, subject, text: intro + text + footer });
-    await this.queue(e, "receipt", 1, message("We received your course registration", "Thank you for registering. We will review your prerequisites and contact you with confirmed course details. This receipt does not confirm admission or reserve a place. No payment has been collected."));
+    await this.queue(e, "receipt", 1, message("We received your course registration", "Thank you for registering. Your registration is saved. Check your payment page or Stripe receipt for payment status. This registration receipt alone does not confirm payment, admission or class access."), e.sandboxPayment === true || !!e.paymentPlan);
     if (e.status === "payment-ready" && e.invitationVersion) {
       const url = invitationUrl(e);
       const order = e.purchaseId ? await this.store.get<Purchase>("purchase", e.purchaseId) : undefined;
-      if (url && order) await this.queue(e, "payment-invitation", e.invitationVersion, message("Your semester payment invitation", `Review your confirmed semester details and student policies using your private invitation:\n${url}\n\nTuition for this invitation is ${tuitionText(order.amount)} USD, paid in one payment.\n${e.cohort}\n\nThis invitation covers only the enrollment identified above. Later semesters require a separate confirmation and payment; no automatic renewal or charge is authorized.\n\nDo not share this private link. Payment does not replace prerequisite review.`), e.sandboxPayment === true);
+      if (url && order) await this.queue(e, "payment-invitation", e.invitationVersion, message("Your semester payment invitation", `Review your semester details and student policies using your private payment page:\n${url}\n\nTuition is ${tuitionText(order.amount)} USD total. ${order.semesterPlan === "monthly" ? "Sandbox plan: $500 at checkout, then 3 automatic monthly payments of $500. Charges stop after those installments; late-start payments may extend beyond class dates." : "Paid in one payment."}\n${e.cohort}\n\nLater semesters require a separate enrollment and payment choice; this plan does not renew.\n\nDo not share this private link. Payment does not replace prerequisite review.`), e.sandboxPayment === true);
     }
     const purchase = e.purchaseId ? await this.store.get<Purchase>("purchase", e.purchaseId) : undefined;
     const sandbox = purchase?.livemode !== true;
     if (e.status === "paid") {
-      if (purchase) await this.queue(e, "welcome", 1, message("Payment confirmed — your Institute next steps", `${sandbox ? "SANDBOX SIMULATION — no real enrollment or class access is granted.\n\n" : ""}Your ${tuitionText(purchase.amount)} USD payment is confirmed for the enrollment identified above. Later semesters require a separate confirmation and payment; you are not automatically charged.\n\n${e.cohort}\n\nKeep your receipt and review your course documents:\n${e.policyUrl}\n\nClass access follows verification of the applicable prerequisites. We will send separate joining instructions when your access is ready.${e.orientationUrl ? `\n\nOrientation information: ${e.orientationUrl}` : ""}`), sandbox);
+      if (purchase) await this.queue(e, "welcome", 1, message("Payment confirmed — your Institute next steps", `${sandbox ? "SANDBOX SIMULATION — no real enrollment or class access is granted.\n\n" : ""}${purchase.semesterPlan === "monthly" ? "Your first $500 installment is confirmed. Three further automatic monthly payments of $500 are scheduled, for $2,000 total. Charges stop after those installments. This is not confirmation that the full tuition has been paid." : `Your ${tuitionText(purchase.amount)} USD payment is confirmed.`} Later semesters require a new enrollment and payment choice.\n\n${e.cohort}\n\nKeep your receipt and review your course documents:\n${e.policyUrl}\n\nClass access follows verification of the applicable prerequisites. We will send separate joining instructions when your access is ready.${e.orientationUrl ? `\n\nOrientation information: ${e.orientationUrl}` : ""}`), sandbox);
       if (e.accessApprovedAt && e.classroomCourseId) {
         await this.queue(e, "classroom", e.accessVersion || 1, { to: e.email, subject: "Classroom invitation", text: "", courseId: e.classroomCourseId }, sandbox);
         const jobs = await this.store.list<OnboardingJob>("institute-job");
@@ -51,7 +51,7 @@ export class InstituteOnboarding {
         }
       }
     }
-    if (e.status === "refunded") await this.queue(e, "refund", 1, message("Your course payment was refunded", `${sandbox ? "SANDBOX SIMULATION\n\n" : ""}Your full tuition refund has been recorded. Contact the Institute about your enrollment. If you already joined Classroom, staff will review your access separately.`), sandbox);
+    if (e.status === "refunded") await this.queue(e, "refund", 1, message("Your course payment was refunded", `${sandbox ? "SANDBOX SIMULATION\n\n" : ""}A refund of all payments collected for this enrollment has been recorded. Any remaining semester-plan collections are stopped. Contact the Institute about your enrollment; staff review any existing Classroom access separately.`), sandbox);
   }
   async tick() {
     if (this.running || automationMode() === "off") return;

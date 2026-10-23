@@ -9,6 +9,10 @@ export type Purchase = {
   currency: "usd"; status: "pending" | "paid" | "refunded";
   checkoutId?: string; paymentIntent?: string; generation: number;
   createdAt: string; updatedAt: string; livemode?: boolean;
+  semesterPlan?: "full" | "monthly"; directCheckout?: boolean;
+  paidAmount?: number; refundedAmount?: number; scheduleId?: string;
+  planState?: "pending" | "active" | "complete" | "past-due" | "cancelled";
+  payments?: Record<string, { amount: number; refunded: number; intent: string }>;
 };
 export const billingMode = () => process.env.BILLING_MODE === "live" ? "live" : "sandbox";
 export const billingConfigured = () => (process.env.NODE_ENV !== "production" || process.env.BILLING_ENABLED === "true") && !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET && process.env.APP_BASE_URL) && (process.env.NODE_ENV !== "production" || process.env.STRIPE_SECRET_KEY!.startsWith(billingMode() === "live" ? "sk_live_" : "sk_test_"));
@@ -19,6 +23,7 @@ const wrap = (fn: (req: Request, res: Response) => Promise<unknown>) =>
   (req: Request, res: Response, next: NextFunction) => { fn(req, res).catch(next); };
 
 export class Billing {
+  instituteEvent?: (event: { id: string; type: string; data: { object: Record<string, any> } }) => Promise<boolean>;
   constructor(private store: CareStore, private apply: (purchase: Purchase) => Promise<void>) {}
   async order(offering: Purchase["offering"], referenceId: string, email: string, description: string, amount: number) {
     const id = digest(`${offering}:${referenceId}`);
@@ -89,10 +94,11 @@ export class Billing {
         return actual.length === expected.length && timingSafeEqual(actual, expected);
       })) fail(400, "Invalid payment signature.");
       const event = z.object({ id: z.string().min(1).max(255), type: z.string(), data: z.object({ object: z.record(z.any()) }) }).parse(req.body);
-      const relevant = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "charge.refunded"];
-      if (!relevant.includes(event.type)) return res.json({ received: true });
       const object = event.data.object;
       if (process.env.NODE_ENV === "production" && (req.body.livemode !== (billingMode() === "live") || (typeof object.livemode === "boolean" && object.livemode !== req.body.livemode))) fail(400, "Payment environment mismatch.");
+      if (this.instituteEvent && await this.instituteEvent(event)) return res.json({ received: true });
+      const relevant = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "charge.refunded"];
+      if (!relevant.includes(event.type)) return res.json({ received: true });
       let id = object.metadata?.orderId;
       if (!id && typeof object.metadata?.caseId === "string") id = digest(`care:${object.metadata.caseId}`);
       if (!id && event.type === "charge.refunded" && typeof object.payment_intent === "string") {
@@ -138,7 +144,7 @@ export class Billing {
 }
 
 export const courseNames = ["Foundations of Chinese Medicine", "The Psyche in Chinese Medicine", "Advanced Diagnosis & Treatment"] as const;
-export type Enrollment = { id: string; revision: number; course: string; semester?: 1 | 2 | 3; learningFormat?: "live-online" | "self-paced"; tuitionCents?: number; name: string; email: string; phone: string; timezone: string; message: string; consent: true; createdAt: string; term?: string; foundationsStatus?: string; psycheStatus?: string; priorCohort?: string; prerequisiteAcknowledgement?: true; prerequisitesReviewedAt?: string; status: "review" | "payment-ready" | "paid" | "refunded"; purchaseId?: string; accessHash?: string; policyUrl?: string; cohort?: string; policyAcceptedAt?: string; automationVersion?: number; invitationVersion?: number; sandboxPayment?: boolean; classroomCourseId?: string; orientationUrl?: string; accessApprovedAt?: string; accessVersion?: number };
+export type Enrollment = { paymentPlan?: "full" | "monthly"; paymentTermsVersion?: string; paymentConsentAt?: string; id: string; revision: number; course: string; semester?: 1 | 2 | 3; learningFormat?: "live-online" | "self-paced"; tuitionCents?: number; name: string; email: string; phone: string; timezone: string; message: string; consent: true; createdAt: string; term?: string; foundationsStatus?: string; psycheStatus?: string; priorCohort?: string; prerequisiteAcknowledgement?: true; prerequisitesReviewedAt?: string; status: "review" | "payment-ready" | "paid" | "refunded"; purchaseId?: string; accessHash?: string; policyUrl?: string; cohort?: string; policyAcceptedAt?: string; automationVersion?: number; invitationVersion?: number; sandboxPayment?: boolean; classroomCourseId?: string; orientationUrl?: string; accessApprovedAt?: string; accessVersion?: number };
 export function verifyServiceKey(req: Request) {
   const secret = process.env.INSTITUTE_SERVICE_TOKEN;
   const supplied = (req.get("authorization") || "").replace(/^Bearer /, "");
