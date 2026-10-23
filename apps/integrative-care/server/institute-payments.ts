@@ -1,9 +1,11 @@
 import { Billing, billingConfigured, billingMode, type Enrollment, type Purchase } from "./billing";
 import { ConflictError, type CareStore } from "./care-store";
 import { semesterPrice, semesterDescription } from "./institute-offerings";
+import { stripeKey, stripeWebhookSecret, instituteLaunchDetails, type PaymentMode } from "./payment-config";
 
 export type SemesterPlan = "full" | "monthly";
 export const paymentTermsVersion = "sandbox-semester-4x500-v1";
+export const currentPaymentTermsVersion = () => billingMode("institute") === "live" ? instituteLaunchDetails().termsVersion : paymentTermsVersion;
 const fail = (status: number, message: string): never => { throw Object.assign(new Error(message), { status, expose: true }); };
 const stamp = () => new Date().toISOString();
 // Preserve the billing day, clamping dates such as January 31 to February's end.
@@ -16,23 +18,23 @@ export function followingMonth(timestamp: number) {
   return Math.floor(date.getTime() / 1000);
 }
 
-// The draft plan is sandbox-only. Live activation needs a separate implementation
-// review once tuition, payment dates, withdrawal and collection terms are final.
+// Production support is prepared, but live checkout requires independent
+// Institute credentials, approved course details and an explicit collection gate.
 export class InstitutePayments {
   constructor(private store: CareStore, private billing: Billing, private apply: (purchase: Purchase) => Promise<void>) {}
-  private ready() {
-    if (billingMode() !== "sandbox" || !process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_") || !billingConfigured()) fail(503, "Semester checkout is available in Stripe sandbox only.");
+  private ready(mode: PaymentMode = billingMode("institute"), collecting = true) {
+    if (!stripeKey("institute", mode) || !stripeWebhookSecret("institute", mode) || !process.env.APP_BASE_URL || (collecting && (!billingConfigured("institute") || mode !== billingMode("institute")))) fail(503, "Institute payments are not configured or live collection is disabled.");
   }
-  private async stripe(path: string, body?: URLSearchParams, key?: string) {
-    this.ready();
+  private async stripe(path: string, body?: URLSearchParams, key?: string, mode: PaymentMode = billingMode("institute"), collecting = true) {
+    this.ready(mode, collecting);
     const response = await fetch(`https://api.stripe.com/v1/${path}`, {
       method: body ? "POST" : "GET", body,
-      headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`, "Stripe-Version": "2024-06-20", ...(body ? { "Content-Type": "application/x-www-form-urlencoded" } : {}), ...(key ? { "Idempotency-Key": key } : {}) },
+      headers: { Authorization: `Bearer ${stripeKey("institute", mode)}`, "Stripe-Version": "2024-06-20", ...(body ? { "Content-Type": "application/x-www-form-urlencoded" } : {}), ...(key ? { "Idempotency-Key": key } : {}) },
       signal: AbortSignal.timeout(15000),
     });
     if (!response.ok) fail(502, "Stripe checkout needs attention. Your registration is saved; use your private payment page to retry.");
     const result = await response.json();
-    if (result.livemode === true) fail(502, "A live payment response was rejected.");
+    if (typeof result.livemode === "boolean" && result.livemode !== (mode === "live")) fail(502, "A payment response from the wrong environment was rejected.");
     return result;
   }
   async order(e: Enrollment, plan: SemesterPlan) {
@@ -40,7 +42,7 @@ export class InstitutePayments {
     const total = semesterPrice(e);
     if (total !== 200000) fail(409, "Tuition needs confirmation before checkout.");
     let order = await this.billing.order("institute", e.id, e.email, `Shamba Sana Institute — ${semesterDescription(e)}`, total!);
-    if (order.amount !== total || order.livemode) fail(409, "The payment record needs review.");
+    if (order.amount !== total || (order.livemode === true) !== (billingMode("institute") === "live")) fail(409, "The payment record needs review; sandbox orders cannot become live orders.");
     if (!order.directCheckout) {
       if (order.checkoutId || order.status !== "pending") fail(409, "An earlier checkout needs review.");
       const revision = order.revision;
@@ -54,7 +56,7 @@ export class InstitutePayments {
   async checkout(id: string, returnPath: string) {
     this.ready();
     let order = await this.store.get<Purchase>("purchase", id);
-    if (!order?.directCheckout || order.status !== "pending" || order.livemode) fail(409, "This payment does not need a new checkout.");
+    if (!order?.directCheckout || order.status !== "pending" || (order.livemode === true) !== (billingMode("institute") === "live")) fail(409, "This payment does not need a new checkout in this environment.");
     if (order!.checkoutId) {
       const old = await this.stripe(`checkout/sessions/${encodeURIComponent(order!.checkoutId)}`);
       if (old.status === "open" && old.url?.startsWith("https://checkout.stripe.com/")) return { url: old.url };
@@ -75,7 +77,9 @@ export class InstitutePayments {
       "custom_text[submit][message]": monthly ? "SANDBOX PLAN: $500 today, then 3 automatic monthly payments of $500. $2,000 total. Charges stop after those installments. Late-start payments may extend beyond class dates. No next-semester renewal." : "SANDBOX: $2,000 tuition for this semester only. No automatic next-semester charge.",
     });
     if (monthly) body.set("payment_intent_data[setup_future_usage]", "off_session");
+    if (order!.livemode) body.set("custom_text[submit][message]", monthly ? "$500 today, then 3 automatic monthly payments of $500. $2,000 total for this semester. Charges stop after those installments. Late-start payments may extend beyond class dates. No next-semester renewal." : "$2,000 tuition for this semester only. No automatic next-semester charge.");
     if (order!.sandboxClock) {
+      if (order!.livemode || billingMode("institute") !== "sandbox") fail(409, "Test clocks cannot be used for live payment.");
       const customer = await this.stripe(`customers/${encodeURIComponent(order!.sandboxClock.customer)}`);
       if (customer.test_clock !== order!.sandboxClock.id || customer.email !== "langa@liferx.us") fail(409, "Test clock customer mismatch.");
       body.delete("customer_creation"); body.delete("customer_email");
@@ -90,9 +94,10 @@ export class InstitutePayments {
     return { url: session.url };
   }
   private async schedule(order: Purchase, intent: any) {
+    const stripe = (path: string, body?: URLSearchParams, key?: string) => this.stripe(path, body, key, order.livemode ? "live" : "sandbox", false);
     if (order.scheduleId) return order.scheduleId;
     if (typeof intent.customer !== "string" || typeof intent.payment_method !== "string") fail(409, "The saved payment method needs reconciliation.");
-    const previous = await this.stripe(`subscription_schedules?customer=${encodeURIComponent(intent.customer)}&limit=100`);
+    const previous = await stripe(`subscription_schedules?customer=${encodeURIComponent(intent.customer)}&limit=100`);
     const existing = previous.data?.find((item: any) => item.metadata?.orderId === order.id);
     if (existing) {
       if (!["active", "not_started"].includes(existing.status) || existing.end_behavior !== "cancel") fail(409, "An earlier payment schedule needs staff reconciliation.");
@@ -106,15 +111,16 @@ export class InstitutePayments {
       "phases[0][items][0][price_data][recurring][interval]": "month", "phases[0][items][0][quantity]": "1",
       "phases[0][iterations]": "3", "phases[0][proration_behavior]": "none", "phases[0][metadata][orderId]": order.id,
     });
-    const product = await this.stripe("products", new URLSearchParams({ name: `${order.description} — remaining semester installments`, "metadata[orderId]": order.id }), `institute-product-${order.id}`);
+    const product = await stripe("products", new URLSearchParams({ name: `${order.description} — remaining semester installments`, "metadata[orderId]": order.id }), `institute-product-${order.id}`);
     body.set("phases[0][items][0][price_data][product]", product.id);
-    const schedule = await this.stripe("subscription_schedules", body, `institute-schedule-${order.id}`);
+    const schedule = await stripe("subscription_schedules", body, `institute-schedule-${order.id}`);
     if (!schedule.id || schedule.end_behavior !== "cancel" || schedule.phases?.length !== 1) fail(502, "The finite payment schedule could not be confirmed.");
     return schedule.id as string;
   }
   // Restricted staff rehearsal: real Stripe sandbox objects and normal Checkout /
   // webhook processing. The clock can never be supplied by a public registration.
   async clockStatus() {
+    if (billingMode("institute") !== "sandbox") fail(409, "Test clocks require Institute sandbox mode.");
     this.ready();
     const run = await this.store.get<{ id: string; customer: string; orderId: string; enrollmentId: string }>("installment-clock", "v1");
     if (!run) return { enabled: true };
@@ -160,8 +166,9 @@ export class InstitutePayments {
     await this.stripe(`test_helpers/test_clocks/${state.run!.id}/advance`, new URLSearchParams({ frozen_time: String(target) }));
     return this.clockStatus();
   }
-  async event(event: { id: string; type: string; data: { object: Record<string, any> } }): Promise<boolean> {
-    if (billingMode() !== "sandbox") return false;
+  async event(event: { id: string; type: string; livemode?: boolean; data: { object: Record<string, any> } }): Promise<boolean> {
+    const mode: PaymentMode = event.livemode === true ? "live" : "sandbox";
+    const stripe = (path: string, body?: URLSearchParams, key?: string) => this.stripe(path, body, key, mode, false);
     const types = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "charge.refunded", "invoice.paid", "invoice.payment_failed", "customer.subscription.deleted", "subscription_schedule.canceled", "subscription_schedule.completed", "subscription_schedule.aborted"];
     if (!types.includes(event.type)) return false;
     let object = event.data.object;
@@ -169,37 +176,42 @@ export class InstitutePayments {
     if (!id && event.type.startsWith("invoice.")) {
       const subscriptionId = object.subscription || object.parent?.subscription_details?.subscription;
       if (typeof subscriptionId !== "string") return false;
-      const sub = await this.stripe(`subscriptions/${encodeURIComponent(subscriptionId)}`);
+      const sub = await stripe(`subscriptions/${encodeURIComponent(subscriptionId)}`);
       id = sub.metadata?.orderId;
     }
-    if (!id && event.type === "charge.refunded" && typeof object.payment_intent === "string") id = (await this.stripe(`payment_intents/${encodeURIComponent(object.payment_intent)}`)).metadata?.orderId;
+    if (!id && event.type === "charge.refunded" && typeof object.payment_intent === "string") id = (await stripe(`payment_intents/${encodeURIComponent(object.payment_intent)}`)).metadata?.orderId;
     if (typeof id !== "string") return false;
     const original = await this.store.get<Purchase>("purchase", id);
     if (!original?.directCheckout) return false;
-    this.ready();
-    if (original.livemode || object.livemode === true) fail(400, "Payment environment mismatch.");
+    this.ready(mode, false);
+    if ((original.livemode === true) !== (mode === "live") || (typeof object.livemode === "boolean" && object.livemode !== (mode === "live"))) fail(400, "Payment environment mismatch.");
     let intent: any; let scheduleId = original.scheduleId;
     if (event.type.startsWith("checkout.")) {
-      object = await this.stripe(`checkout/sessions/${encodeURIComponent(object.id)}`);
+      object = await stripe(`checkout/sessions/${encodeURIComponent(object.id)}`);
       if (object.payment_status !== "paid") return true;
       const expected = original.semesterPlan === "monthly" ? 50000 : original.amount;
       if (object.id !== original.checkoutId || object.amount_total !== expected || object.currency !== "usd" || typeof object.payment_intent !== "string") fail(400, "Checkout does not match the semester order.");
-      intent = await this.stripe(`payment_intents/${encodeURIComponent(object.payment_intent)}?expand[]=latest_charge`);
+      intent = await stripe(`payment_intents/${encodeURIComponent(object.payment_intent)}?expand[]=latest_charge`);
       if (intent.status !== "succeeded" || intent.amount_received !== expected || intent.metadata?.orderId !== id) fail(409, "Payment confirmation needs reconciliation.");
       intent.refundedAmount = typeof intent.latest_charge === "object" ? intent.latest_charge.amount_refunded || 0 : 0;
       if (original.semesterPlan === "monthly" && original.status !== "refunded" && !intent.refundedAmount) scheduleId = await this.schedule(original, intent);
     } else if (event.type.startsWith("invoice.")) {
-      object = await this.stripe(`invoices/${encodeURIComponent(object.id)}`);
+      object = await stripe(`invoices/${encodeURIComponent(object.id)}`);
       if (object.currency !== "usd" || object.total !== 50000 || typeof object.subscription !== "string") fail(409, "Installment invoice needs reconciliation.");
-      const sub = await this.stripe(`subscriptions/${encodeURIComponent(object.subscription)}`);
-      if (sub.schedule !== original.scheduleId || sub.metadata?.orderId !== id) fail(409, "Installment schedule mismatch.");
+      const sub = await stripe(`subscriptions/${encodeURIComponent(object.subscription)}`);
+      let matchesSchedule = sub.schedule === original.scheduleId;
+      if (!matchesSchedule && original.scheduleId && sub.schedule === null) {
+        const finished = await stripe(`subscription_schedules/${encodeURIComponent(original.scheduleId)}`);
+        matchesSchedule = finished.subscription === sub.id && finished.metadata?.orderId === id && ["completed", "canceled"].includes(finished.status);
+      }
+      if (!matchesSchedule || sub.metadata?.orderId !== id) fail(409, "Installment schedule mismatch.");
     } else if (event.type === "charge.refunded") {
-      object = await this.stripe(`charges/${encodeURIComponent(object.id)}`);
+      object = await stripe(`charges/${encodeURIComponent(object.id)}`);
       // Stop future collections as soon as a refund is recorded. Staff decide
       // whether the student continues; a refund never silently creates a new plan.
       if (original.scheduleId && object.amount_refunded > 0) {
-        const scheduled = await this.stripe(`subscription_schedules/${encodeURIComponent(original.scheduleId)}`);
-        if (["active", "not_started"].includes(scheduled.status)) await this.stripe(`subscription_schedules/${encodeURIComponent(original.scheduleId)}/cancel`, new URLSearchParams({ invoice_now: "false", prorate: "false" }), `institute-refund-stop-${original.id}`);
+        const scheduled = await stripe(`subscription_schedules/${encodeURIComponent(original.scheduleId)}`);
+        if (["active", "not_started"].includes(scheduled.status)) await stripe(`subscription_schedules/${encodeURIComponent(original.scheduleId)}/cancel`, new URLSearchParams({ invoice_now: "false", prorate: "false" }), `institute-refund-stop-${original.id}`);
       }
     }
     for (let attempt = 0; attempt < 5; attempt++) {

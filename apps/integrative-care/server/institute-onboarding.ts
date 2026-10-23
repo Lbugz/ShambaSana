@@ -7,7 +7,9 @@ import { semesterDescription, tuitionText } from "./institute-offerings";
 type Purpose = "receipt" | "payment-invitation" | "welcome" | "classroom" | "class-access" | "refund";
 export type OnboardingJob = { id: string; revision: number; enrollmentId: string; purpose: Purpose; version: number; status: "queued" | "sending" | "sent" | "simulated" | "failed" | "uncertain" | "cancelled"; attempts: number; createdAt: string; nextAttemptAt: string; claimedAt?: string; completedAt?: string; providerId?: string; error?: string; encryptedPayload: string; sandbox: boolean };
 type Payload = { to: string; subject: string; text: string; courseId?: string };
-export const automationMode = () => process.env.INSTITUTE_AUTOMATION_MODE === "live" ? "live" : process.env.INSTITUTE_AUTOMATION_MODE === "sandbox" ? "sandbox" : "off";
+export const automationMode = () => process.env.INSTITUTE_AUTOMATION_MODE === "live"
+  ? process.env.INSTITUTE_LIVE_ONBOARDING_ENABLED === "true" && process.env.INSTITUTE_GOOGLE_PRODUCTION_READY === "true" ? "live" : "off"
+  : process.env.INSTITUTE_AUTOMATION_MODE === "sandbox" ? "sandbox" : "off";
 export function invitationToken(id: string, version: number) {
   return createHmac("sha256", process.env.INSTITUTE_SERVICE_TOKEN!).update(`institute-invitation:${id}:${version}`).digest("hex");
 }
@@ -33,11 +35,11 @@ export class InstituteOnboarding {
     const intro = `Hello ${e.name},\n\n${semesterDescription(e)} — ${e.term || "your requested term"}\nReference: ${e.id}\n\n`;
     const footer = `\n\nQuestions? Reply to ${instituteEmail}.\nShamba Sana Institute`;
     const message = (subject: string, text: string): Payload => ({ to: e.email, subject, text: intro + text + footer });
-    await this.queue(e, "receipt", 1, message("We received your course registration", "Thank you for registering. Your registration is saved. Check your payment page or Stripe receipt for payment status. This registration receipt alone does not confirm payment, admission or class access."), e.sandboxPayment === true || !!e.paymentPlan);
+    await this.queue(e, "receipt", 1, message("We received your course registration", "Thank you for registering. Your registration is saved. Check your payment page or Stripe receipt for payment status. This registration receipt alone does not confirm payment, admission or class access."), e.sandboxPayment !== false);
     if (e.status === "payment-ready" && e.invitationVersion) {
       const url = invitationUrl(e);
       const order = e.purchaseId ? await this.store.get<Purchase>("purchase", e.purchaseId) : undefined;
-      if (url && order) await this.queue(e, "payment-invitation", e.invitationVersion, message("Your semester payment invitation", `Review your semester details and student policies using your private payment page:\n${url}\n\nTuition is ${tuitionText(order.amount)} USD total. ${order.semesterPlan === "monthly" ? "Sandbox plan: $500 at checkout, then 3 automatic monthly payments of $500. Charges stop after those installments; late-start payments may extend beyond class dates." : "Paid in one payment."}\n${e.cohort}\n\nLater semesters require a separate enrollment and payment choice; this plan does not renew.\n\nDo not share this private link. Payment does not replace prerequisite review.`), e.sandboxPayment === true);
+      if (url && order) await this.queue(e, "payment-invitation", e.invitationVersion, message("Your semester payment invitation", `Review your semester details and student policies using your private payment page:\n${url}\n\nTuition is ${tuitionText(order.amount)} USD total. ${order.semesterPlan === "monthly" ? (order.livemode ? "" : "Sandbox plan: ") + "$500 at checkout, then 3 automatic monthly payments of $500. Charges stop after those installments; late-start payments may extend beyond class dates." : "Paid in one payment."}\n${e.cohort}\n\nLater semesters require a separate enrollment and payment choice; this plan does not renew.\n\nDo not share this private link. Payment does not replace prerequisite review.`), e.sandboxPayment === true);
     }
     const purchase = e.purchaseId ? await this.store.get<Purchase>("purchase", e.purchaseId) : undefined;
     const sandbox = purchase?.livemode !== true;
@@ -65,6 +67,9 @@ export class InstituteOnboarding {
           continue;
         }
         if (job.status !== "queued" || Date.parse(job.nextAttemptAt) > Date.now()) continue;
+        // Hold live jobs until explicitly enabled; never consume them as sandbox
+        // simulations. Existing sandbox jobs remain sandbox permanently.
+        if (!job.sandbox && automationMode() !== "live") continue;
         const e = await this.store.get<Enrollment>("enrollment", job.enrollmentId);
         if (!e) { await this.update(job, { status: "cancelled" }); continue; }
         if ((e.status === "refunded" && job.purpose !== "refund" && job.purpose !== "receipt") || (job.purpose === "payment-invitation" && (e.status !== "payment-ready" || e.invitationVersion !== job.version)) || (["classroom", "class-access"].includes(job.purpose) && (e.status !== "paid" || !e.accessApprovedAt || e.accessVersion !== job.version))) {
@@ -75,6 +80,7 @@ export class InstituteOnboarding {
         try {
           if (automationMode() === "sandbox" || job.sandbox) { await this.update(claimed, { status: "simulated", completedAt: new Date().toISOString() }); continue; }
           const payload = unseal<Payload>(job.encryptedPayload);
+          if (!job.sandbox && job.purpose === "classroom" && payload.courseId === process.env.INSTITUTE_TEST_CLASSROOM_ID) throw new GoogleFailure(409);
           if (payload.to.endsWith(".invalid")) { await this.update(claimed, { status: "cancelled", error: "Synthetic recipient — delivery suppressed." }); continue; }
           const id = job.purpose === "classroom" ? await this.google.invite(payload.courseId!, payload.to) : await this.google.send(payload, job.id);
           await this.update(claimed, { status: "sent", providerId: id, completedAt: new Date().toISOString(), error: undefined });

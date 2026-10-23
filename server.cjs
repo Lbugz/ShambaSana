@@ -105,7 +105,7 @@ async function handleRegistration(req, res) {
       || registration.name.length < 2 || registration.name.length > 120
       || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registration.email) || registration.email.length > 254
       || registration.phone.length > 40 || registration.message.length > 1000 || registration.timezone.length > 80
-      || (registration.paymentPlan && (!['full', 'monthly'].includes(registration.paymentPlan) || registration.course !== 'Foundations of Chinese Medicine' || !registration.paymentConsent || registration.paymentTermsVersion !== 'sandbox-semester-4x500-v1'))
+      || (registration.paymentPlan && (!['full', 'monthly'].includes(registration.paymentPlan) || registration.course !== 'Foundations of Chinese Medicine' || !registration.paymentConsent || typeof registration.paymentTermsVersion !== 'string' || !registration.paymentTermsVersion.length || registration.paymentTermsVersion.length > 120))
       || !registration.consent) {
     return sendJson(res, 400, { message: 'Please check the form fields and consent, then try again.' });
   }
@@ -139,8 +139,16 @@ http.createServer(async (req, res) => {
 
   if (url === '/api/course-registration/status') {
     if (!['GET', 'HEAD'].includes(req.method)) return sendJson(res, 405, { message: 'Method not allowed.' });
-    const { open, courses } = enrollmentSettings();
-    return sendJson(res, 200, { open, courses });
+    const { open, courses, webhook } = enrollmentSettings();
+    if (!open) return sendJson(res, 200, { open: false, courses: [] });
+    try {
+      const endpoint = new URL('/api/institute/registration-settings', webhook.origin);
+      const response = await fetch(endpoint, { signal: AbortSignal.timeout(5000) });
+      if (!response.ok) throw new Error('Registration settings unavailable');
+      const payment = await response.json();
+      if (!['sandbox', 'live'].includes(payment.paymentMode) || typeof payment.paymentTermsVersion !== 'string') throw new Error('Invalid registration settings');
+      return sendJson(res, 200, { open, courses, paymentMode: payment.paymentMode, paymentTermsVersion: payment.paymentTermsVersion, liveCheckoutOpen: payment.liveCheckoutOpen === true });
+    } catch { return sendJson(res, 503, { open: false, courses: [], message: 'Registration availability could not be confirmed.' }); }
   }
 
   if (url === '/api/course-registration') {

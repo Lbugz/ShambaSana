@@ -163,7 +163,7 @@ export async function registerRoutes(
     res.setHeader("X-Content-Type-Options", "nosniff");
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
-      !["/stripe/webhook", "/billing/webhook", "/institute/registrations"].includes(req.path)
+      !["/stripe/webhook", "/billing/webhook", "/institute/billing/webhook/test", "/institute/billing/webhook/live", "/institute/registrations"].includes(req.path)
     ) {
       const expected = process.env.APP_BASE_URL
         ? new URL(process.env.APP_BASE_URL).origin
