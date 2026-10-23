@@ -10,6 +10,7 @@ export type Purchase = {
   checkoutId?: string; paymentIntent?: string; generation: number;
   createdAt: string; updatedAt: string; livemode?: boolean;
   semesterPlan?: "full" | "monthly"; directCheckout?: boolean;
+  sandboxClock?: { id: string; customer: string };
   paidAmount?: number; refundedAmount?: number; scheduleId?: string;
   planState?: "pending" | "active" | "complete" | "past-due" | "cancelled";
   payments?: Record<string, { amount: number; refunded: number; intent: string }>;

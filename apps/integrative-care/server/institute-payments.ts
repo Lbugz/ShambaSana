@@ -63,7 +63,7 @@ export class InstitutePayments {
       order = { ...order!, revision: revision + 1, generation: order!.generation + 1, checkoutId: undefined, updatedAt: stamp() };
       await this.store.put("purchase", id, order, revision);
     }
-    if (!returnPath.startsWith("/#/course-payment?")) fail(400, "Invalid return page.");
+    if (!returnPath.startsWith("/#/course-payment?") && !(order!.sandboxClock && returnPath === "/#/admin/billing?clock=returned")) fail(400, "Invalid return page.");
     const monthly = order!.semesterPlan === "monthly";
     const amount = monthly ? 50000 : order!.amount;
     const base = new URL(process.env.APP_BASE_URL!).origin;
@@ -75,6 +75,12 @@ export class InstitutePayments {
       "custom_text[submit][message]": monthly ? "SANDBOX PLAN: $500 today, then 3 automatic monthly payments of $500. $2,000 total. Charges stop after those installments. Late-start payments may extend beyond class dates. No next-semester renewal." : "SANDBOX: $2,000 tuition for this semester only. No automatic next-semester charge.",
     });
     if (monthly) body.set("payment_intent_data[setup_future_usage]", "off_session");
+    if (order!.sandboxClock) {
+      const customer = await this.stripe(`customers/${encodeURIComponent(order!.sandboxClock.customer)}`);
+      if (customer.test_clock !== order!.sandboxClock.id || customer.email !== "langa@liferx.us") fail(409, "Test clock customer mismatch.");
+      body.delete("customer_creation"); body.delete("customer_email");
+      body.set("customer", customer.id);
+    }
     const session = await this.stripe("checkout/sessions", body, `institute-checkout-${id}-${order!.generation}`);
     if (!session.id || !session.url?.startsWith("https://checkout.stripe.com/")) fail(502, "Invalid Stripe checkout response.");
     const revision = order!.revision;
@@ -105,6 +111,54 @@ export class InstitutePayments {
     const schedule = await this.stripe("subscription_schedules", body, `institute-schedule-${order.id}`);
     if (!schedule.id || schedule.end_behavior !== "cancel" || schedule.phases?.length !== 1) fail(502, "The finite payment schedule could not be confirmed.");
     return schedule.id as string;
+  }
+  // Restricted staff rehearsal: real Stripe sandbox objects and normal Checkout /
+  // webhook processing. The clock can never be supplied by a public registration.
+  async clockStatus() {
+    this.ready();
+    const run = await this.store.get<{ id: string; customer: string; orderId: string; enrollmentId: string }>("installment-clock", "v1");
+    if (!run) return { enabled: true };
+    const order = await this.store.get<Purchase>("purchase", run.orderId);
+    const clock = await this.stripe(`test_helpers/test_clocks/${run.id}`);
+    const invoices = await this.stripe(`invoices?customer=${run.customer}&limit=100`);
+    const charges = await this.stripe(`charges?customer=${run.customer}&limit=100`);
+    const subscriptions = await this.stripe(`subscriptions?customer=${run.customer}&status=all&limit=100`);
+    const schedule = order?.scheduleId ? await this.stripe(`subscription_schedules/${order.scheduleId}`) : undefined;
+    return { enabled: true, run, clock: { status: clock.status, time: clock.frozen_time },
+      order: order && { paidAmount: order.paidAmount, planState: order.planState, payments: Object.keys(order.payments || {}).length },
+      schedule: schedule && { id: schedule.id, status: schedule.status, endBehavior: schedule.end_behavior, end: schedule.phases?.at(-1)?.end_date },
+      invoices: invoices.data.map((i: any) => ({ id: i.id, status: i.status, amount: i.amount_paid, created: i.created })),
+      charges: charges.data.map((c: any) => ({ id: c.id, status: c.status, amount: c.amount, created: c.created })),
+      subscriptions: subscriptions.data.map((s: any) => ({ id: s.id, status: s.status, canceledAt: s.canceled_at })) };
+  }
+  async createClock() {
+    this.ready();
+    const existing = await this.store.get<any>("installment-clock", "v1");
+    if (existing) return this.clockStatus();
+    const frozen = Math.floor(Date.now() / 1000);
+    const clock = await this.stripe("test_helpers/test_clocks", new URLSearchParams({ frozen_time: String(frozen), name: "Institute four-payment stop check" }), "institute-clock-v1");
+    const customer = await this.stripe("customers", new URLSearchParams({ test_clock: clock.id, email: "langa@liferx.us", name: "TEST ONLY — Institute installment clock" }), "institute-clock-customer-v1");
+    const e: Enrollment = { id: "SS-00000000-0000-4000-8000-000000000004", revision: 0, course: "Foundations of Chinese Medicine", semester: 1, learningFormat: "self-paced", name: "TEST ONLY — Installment clock", email: "langa@liferx.us", phone: "", timezone: "America/New_York", message: "Restricted sandbox clock rehearsal", consent: true, createdAt: stamp(), status: "payment-ready", sandboxPayment: true, paymentPlan: "monthly", term: "Fall 2026" };
+    let order = await this.order(e, "monthly");
+    if (!order.sandboxClock) { const old = order.revision; order = { ...order, revision: old + 1, sandboxClock: { id: clock.id, customer: customer.id } }; await this.store.put("purchase", order.id, order, old); }
+    e.purchaseId = order.id; e.tuitionCents = 200000;
+    if (!await this.store.get("enrollment", e.id)) await this.store.put("enrollment", e.id, e);
+    try { await this.store.put("installment-clock", "v1", { id: clock.id, customer: customer.id, orderId: order.id, enrollmentId: e.id }); }
+    catch (error) { if (!(error instanceof ConflictError)) throw error; }
+    return this.clockStatus();
+  }
+  async clockCheckout() {
+    const run = await this.store.get<any>("installment-clock", "v1");
+    if (!run) fail(409, "Create the test clock first.");
+    // Confirmation is read in the staff ledger; no public bearer token is issued.
+    return this.checkout(run.orderId, "/#/admin/billing?clock=returned");
+  }
+  async advanceClock() {
+    const state = await this.clockStatus();
+    if (!state.run || state.clock?.status !== "ready" || !state.schedule) fail(409, "Wait for checkout and the clock to be ready.");
+    const target = followingMonth(state.clock!.time) + 86400 * 2;
+    await this.stripe(`test_helpers/test_clocks/${state.run!.id}/advance`, new URLSearchParams({ frozen_time: String(target) }));
+    return this.clockStatus();
   }
   async event(event: { id: string; type: string; data: { object: Record<string, any> } }): Promise<boolean> {
     if (billingMode() !== "sandbox") return false;

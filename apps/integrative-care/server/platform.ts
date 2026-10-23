@@ -200,6 +200,15 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
   app.get("/api/institute/delivery-check", wrap(async (req, res) => {
     deliveryCheckStaff(req); res.setHeader("Cache-Control", "no-store"); const input = z.object({ enrollment: z.string().regex(/^SS-[a-f0-9-]{36}$/).optional() }).parse(req.query); res.json(await deliveryCheck.status(input.enrollment));
   }));
+  app.get("/api/institute/installment-clock", wrap(async (req, res) => {
+    deliveryCheckStaff(req); res.setHeader("Cache-Control", "no-store"); res.json(await semesterPayments.clockStatus());
+  }));
+  app.post("/api/institute/installment-clock", wrap(async (req, res) => {
+    deliveryCheckStaff(req);
+    if (automationMode() !== "sandbox") fail(409, "Keep onboarding in sandbox for this rehearsal.");
+    const { action } = z.object({ action: z.enum(["create", "checkout", "advance"]), confirmSandbox: z.literal(true) }).parse(req.body);
+    res.json(action === "create" ? await semesterPayments.createClock() : action === "checkout" ? await semesterPayments.clockCheckout() : await semesterPayments.advanceClock());
+  }));
   app.post("/api/institute/delivery-check", wrap(async (req, res) => {
     deliveryCheckStaff(req);
     const input = z.object({ revision: z.number().int().nonnegative().nullable(), confirmRealDelivery: z.literal(true), enrollment: z.string().regex(/^SS-[a-f0-9-]{36}$/).optional(), checkedProviderHistory: z.boolean().optional() }).parse(req.body);
