@@ -9,7 +9,9 @@ import { ConflictError, type CareStore } from "./care-store";
 import type { CareCase, User } from "../shared/care";
 import { InstituteDeliveryCheck, deliveryCheckRecipient, deliveryCheckCourse } from "./institute-delivery-check";
 import { semesterPrice, semesterDescription } from "./institute-offerings";
-import { InstitutePayments, paymentTermsVersion } from "./institute-payments";
+import { InstitutePayments, currentPaymentTermsVersion } from "./institute-payments";
+import { instituteLaunchDetails } from "./payment-config";
+import { instituteReadiness } from "./institute-readiness";
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown>) => (req: Request, res: Response, next: NextFunction) => { fn(req, res).catch(next); };
 const fail = (status: number, message: string): never => { throw Object.assign(new Error(message), { status, expose: true }); };
@@ -56,6 +58,13 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
           enrollment.accessApprovedAt = new Date().toISOString();
           enrollment.accessVersion = 1;
         }
+        const launch = instituteLaunchDetails();
+        if (latest.directCheckout && latest.livemode && latest.status === "paid" && enrollment.course === courseNames[0] && enrollment.semester === 1 && launch.ready && process.env.INSTITUTE_FOUNDATIONS_1_AUTO_ACCESS_APPROVED === "true") {
+          enrollment.classroomCourseId = launch.classroom;
+          enrollment.orientationUrl = launch.orientation;
+          enrollment.accessApprovedAt = new Date().toISOString();
+          enrollment.accessVersion = 1;
+        }
       }
       record!.revision++;
       try { await store.put(kind, record!.id, record, revision); if (kind === "enrollment") await reconcile(record as Enrollment); return; }
@@ -66,6 +75,10 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
   const semesterPayments = new InstitutePayments(store, billing, apply);
   billing.instituteEvent = event => semesterPayments.event(event);
   billing.registerWebhook(app);
+  app.get("/api/institute/registration-settings", (_req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ paymentMode: billingMode("institute"), paymentTermsVersion: currentPaymentTermsVersion(), liveCheckoutOpen: billingMode("institute") === "live" && billingConfigured("institute") });
+  });
 
   // Only the website server can submit a registration. Enrollment stays under review.
   app.post("/api/institute/registrations", wrap(async (req, res) => {
@@ -78,8 +91,9 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     const allowed = (process.env.INSTITUTE_OPEN_COURSES || courseNames.slice(1).join("|")).split("|").map(course => course.trim());
     if (!foundations && !allowed.includes(input.course)) fail(503, "Registration review for this course is not open.");
     const payment = z.object({ paymentPlan: z.enum(["full", "monthly"]).optional(), paymentConsent: z.boolean().optional(), paymentTermsVersion: z.string().optional() }).parse(req.body);
-    if (payment.paymentPlan && (!foundations || !payment.paymentConsent || payment.paymentTermsVersion !== paymentTermsVersion)) fail(400, "Review the semester payment choice and terms.");
-    const enrollment: Enrollment = { ...input, id: input.reference, revision: 0, createdAt: new Date().toISOString(), status: "review", automationVersion: 1, paymentPlan: payment.paymentPlan, paymentTermsVersion: payment.paymentTermsVersion, paymentConsentAt: payment.paymentConsent ? new Date().toISOString() : undefined };
+    if (payment.paymentPlan && (!foundations || !payment.paymentConsent || payment.paymentTermsVersion !== currentPaymentTermsVersion())) fail(400, "Review the semester payment choice and terms.");
+    if (payment.paymentPlan && billingMode("institute") === "live" && !billingConfigured("institute")) fail(503, "Live tuition collection is not open. Contact admissions for enrollment assistance.");
+    const enrollment: Enrollment = { ...input, id: input.reference, revision: 0, createdAt: new Date().toISOString(), status: "review", automationVersion: 1, sandboxPayment: billingMode("institute") !== "live", paymentPlan: payment.paymentPlan, paymentTermsVersion: payment.paymentTermsVersion, paymentConsentAt: payment.paymentConsent ? new Date().toISOString() : undefined };
     try { await store.put("enrollment", enrollment.id, enrollment); }
     catch (error) {
       if (!(error instanceof ConflictError)) throw error;
@@ -91,12 +105,14 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     let checkoutUrl: string | undefined;
     // No prerequisite is required for Foundations Semester 1. This draft path
     // simulates eligibility only; all live payments remain explicitly blocked.
-    if (payment.paymentPlan && foundations && input.semester === 1 && billingMode() === "sandbox" && billingConfigured()) {
+    if (payment.paymentPlan && foundations && input.semester === 1 && billingConfigured("institute")) {
       if (current.status === "review") {
         const order = await semesterPayments.order(current, payment.paymentPlan);
         const version = current.revision + 1;
         const token = invitationToken(current.id, version);
-        const updated: Enrollment = { ...current, revision: version, status: "payment-ready", purchaseId: order.id, tuitionCents: order.amount, sandboxPayment: true, accessHash: paymentTokenHash(token), invitationVersion: version, policyAcceptedAt: current.paymentConsentAt, policyUrl: "https://institute.shambasana.com/student-information.html#tuition", cohort: "Foundations Semester 1 — self-paced catch-up. Sandbox draft; learning plan, support and access arrangements require confirmation before live enrollment.", prerequisitesReviewedAt: new Date().toISOString() };
+        if (current.sandboxPayment !== (order.livemode !== true)) fail(409, "A sandbox registration cannot be reused for live tuition.");
+        const launch = instituteLaunchDetails();
+        const updated: Enrollment = { ...current, revision: version, status: "payment-ready", purchaseId: order.id, tuitionCents: order.amount, sandboxPayment: order.livemode !== true, accessHash: paymentTokenHash(token), invitationVersion: version, policyAcceptedAt: current.paymentConsentAt, policyUrl: "https://institute.shambasana.com/student-information.html#tuition", cohort: order.livemode ? launch.cohort : "Foundations Semester 1 — self-paced catch-up. Sandbox draft; learning plan, support and access arrangements require confirmation before live enrollment.", orientationUrl: order.livemode ? launch.orientation : undefined, prerequisitesReviewedAt: new Date().toISOString() };
         try { await store.put("enrollment", current.id, updated, current.revision); current = updated; }
         catch (error) { if (!(error instanceof ConflictError)) throw error; current = (await store.get<Enrollment>("enrollment", current.id))!; }
       }
@@ -109,7 +125,7 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
       }
     }
     await reconcile(current);
-    res.json({ received: true, reference: enrollment.id, paymentUrl, checkoutUrl, sandbox: billingMode() === "sandbox" });
+    res.json({ received: true, reference: enrollment.id, paymentUrl, checkoutUrl, sandbox: current.sandboxPayment !== false });
   }));
 
   app.get("/api/billing/admin", wrap(async (req, res) => {
@@ -118,12 +134,11 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     const enrollments = await store.list<Enrollment>("enrollment");
     const connection = await store.get<GoogleConnection>("institute-google", "sender");
     const jobs = await store.list<OnboardingJob>("institute-job");
-    res.json({ orders, enrollments: enrollments.map(({ accessHash: _, ...e }) => ({ ...e, paymentAmount: semesterPrice(e) })), automation: { mode: automationMode(), googleConfigured: googleConfigured(), connectedEmail: connection?.email, billingMode: billingMode(), checkout: billingConfigured() }, jobs: jobs.map(({ encryptedPayload: _, ...job }) => job) });
+    res.json({ orders, enrollments: enrollments.map(({ accessHash: _, ...e }) => ({ ...e, paymentAmount: semesterPrice(e) })), automation: { mode: automationMode(), googleConfigured: googleConfigured(), connectedEmail: connection?.email, billingMode: billingMode("institute"), careBillingMode: billingMode(), checkout: billingConfigured("institute") }, readiness: await instituteReadiness(store), jobs: jobs.map(({ encryptedPayload: _, ...job }) => job) });
   }));
   app.post("/api/institute/enrollments/:id/invite", wrap(async (req, res) => {
     practitioner(req);
-    if (!billingConfigured()) fail(503, "Checkout is not configured.");
-    if (billingMode() === "live" && process.env.INSTITUTE_LIVE_PAYMENTS_READY !== "true") fail(503, "Final Institute terms have not been enabled for live payment.");
+    if (!billingConfigured("institute")) fail(503, "Institute checkout is not configured or live collection is disabled.");
     if (!process.env.INSTITUTE_WEBSITE_URL) fail(503, "The Institute website is not configured.");
     const data = z.object({ revision: z.number().int().nonnegative(), cohort: z.string().trim().min(3).max(500), policyUrl: z.string().url().max(2000), orientationUrl: z.string().url().max(2000).optional(), classroomCourseId: z.string().regex(/^\d+$/).max(80).optional(), confirm: z.literal(true), prerequisitesReviewed: z.literal(true) }).parse(req.body);
     const policy = new URL(data.policyUrl);
@@ -131,6 +146,8 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     if (data.orientationUrl && new URL(data.orientationUrl).protocol !== "https:") fail(400, "Orientation must use HTTPS.");
     const e = await store.get<Enrollment>("enrollment", req.params.id);
     if (!e || !["review", "payment-ready"].includes(e.status)) fail(409, "Enrollment is not awaiting payment.");
+    if (e!.sandboxPayment !== false && billingMode("institute") === "live") fail(409, "Create a new live registration; do not convert a sandbox record.");
+    if (billingMode("institute") === "live" && data.classroomCourseId === deliveryCheckCourse()) fail(409, "The rehearsal classroom cannot be used for live enrollment.");
     if (e!.revision !== data.revision) throw new ConflictError();
     const amount = semesterPrice(e!);
     if (!amount) fail(409, "Semester pricing or learning-format terms need confirmation before a new payment invitation.");
@@ -167,6 +184,7 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     const input = z.object({ revision: z.number().int().nonnegative(), completed: z.literal(true), classroomCourseId: z.string().regex(/^\d+$/).max(80), orientationUrl: z.string().url().max(2000).optional() }).parse(req.body);
     const e = await store.get<Enrollment>("enrollment", req.params.id);
     if (!e || e.status !== "paid") fail(409, "Payment must be confirmed first.");
+    if (!e!.sandboxPayment && input.classroomCourseId === deliveryCheckCourse()) fail(409, "The rehearsal classroom cannot be used for live enrollment.");
     if (e!.revision !== input.revision) throw new ConflictError();
     if (input.orientationUrl && new URL(input.orientationUrl).protocol !== "https:") fail(400, "Orientation must use HTTPS.");
     const updated = { ...e!, revision: e!.revision + 1, accessVersion: (e!.accessVersion || 0) + 1, accessApprovedAt: new Date().toISOString(), classroomCourseId: input.classroomCourseId, orientationUrl: input.orientationUrl };

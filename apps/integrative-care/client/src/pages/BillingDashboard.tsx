@@ -8,11 +8,12 @@ import { api, money, useAuth } from "@/lib/care";
 
 type Enrollment = { id: string; revision: number; course: string; semester?: number; learningFormat?: string; paymentAmount?: number; name: string; email: string; status: string; cohort?: string; policyUrl?: string; term?: string; foundationsStatus?: string; psycheStatus?: string; priorCohort?: string; message?: string; classroomCourseId?: string; orientationUrl?: string; accessApprovedAt?: string; sandboxPayment?: boolean };
 type Job = { id: string; revision: number; enrollmentId: string; purpose: string; status: string; attempts: number; error?: string; providerId?: string; completedAt?: string; sandbox: boolean };
-type Automation = { mode: string; googleConfigured: boolean; connectedEmail?: string; billingMode: string; checkout: boolean };
+type Automation = { mode: string; googleConfigured: boolean; connectedEmail?: string; billingMode: string; careBillingMode: string; checkout: boolean };
+type Readiness = { careMode: string; instituteMode: string; livePaymentsEnabled: boolean; liveOnboardingEnabled: boolean; checks: { id: string; label: string; ready: boolean }[]; liveWebhookPath: string };
 type Order = { semesterPlan?: string; paidAmount?: number; refundedAmount?: number; planState?: string; id: string; offering: string; referenceId: string; email: string; amount: number; status: string };
 export default function BillingDashboard() {
   const auth = useAuth("practitioner");
-  const query = useQuery<{ orders: Order[]; enrollments: Enrollment[]; jobs: Job[]; automation: Automation }>({ queryKey: ["billing-admin"], queryFn: () => api("/billing/admin"), enabled: auth.user?.role === "practitioner" });
+  const query = useQuery<{ orders: Order[]; enrollments: Enrollment[]; jobs: Job[]; automation: Automation; readiness: Readiness }>({ queryKey: ["billing-admin"], queryFn: () => api("/billing/admin"), enabled: auth.user?.role === "practitioner" });
   const [operationError, setOperationError] = useState<unknown>();
   const [processing, setProcessing] = useState(false);
   async function connectGoogle() {
@@ -29,10 +30,16 @@ export default function BillingDashboard() {
     <ErrorMessage error={auth.error || query.error} />
     <Button variant="outline" onClick={() => query.refetch()}>Refresh billing</Button>
     {query.data?.automation && <section className="my-8 rounded-xl border border-border p-6"><h2 className="text-2xl">Payments and Google onboarding</h2>
-      <p className="my-4 text-sm">Stripe: {query.data.automation.billingMode} · checkout {query.data.automation.checkout ? "configured" : "disabled"}. Automation: {query.data.automation.mode}.</p>
+      <p className="my-4 text-sm">Institute payments: {query.data.automation.billingMode} · checkout {query.data.automation.checkout ? "configured" : "disabled"}. Care payments: {query.data.automation.careBillingMode}. Institute automation: {query.data.automation.mode}.</p>
       <p className="my-4 text-sm">Google: {query.data.automation.connectedEmail || "Not connected"}. Uses Gmail sending and Classroom roster permissions for onlineclass@liferx.us.</p>
-      <p className="my-4 text-sm">Sandbox creates previews and simulated invitations. It sends no emails and changes no Classroom rosters. Test payments never grant real class access.</p>
+      <p className="my-4 text-sm">Sandbox records create previews and simulated invitations. They never send normal onboarding emails or grant real class access. Production payment and onboarding activation are controlled separately.</p>
       <div className="flex flex-wrap gap-3"><Button variant="outline" disabled={!query.data.automation.googleConfigured} onClick={connectGoogle}>{query.data.automation.connectedEmail ? "Reconnect Google" : "Connect teaching mailbox"}</Button><Button variant="outline" disabled={processing || query.data.automation.mode === "off"} onClick={process}>{processing ? "Processing…" : "Process queued onboarding"}</Button></div><ErrorMessage error={operationError} />
+    </section>}
+    {query.data?.readiness && <section className="my-8 rounded-xl border border-border p-6"><h2 className="text-2xl">Institute production readiness</h2>
+      <p className="my-4 font-semibold">Live payments: {query.data.readiness.livePaymentsEnabled ? "ON" : "OFF"} · Live onboarding: {query.data.readiness.liveOnboardingEnabled ? "ON" : "OFF"} · Care: {query.data.readiness.careMode}</p>
+      <p className="my-4 text-sm">Preparation does not enable collection or student delivery. Final activation requires approved course details and a separate release decision.</p>
+      <ul className="my-4 space-y-3 text-sm">{query.data.readiness.checks.map(check => <li key={check.id} className="flex justify-between gap-4 border-b border-border pb-2"><span>{check.label}</span><strong>{check.ready ? "Ready" : "Pending"}</strong></li>)}</ul>
+      <p className="text-sm break-all">Dedicated live webhook: {query.data.readiness.liveWebhookPath}</p>
     </section>}
     {auth.user?.email.toLowerCase() === "langa@liferx.us" && <GoogleDeliveryCheck enrollments={query.data?.enrollments || []} />}
     {auth.user?.email.toLowerCase() === "langa@liferx.us" && <InstallmentClock />}

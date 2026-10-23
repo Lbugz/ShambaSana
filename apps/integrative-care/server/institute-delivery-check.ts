@@ -25,11 +25,11 @@ export class InstituteDeliveryCheck {
   async status(enrollmentId?: string) {
     await this.enrollment(enrollmentId);
     const courseId = deliveryCheckCourse();
-    return { recipient: deliveryCheckRecipient, courseId, enabled: !!courseId && billingMode() === "sandbox" && automationMode() === "sandbox", check: courseId ? await this.store.get<Check>("institute-delivery-check", this.id(courseId, enrollmentId)) : undefined };
+    return { recipient: deliveryCheckRecipient, courseId, enabled: !!courseId && billingMode("institute") === "sandbox" && automationMode() === "sandbox", check: courseId ? await this.store.get<Check>("institute-delivery-check", this.id(courseId, enrollmentId)) : undefined };
   }
   async run(expectedRevision: number | null, checkedProviderHistory: boolean, enrollmentId?: string) {
     const courseId = deliveryCheckCourse();
-    if (!courseId || billingMode() !== "sandbox" || automationMode() !== "sandbox") reject(409, "Delivery checks require sandbox billing, sandbox automation and a configured test class.");
+    if (!courseId || billingMode("institute") !== "sandbox" || automationMode() !== "sandbox") reject(409, "Delivery checks require sandbox billing, sandbox automation and a configured test class.");
     const enrollment = await this.enrollment(enrollmentId);
     const id = this.id(courseId!, enrollmentId);
     let check = await this.store.get<Check>("institute-delivery-check", id);

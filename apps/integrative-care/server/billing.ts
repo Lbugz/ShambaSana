@@ -2,6 +2,8 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypt
 import type { Express, Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { ConflictError, type CareStore } from "./care-store";
+import { paymentMode as billingMode, paymentConfigured as billingConfigured, stripeKey, stripeWebhookSecret, type Offering, type PaymentMode } from "./payment-config";
+export { billingMode, billingConfigured };
 
 export type Purchase = {
   id: string; revision: number; offering: "care" | "institute";
@@ -15,8 +17,6 @@ export type Purchase = {
   planState?: "pending" | "active" | "complete" | "past-due" | "cancelled";
   payments?: Record<string, { amount: number; refunded: number; intent: string }>;
 };
-export const billingMode = () => process.env.BILLING_MODE === "live" ? "live" : "sandbox";
-export const billingConfigured = () => (process.env.NODE_ENV !== "production" || process.env.BILLING_ENABLED === "true") && !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET && process.env.APP_BASE_URL) && (process.env.NODE_ENV !== "production" || process.env.STRIPE_SECRET_KEY!.startsWith(billingMode() === "live" ? "sk_live_" : "sk_test_"));
 const fail = (status: number, message: string): never => { throw Object.assign(new Error(message), { status }); };
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 const now = () => new Date().toISOString();
@@ -24,33 +24,37 @@ const wrap = (fn: (req: Request, res: Response) => Promise<unknown>) =>
   (req: Request, res: Response, next: NextFunction) => { fn(req, res).catch(next); };
 
 export class Billing {
-  instituteEvent?: (event: { id: string; type: string; data: { object: Record<string, any> } }) => Promise<boolean>;
+  instituteEvent?: (event: { id: string; type: string; livemode?: boolean; data: { object: Record<string, any> } }) => Promise<boolean>;
   constructor(private store: CareStore, private apply: (purchase: Purchase) => Promise<void>) {}
   async order(offering: Purchase["offering"], referenceId: string, email: string, description: string, amount: number) {
     const id = digest(`${offering}:${referenceId}`);
     if (!Number.isSafeInteger(amount) || amount < 100 || amount > 1_000_000) fail(400, "Invalid purchase amount.");
     let order = await this.store.get<Purchase>("purchase", id);
     if (!order) {
-      order = { id, revision: 0, offering, referenceId, email, description, amount, currency: "usd", status: "pending", generation: 0, createdAt: now(), updatedAt: now(), livemode: billingMode() === "live" };
+      order = { id, revision: 0, offering, referenceId, email, description, amount, currency: "usd", status: "pending", generation: 0, createdAt: now(), updatedAt: now(), livemode: billingMode(offering) === "live" };
       try { await this.store.put("purchase", id, order); }
       catch (error) { if (!(error instanceof ConflictError)) throw error; order = await this.store.get<Purchase>("purchase", id); }
     }
     return order!;
   }
-  private async stripe(path: string, options: RequestInit = {}) {
+  private async stripe(path: string, options: RequestInit = {}, offering: Offering = "care", mode: PaymentMode = billingMode(offering)) {
+    const key = stripeKey(offering, mode);
+    if (!key) fail(503, "Payment credentials are not configured for this offering.");
     const response = await fetch(`https://api.stripe.com/v1/${path}`, {
-      ...options, headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`, ...options.headers }, signal: AbortSignal.timeout(20_000),
+      ...options, headers: { Authorization: `Bearer ${key}`, ...options.headers }, signal: AbortSignal.timeout(20_000),
     });
     if (!response.ok) fail(502, "The payment service is unavailable. Please try again.");
-    return response.json();
+    const result = await response.json();
+    if (typeof result.livemode === "boolean" && result.livemode !== (mode === "live")) fail(502, "Payment environment mismatch.");
+    return result;
   }
   async checkout(id: string, returnPath: string): Promise<{ url: string; order: Purchase }> {
-    if (!billingConfigured()) fail(503, "Payment is not configured.");
     let order = await this.store.get<Purchase>("purchase", id);
     if (!order || order.status !== "pending") fail(409, "This purchase does not need a payment.");
-    if ((order!.livemode === true) !== (billingMode() === "live")) fail(409, "This order belongs to a different payment environment.");
+    if (!billingConfigured(order!.offering)) fail(503, "Payment is not configured or live collection is disabled.");
+    if ((order!.livemode === true) !== (billingMode(order!.offering) === "live")) fail(409, "This order belongs to a different payment environment.");
     if (order!.checkoutId) {
-      const session = await this.stripe(`checkout/sessions/${encodeURIComponent(order!.checkoutId)}`);
+      const session = await this.stripe(`checkout/sessions/${encodeURIComponent(order!.checkoutId)}`, {}, order!.offering);
       if (session.status === "open" && session.url?.startsWith("https://checkout.stripe.com/")) return { url: session.url, order: order! };
       if (session.status !== "expired") fail(409, "Checkout is complete or awaiting confirmation. Refresh the payment status.");
       const revision = order!.revision;
@@ -68,9 +72,9 @@ export class Billing {
       customer_email: order!.email, success_url: `${base}${returnPath}`, cancel_url: `${base}${returnPath}`,
     });
     const session = await this.stripe("checkout/sessions", { method: "POST", body,
-      headers: { "Content-Type": "application/x-www-form-urlencoded", "Idempotency-Key": `ss-${id}-${order!.generation}` } });
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "Idempotency-Key": `ss-${id}-${order!.generation}` } }, order!.offering);
     if (!session.id || !session.url?.startsWith("https://checkout.stripe.com/")) fail(502, "Invalid checkout response.");
-    if (process.env.NODE_ENV === "production" && session.livemode !== (billingMode() === "live")) fail(502, "Checkout environment mismatch.");
+    if (process.env.NODE_ENV === "production" && session.livemode !== (billingMode(order!.offering) === "live")) fail(502, "Checkout environment mismatch.");
     const revision = order!.revision;
     order = { ...order!, revision: revision + 1, checkoutId: session.id, updatedAt: now() };
     try { await this.store.put("purchase", id, order, revision); }
@@ -83,27 +87,28 @@ export class Billing {
     return { url: session.url, order: order! };
   }
   registerWebhook(app: Express) {
-    app.post(["/api/billing/webhook", "/api/stripe/webhook"], wrap(async (req, res) => {
-      if (!process.env.STRIPE_WEBHOOK_SECRET) fail(503, "Payment webhook is not configured.");
+    const handler = (offering: Offering, mode: PaymentMode) => wrap(async (req, res) => {
+      const secret = stripeWebhookSecret(offering, mode);
+      if (!secret) fail(503, "Payment webhook is not configured.");
       const signature = (req.get("stripe-signature") || "").split(",");
       const timestamp = signature.find(part => part.startsWith("t="))?.slice(2) || "";
       const raw = req.rawBody;
       if (!Buffer.isBuffer(raw)) fail(400, "Missing payment payload.");
-      const expected = createHmac("sha256", process.env.STRIPE_WEBHOOK_SECRET!).update(`${timestamp}.`).update(raw as Buffer).digest();
+      const expected = createHmac("sha256", secret!).update(`${timestamp}.`).update(raw as Buffer).digest();
       if (!/^\d+$/.test(timestamp) || Math.abs(Date.now() / 1000 - Number(timestamp)) >= 300 || !signature.filter(part => part.startsWith("v1=")).some(part => {
         const actual = Buffer.from(part.slice(3), "hex");
         return actual.length === expected.length && timingSafeEqual(actual, expected);
       })) fail(400, "Invalid payment signature.");
       const event = z.object({ id: z.string().min(1).max(255), type: z.string(), data: z.object({ object: z.record(z.any()) }) }).parse(req.body);
       const object = event.data.object;
-      if (process.env.NODE_ENV === "production" && (req.body.livemode !== (billingMode() === "live") || (typeof object.livemode === "boolean" && object.livemode !== req.body.livemode))) fail(400, "Payment environment mismatch.");
-      if (this.instituteEvent && await this.instituteEvent(event)) return res.json({ received: true });
+      if ((typeof req.body.livemode === "boolean" && req.body.livemode !== (mode === "live")) || (typeof object.livemode === "boolean" && object.livemode !== (mode === "live")) || (process.env.NODE_ENV === "production" && typeof req.body.livemode !== "boolean")) fail(400, "Payment environment mismatch.");
+      if (this.instituteEvent && await this.instituteEvent({ ...event, livemode: mode === "live" })) return res.json({ received: true });
       const relevant = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "charge.refunded"];
       if (!relevant.includes(event.type)) return res.json({ received: true });
       let id = object.metadata?.orderId;
       if (!id && typeof object.metadata?.caseId === "string") id = digest(`care:${object.metadata.caseId}`);
       if (!id && event.type === "charge.refunded" && typeof object.payment_intent === "string") {
-        const paymentIntent = await this.stripe(`payment_intents/${encodeURIComponent(object.payment_intent)}`);
+        const paymentIntent = await this.stripe(`payment_intents/${encodeURIComponent(object.payment_intent)}`, {}, offering, mode);
         id = paymentIntent.metadata?.orderId;
       }
       if (typeof id !== "string") fail(400, "Payment has no purchase reference.");
@@ -112,7 +117,7 @@ export class Billing {
       for (let attempt = 0; attempt < 5; attempt++) {
         const order = await this.store.get<Purchase>("purchase", id);
         if (!order) fail(409, "Purchase is not ready. Retry this event.");
-        if ((order!.livemode === true) !== (billingMode() === "live")) fail(400, "Purchase environment mismatch.");
+        if ((order!.livemode === true) !== (mode === "live") || (offering === "institute" && order!.offering !== "institute")) fail(400, "Purchase environment mismatch.");
         let next: Purchase["status"] = order!.status;
         let intent = order!.paymentIntent;
         if (event.type === "charge.refunded") {
@@ -140,7 +145,11 @@ export class Billing {
           return res.json({ received: true });
         } catch (error) { if (!(error instanceof ConflictError) || attempt === 4) throw error; }
       }
-    }));
+    });
+    // Preserve the existing shared sandbox endpoint and its signing secret.
+    app.post(["/api/billing/webhook", "/api/stripe/webhook"], handler("care", "sandbox"));
+    app.post("/api/institute/billing/webhook/test", handler("institute", "sandbox"));
+    app.post("/api/institute/billing/webhook/live", handler("institute", "live"));
   }
 }
 

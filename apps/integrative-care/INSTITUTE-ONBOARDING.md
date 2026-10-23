@@ -8,21 +8,48 @@
 4. Only a verified Stripe webhook marks the payment paid. A payment confirmation and welcome checklist is queued. Redirecting back from Checkout is not payment evidence.
 5. Staff verify completion of every prerequisite, select the numeric Classroom course ID and approve access. The worker creates a STUDENT invitation through the teaching account, then queues joining instructions. Students accept the invitation themselves. It does not claim automatic enrollment or acceptance.
 
-Full refunds cancel pending payment/access jobs and queue a refund notification. Staff must review/remove any existing Classroom membership separately. Partial refunds do not automatically revoke access. This version does not implement installments, automatic prerequisite grading or certificate issuance.
+Full refunds cancel pending payment/access jobs and queue a refund notification. Recorded refunds stop future installment collections. Staff must review/remove any existing Classroom membership separately. Partial refunds do not automatically revoke access. The finite monthly plan collects $500 at Checkout followed by three monthly $500 installments, then cancels. Automatic prerequisite grading and certificate issuance are not implemented.
 
 ### Separate semester confirmation
 
-Completing or paying for a semester never creates or charges the next semester. The student submits a fresh semester-specific registration (or uses its preselected share link), staff review it, and the student accepts that semester's details before paying its distinct private Stripe invitation. There are no subscriptions, off-session charges or automatic next-semester orders. A semester payment is not an installment against an assumed full-course debt. The final policy must define any remaining obligations explicitly.
+Completing or paying for a semester never creates or charges the next semester. The student submits a fresh semester-specific registration (or uses its preselected share link), staff review it, and the student accepts that semester's details before paying its distinct private Stripe invitation. A monthly plan uses a finite Stripe subscription schedule only for the three remaining installments in that semester. It never renews into another semester or creates a future-semester order. The final policy must define withdrawal and remaining-payment obligations explicitly.
 
 Foundations review intake requires both the website `COURSE_FOUNDATIONS_REVIEW_OPEN=true` and backend `INSTITUTE_FOUNDATIONS_REVIEW_OPEN=true`, in addition to existing registration switches. Semester 1 accepts self-paced catch-up requests only; Semesters 2/3 accept live-online review requests. These flags do not activate payments, establish eligibility, or send live messages. Keep sandbox configuration until the separate production decision. Cohort schedules and prerequisites still require staff review.
 
 ## Current sandbox boundary
 
-Keep `BILLING_MODE=sandbox`, `INSTITUTE_LIVE_PAYMENTS_READY=false` and `INSTITUTE_AUTOMATION_MODE=sandbox` while schedules and final enrollment/refund terms are pending. `BILLING_ENABLED=true` enables test checkout only when a test key is configured. This is a shared billing switch, but public Care intake stays closed with `PILOT_MODE=false`.
+Keep `INSTITUTE_BILLING_MODE=sandbox`, `INSTITUTE_LIVE_PAYMENTS_ENABLED=false`, `INSTITUTE_LIVE_PAYMENTS_READY=false`, `INSTITUTE_LIVE_ONBOARDING_ENABLED=false` and `INSTITUTE_AUTOMATION_MODE=sandbox` while final details are pending. `BILLING_ENABLED=true` permits configured sandbox checkout. Care is sandbox-only in code; changing Institute mode or the legacy `BILLING_MODE` cannot activate Care live billing.
 
 Sandbox automation marks jobs simulated and exposes previews only in the authenticated staff dashboard. It does not call Gmail send or change Classroom rosters. Orders created with test billing remain marked sandbox even if automation is later changed to live. They cannot trigger real emails or Classroom invitations for payment/access stages. Do not use real student admissions to verify the sandbox flow.
 
-Final production acceptance requires a separate decision after final policies, dates, Google connection and sandbox verification. Set `BILLING_MODE=live` with new live Stripe credentials/webhook, `INSTITUTE_LIVE_PAYMENTS_READY=true`, and `INSTITUTE_AUTOMATION_MODE=live` only then. Sandbox orders cannot be paid using live keys; create a fresh real registration/order. Simulated jobs are never silently replayed as live messages.
+Final production acceptance requires a separate decision after final policies, course arrangements, Google production configuration and remaining failure/refund verification. Use the independent Institute controls below. Sandbox orders cannot become live orders; create a fresh real registration/order. Simulated jobs are never silently replayed as live messages. Live jobs are held while delivery is disabled rather than consumed as simulations.
+
+### Production preparation — collection and delivery remain OFF
+
+The staff billing dashboard shows **Institute production readiness**, with presence checks only; no credential values are returned. This is a preparation checklist, not a completed live acceptance test.
+
+| Backend Railway variable | Purpose / preparation value |
+| --- | --- |
+| `INSTITUTE_BILLING_MODE` | Keep `sandbox`; later `live` selects dedicated Institute live credentials. |
+| `INSTITUTE_STRIPE_TEST_SECRET_KEY`, `INSTITUTE_STRIPE_TEST_WEBHOOK_SECRET` | Optional explicit sandbox credentials; existing test `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` remain fallback values. |
+| `INSTITUTE_STRIPE_LIVE_SECRET_KEY` | Live key entered securely by the account owner at the later credential step. Never falls back to Care or test keys. |
+| `INSTITUTE_STRIPE_LIVE_WEBHOOK_SECRET` | Secret for the separate live destination: `https://care.shambasana.com/api/institute/billing/webhook/live`. |
+| `INSTITUTE_LIVE_PAYMENTS_ENABLED` | Keep `false`. Explicit new-checkout gate; creating credentials alone cannot turn on payments. |
+| `INSTITUTE_LIVE_PAYMENTS_READY` | Keep `false` until final commercial terms and launch acceptance are approved. |
+| `INSTITUTE_LIVE_TERMS_VERSION` | Approved version identifier, without `sandbox` or `draft`. Recorded with each registration's payment consent. |
+| `INSTITUTE_LIVE_WEBSITE_READY` | Keep `false` until final public policy/course copy and mobile/desktop registration are reviewed. |
+| `INSTITUTE_FOUNDATIONS_1_CLASSROOM_ID` | Actual catch-up Classroom ID, different from `INSTITUTE_TEST_CLASSROOM_ID`. |
+| `INSTITUTE_FOUNDATIONS_1_ORIENTATION_URL` | HTTPS joining/orientation instructions. |
+| `INSTITUTE_FOUNDATIONS_1_DETAILS` | Confirmed catch-up materials, access duration, support and completion arrangements displayed in payment and welcome messages. |
+| `INSTITUTE_FOUNDATIONS_1_AUTO_ACCESS_APPROVED` | Keep `false` until admission after the first successful payment is approved for Semester 1. Later semesters still require staff prerequisite/access approval. |
+| `INSTITUTE_GOOGLE_PRODUCTION_READY` | Keep `false` until OAuth audience/publishing status and Workspace permissions are inspected; reconnect the teaching account as required. |
+| `INSTITUTE_LIVE_ONBOARDING_ENABLED` | Keep `false`. Production sending also requires `INSTITUTE_AUTOMATION_MODE=live` and Google production readiness. |
+
+Register the live destination with the same nine event types listed in the app README and pin its Stripe API version to `2024-06-20`, matching the retrieval code. Keep the existing shared sandbox destination unchanged. An optional dedicated test destination is `/api/institute/billing/webhook/test`. Signature, offering and environment validation are enforced separately. Already-authorized live payment webhooks can still reconcile when new checkout is disabled; turning off new collection does not itself cancel existing installment schedules.
+
+The website obtains payment mode and consent version from the backend through its registration status endpoint. It fails closed if those settings cannot be read. Live copy is selected only when the backend reports live checkout open; current sandbox presentation stays unchanged. Public course/student-policy pages still require final content approval before setting the website-ready flag.
+
+Before later activation: confirm Stripe account/payout/statement details; add the dedicated credentials and webhook; verify declines, missed installments, duplicate/delayed events and refund cancellation; inspect Google production configuration; replace pending public policy/course copy; deploy and review. A supervised real payment/refund and actual-course onboarding remain outstanding and need separate authorization. Do not run them as part of preparation.
 
 ## Google Cloud setup
 

@@ -33,10 +33,11 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
   const isFoundations = () => course.value === 'Foundations of Chinese Medicine';
   const isBeginner = () => isFoundations() && semester.value === '1';
   const isAdvanced = () => course.value === 'Advanced Diagnosis & Treatment';
+  const livePayment = () => readiness.paymentMode === 'live' && readiness.liveCheckoutOpen === true;
   const selectedPlan = () => $('[name="paymentPlan"]:checked')?.value || 'full';
   const selectedTerm = () => terms[course.value]?.[semester.value];
   const studyLabel = (selectedCourse = course.value, selectedSemester = semester.value, term = selectedTerm()) => [selectedCourse ? courseDisplayName(selectedCourse) : 'Course not selected', selectedCourse === 'Foundations of Chinese Medicine' ? `Semester ${selectedSemester}` : '', term].filter(Boolean).join(' · ');
-  const enabled = () => readiness.open && readiness.courses.includes(course.value) && !!selectedTerm();
+  const enabled = () => readiness.open && readiness.courses.includes(course.value) && !!selectedTerm() && !(isFoundations() && readiness.paymentMode === 'live' && !readiness.liveCheckoutOpen);
   const inputGroups = name => [...form.querySelectorAll(`[name="${name}"]`)];
   reference.value = 'SS-' + crypto.randomUUID();
   try { timezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { timezone.value = ''; }
@@ -69,7 +70,7 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
     document.querySelector('#registration-course-price').textContent = !course.value ? '' : isFoundations() ? '$2,000 for this semester' : 'Tuition confirmed before payment';
     document.querySelector('#registration-course-note').textContent = !course.value ? 'Choose your study, then tell us a little about you.' : isBeginner() ? 'Join after the start, with an agreed catch-up plan.' : 'Previous study is reviewed before admission.';
     document.querySelector('#registration-tuition-detail').textContent = !course.value ? 'Choose your course to see its tuition information.' : isFoundations() ? 'Foundations spans three semesters at $2,000 each ($6,000 total). You choose and pay separately for each semester. Semester 1 catch-up is also $2,000; staff confirm its materials, support and completion plan.' : 'Tuition, semester structure and the final schedule for this course are being confirmed. You will receive those details before deciding to pay.';
-    document.querySelector('#registration-intro').textContent = !course.value ? 'Choose your course and semester, then add your details.' : isBeginner() ? 'Add your details, then choose full payment or a monthly plan in Stripe sandbox.' : 'Add your details and previous study. Staff will confirm eligibility and course details before payment.';
+    document.querySelector('#registration-intro').textContent = !course.value ? 'Choose your course and semester, then add your details.' : isBeginner() ? `Add your details, then choose full payment or a monthly plan${livePayment() ? '.' : ' in Stripe sandbox.'}` : 'Add your details and previous study. Staff will confirm eligibility and course details before payment.';
     $('#review-progress-label').textContent = isBeginner() ? 'Review & payment' : 'Preparation & review';
     change.firstChild.textContent = course.value ? 'Change' : 'Choose course';
     $('#preparation-description').textContent = isBeginner() ? 'No previous study is required. Review your details and payment choice below.' : 'Tell us about your previous study. You can apply while progressing through earlier courses; staff confirm eligibility.';
@@ -81,8 +82,10 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
     $('#prior-cohort-field').hidden = isBeginner();
     $('#payment-options').hidden = !isFoundations();
     $('#review-title').textContent = isFoundations() ? 'Review your registration & payment.' : 'Your preparation & next steps.';
-    $('#payment-reassurance').textContent = isFoundations() ? 'Card details are entered securely on Stripe. Sandbox only.' : 'Tuition will be confirmed before payment.';
-    $('#registration-next-step').textContent = isBeginner() ? 'Next: secure test checkout with Stripe.' : 'Staff verify your previous study and course details before payment becomes available.';
+    $('#payment-reassurance').textContent = isFoundations() ? `Card details are entered securely on Stripe.${livePayment() ? '' : ' Sandbox only.'}` : 'Tuition will be confirmed before payment.';
+    $('#registration-next-step').textContent = isBeginner() ? `Next: secure ${livePayment() ? '' : 'test '}checkout with Stripe.` : 'Staff verify your previous study and course details before payment becomes available.';
+    $('.payment-sandbox').textContent = livePayment() ? 'Tuition for this semester only · No automatic renewal' : 'Sandbox preview · No real tuition or class access';
+    $('[name="paymentTermsVersion"]').value = readiness.paymentTermsVersion || 'sandbox-semester-4x500-v1';
     renderPayment();
     renderControls();
     renderReview();
@@ -102,7 +105,7 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
     $('#edit-registration').disabled = submitting;
     for (const input of inputGroups('paymentPlan')) input.disabled = !active || !isFoundations();
     $('[name="paymentConsent"]').disabled = !active || !isFoundations();
-    submit.firstChild.textContent = submitting ? 'Saving registration…' : isBeginner() ? 'Continue to Stripe sandbox' : 'Submit registration';
+    submit.firstChild.textContent = submitting ? 'Saving registration…' : isBeginner() ? `Continue to Stripe${livePayment() ? ' checkout' : ' sandbox'}` : 'Submit registration';
     availability.dataset.state = !checking && !enabled() ? 'unavailable' : 'ready';
     availability.textContent = checking ? 'Checking registration availability…' : enabled() ? '' : !course.value ? 'Choose your course to start registration.' : 'Online registration is unavailable for this selection. Please contact onlineclass@liferx.us. No details have been sent.';
     form.setAttribute('aria-busy', String(submitting));
@@ -121,7 +124,7 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
     const monthly = selectedPlan() === 'monthly';
     $('#payment-plan-detail').textContent = monthly ? '$500 today, then 3 automatic monthly payments of $500. $2,000 total; no renewal or next-semester charge. Late-start installments may extend beyond class dates.' : '$2,000 at checkout for this semester. No automatic next-semester charge.';
     $('#payment-plan-detail').textContent = isBeginner() ? $('#payment-plan-detail').textContent : 'Choose a payment preference. Staff review your previous semester before sending a payment invitation; no payment is taken here.';
-    $('#payment-consent-label').textContent = monthly ? 'I authorize the test plan: $500 now and 3 automatic monthly payments of $500 ($2,000 total), with no renewal.' : 'I understand this is a $2,000 test payment.';
+    $('#payment-consent-label').textContent = monthly ? `I authorize ${livePayment() ? 'the payment plan' : 'the test plan'}: $500 now and 3 automatic monthly payments of $500 ($2,000 total), with no renewal.${livePayment() ? ' I accept the student payment, cancellation and refund policies linked here.' : ''}` : livePayment() ? 'I authorize a $2,000 payment for this semester and accept the student payment, cancellation and refund policies linked here.' : 'I understand this is a $2,000 test payment.';
   }
   function setStep(number, focus = true) {
     step = number;
@@ -196,7 +199,7 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
   if(['http:','https:'].includes(location.protocol)) {
     fetch('/api/course-registration/status',{cache:'no-store',signal:AbortSignal.timeout(8000)}).then(async response=> {
       if(!response.ok) throw new Error('Unavailable');
-      const data = await response.json(); readiness = {open:data.open === true,courses:Array.isArray(data.courses) ? data.courses : []}; checking = false; renderControls();
+      const data = await response.json(); readiness = {open:data.open === true,courses:Array.isArray(data.courses) ? data.courses : [],paymentMode:data.paymentMode,paymentTermsVersion:data.paymentTermsVersion,liveCheckoutOpen:data.liveCheckoutOpen === true}; checking = false; renderSelection();
     }).catch(()=> { checking = false; renderControls(); availability.textContent = 'We couldn’t check registration availability. Contact onlineclass@liferx.us for help.'; });
   } else { checking = false; renderControls(); }
 
@@ -224,16 +227,17 @@ const courseDisplayName = value => String(value).replace(/(?<!Traditional )Chine
       }
       if(result.received !== true || !result.reference) throw new Error('Receipt is not confirmed. Contact onlineclass@liferx.us before sending again.');
       completed = true;
-      if (result.sandbox === true && typeof result.checkoutUrl === 'string' && result.checkoutUrl.startsWith('https://checkout.stripe.com/')) {
-        status.textContent = 'Registration saved. Opening Stripe sandbox…';
+      const paymentEnvironmentMatches = result.sandbox === true ? !livePayment() : result.sandbox === false && livePayment();
+      if (paymentEnvironmentMatches && typeof result.checkoutUrl === 'string' && result.checkoutUrl.startsWith('https://checkout.stripe.com/')) {
+        status.textContent = `Registration saved. Opening Stripe ${result.sandbox ? 'sandbox' : 'checkout'}…`;
         window.location.assign(result.checkoutUrl);
       }
       document.querySelector('#success-course').textContent = studyLabel(submitted.course, submitted.semester, submitted.term);
       document.querySelector('#success-reference').textContent = result.reference;
       document.querySelector('#success-next').textContent = `The Institute will review your preparation and email ${submitted.email} with the next steps and confirmed semester details.`;
-      if (result.sandbox === true && typeof result.paymentUrl === 'string' && result.paymentUrl.startsWith('https://care.shambasana.com/#/course-payment?')) {
-        const resume = document.querySelector('#resume-payment'); resume.href = result.paymentUrl; resume.hidden = false;
-        document.querySelector('#success-next').textContent = 'Your registration is saved. Open your private payment page to continue or check your sandbox payment status. Keep this page private.';
+      if (paymentEnvironmentMatches && typeof result.paymentUrl === 'string' && result.paymentUrl.startsWith('https://care.shambasana.com/#/course-payment?')) {
+        const resume = document.querySelector('#resume-payment'); resume.href = result.paymentUrl; resume.hidden = false; resume.textContent = result.sandbox ? 'Continue to sandbox payment' : 'Continue to payment';
+        document.querySelector('#success-next').textContent = `Your registration is saved. Open your private payment page to continue or check your ${result.sandbox ? 'sandbox ' : ''}payment status. Keep this page private.`;
       }
       const success = document.querySelector('#registration-success'); form.hidden = true; success.hidden = false; success.focus(); success.scrollIntoView({block:'start'});
     } catch(error) {
