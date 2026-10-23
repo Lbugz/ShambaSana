@@ -1,7 +1,7 @@
 // Public, server-rendered pages let messaging crawlers read each course preview.
 const origin = 'https://institute.shambasana.com';
 const offerings = {
-  'foundations-semester-1-catch-up': { course: 'Foundations of Chinese Medicine', semester: 1, format: 'self-paced', title: 'Foundations — Semester 1 catch-up', description: 'Join Foundations of Chinese Medicine through reviewed self-paced catch-up. Fall 2026 · $2,000 for Semester 1. Preview full payment or a four-installment plan in Stripe sandbox; no real tuition is collected.', image: 'foundations-v3' },
+  'foundations-semester-1-catch-up': { course: 'Foundations of Chinese Medicine', semester: 1, format: 'self-paced', title: 'Foundations — Semester 1 catch-up', description: 'Register for Foundations of Chinese Medicine Semester 1 catch-up. Fall 2026 · $2,000 for Semester 1. Preview full payment or a four-installment plan in Stripe sandbox; no real tuition is collected.', image: 'foundations-v3' },
   'foundations-semester-2': { course: 'Foundations of Chinese Medicine', semester: 2, format: 'live-online', title: 'Foundations — Semester 2', description: 'Register for Foundations Semester 2. Spring 2027 · Live online · $2,000. Previous study and final schedule are reviewed before enrollment and payment.', image: 'foundations-v3' },
   'foundations-semester-3': { course: 'Foundations of Chinese Medicine', semester: 3, format: 'live-online', title: 'Foundations — Semester 3', description: 'Request Foundations Semester 3 enrollment review. Live online · $2,000. Term and schedule to be confirmed. Separate registration and payment for this semester.', image: 'foundations-v3' },
   'psyche-spring-2027': { course: 'The Psyche in Chinese Medicine', semester: 1, format: 'live-online', title: 'The Psyche in Chinese Medicine — Spring 2027', description: 'Register for enrollment review for the proposed Spring 2027 intake. Live online with Dumisani Kambi-Shamba. Prior study, schedule and tuition confirmed before payment.', image: 'psyche-v3' },
@@ -16,7 +16,7 @@ function socialHead({ title, description, url, image, site = 'Shamba Sana Instit
 }
 function registrationPage(html, offering, slug) {
   const title = offering ? offering.title : 'Course registration';
-  const description = offering?.description || 'Register for online Chinese medicine study at the Shamba Sana Institute. Choose your course and semester. Admission is reviewed; payment follows separately.';
+  const description = offering?.description || 'Register for online Chinese medicine study at the Shamba Sana Institute. Choose your course and semester. Foundations Semester 1 offers sandbox checkout; later study requires prerequisite review before payment.';
   const url = slug ? `${origin}/register/${slug}` : `${origin}/registration.html`;
   html = html.replace(/<title>[\s\S]*?<\/title>/i, '').replace(/<meta name="description"[^>]*>/i, '');
   // Root-relative resources work on nested share URLs without a <base>, which

@@ -15,7 +15,7 @@
 </div></header>
 <main id="main">
 <section class="registration-flow" aria-labelledby="registration-title">
-  <div class="flow-heading"><p class="eyebrow">Course registration</p><h1 id="registration-title">Let’s get you registered.</h1><p>Choose your course, add your details and select how you’d like to pay.</p></div>
+  <div class="flow-heading"><p class="eyebrow">Course registration</p><h1 id="registration-title">Let’s get you registered.</h1><p id="registration-intro">Choose your course and semester, then add your details.</p></div>
   <div class="flow-layout">
     <aside class="course-summary" aria-labelledby="registration-course-title">
       <div class="summary-topline"><span class="summary-label">Your course</span><button type="button" id="change-course" class="text-action">Change<span class="sr-only"> course or semester</span></button></div>
@@ -23,12 +23,12 @@
       <p id="registration-course-meta" class="course-meta">Select a course and semester to begin.</p>
       <p id="registration-course-price" class="course-price"></p>
       <p id="registration-course-note" class="course-note">Each semester has its own registration and payment.</p>
-      <details class="flow-disclosure"><summary>Tuition &amp; enrollment details<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path class="disclosure-vertical" d="M12 5v14"/></svg></summary><div><p id="registration-tuition-detail"></p><p>Each semester has its own enrollment and payment. Prerequisites must be verified before class access. Sandbox payments do not purchase a course or grant access.</p><a href="student-information.html#tuition" target="_blank" rel="noopener noreferrer">Tuition &amp; refund information (opens in a new tab)</a></div></details>
+      <details class="flow-disclosure"><summary>Tuition &amp; enrollment details<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path class="disclosure-vertical" d="M12 5v14"/></svg></summary><div><p id="registration-tuition-detail"></p><p>Each semester has its own registration and payment. Later semesters and courses require prerequisite review before payment. Class access follows confirmed admission and payment.</p><a href="student-information.html#tuition" target="_blank" rel="noopener noreferrer">Tuition &amp; refund information (opens in a new tab)</a></div></details>
       <p class="summary-help">A question before you begin? <a href="mailto:onlineclass@liferx.us">Contact admissions</a></p>
     </aside>
     <div class="flow-workspace">
       <form id="course-registration-form" class="flow-form" action="/api/course-registration" method="post" novalidate>
-        <ol class="flow-progress" aria-label="Registration progress"><li id="progress-details" aria-current="step"><span class="step-number">1</span><span>Your details</span></li><li id="progress-review"><span class="step-number">2</span><span>Review &amp; payment</span></li></ol>
+        <ol class="flow-progress" aria-label="Registration progress"><li id="progress-details" aria-current="step"><span class="step-number">1</span><span>Your details</span></li><li id="progress-review"><span class="step-number">2</span><span id="review-progress-label">Review</span></li></ol>
         <p id="registration-availability" class="flow-availability" role="status">Checking registration availability…</p>
         <div id="registration-details">
           <section id="step-details" class="flow-step" aria-labelledby="details-title">
@@ -49,15 +49,14 @@
               <label><input type="radio" name="psycheStatus" value="completed"><span>Completed</span></label><label><input type="radio" name="psycheStatus" value="in-progress"><span>Currently studying</span></label><label><input type="radio" name="psycheStatus" value="registered"><span>Registered / awaiting admission</span></label><label><input type="radio" name="psycheStatus" value="not-started"><span>Not yet started</span></label>
             </div><p class="input-error" id="psyche-error" hidden></p></fieldset>
             <div class="form-field" id="prior-cohort-field"><label for="registration-cohort">Earlier cohort or semester <span>Optional</span></label><input id="registration-cohort" name="priorCohort" maxlength="240" placeholder="For example, Foundations — Fall 2026"></div>
-            <fieldset class="choice-field payment-options" id="payment-options" hidden><legend>How would you like to pay?</legend><p class="payment-sandbox">Stripe sandbox · Draft payment options · No real charge</p><div class="choice-grid">
+            <fieldset class="choice-field payment-options" id="payment-options" hidden><legend>How would you like to pay?</legend><p class="payment-sandbox">Sandbox preview · No real tuition or class access</p><div class="choice-grid">
               <label><input type="radio" name="paymentPlan" value="full" checked><span><strong>Pay in full</strong><b>$2,000</b><small>One payment for this semester</small></span></label>
               <label><input type="radio" name="paymentPlan" value="monthly"><span><strong>Monthly plan</strong><b>4 × $500</b><small>$2,000 total · No renewal</small></span></label>
-            </div><p id="payment-plan-detail" class="field-help"></p><p id="payment-eligibility" class="field-help"></p>
+            </div><p id="payment-plan-detail" class="field-help"></p>
             <label class="flow-consent"><input type="checkbox" name="paymentConsent" value="yes" aria-describedby="payment-consent-error"><span id="payment-consent-label">I understand this is a sandbox payment using test card details.</span></label><p class="input-error" id="payment-consent-error" hidden></p></fieldset>
             <details class="flow-disclosure additional-disclosure"><summary>Add a question or note <span class="optional-label">Optional</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path class="disclosure-vertical" d="M12 5v14"/></svg></summary><div class="form-field"><label for="registration-message">Your note</label><textarea id="registration-message" name="message" rows="3" maxlength="1000" aria-describedby="message-help"></textarea><p class="field-help" id="message-help">Questions about preparation or enrollment only. Please omit health information.</p></div></details>
-            <div class="review-card"><div><h3>Your registration</h3><button type="button" id="edit-registration" class="text-action">Edit details</button></div><dl id="registration-review-summary"></dl><p id="registration-next-step">Your next step depends on the selected course and preparation.</p></div>
-            <label class="flow-consent"><input type="checkbox" name="prerequisiteAcknowledgement" value="yes" required aria-describedby="preparation-error"><span>I understand admission and class access depend on the required enrollment steps.</span></label><p class="input-error" id="preparation-error" hidden></p>
-            <label class="flow-consent"><input type="checkbox" name="consent" value="yes" required aria-describedby="consent-error"><span>My details are accurate, and I agree to be contacted about my enrollment.</span></label><p class="input-error" id="consent-error" hidden></p>
+            <div class="review-card"><div><h3>Your details</h3><button type="button" id="edit-registration" class="text-action">Edit details</button></div><dl id="registration-review-summary"></dl><p id="registration-next-step">Your next step depends on the selected course and preparation.</p></div>
+            <label class="flow-consent"><input type="checkbox" name="consent" value="yes" required aria-describedby="consent-error"><span>My details are accurate, and I agree to enrollment emails. I understand class access requires confirmed admission, payment and any prerequisites.</span></label><p class="input-error" id="consent-error" hidden></p>
             <p class="flow-privacy">Your details are used to manage Institute enrollment. <a href="registration-privacy.html" target="_blank" rel="noopener noreferrer">Privacy information (new tab)</a> · <a href="student-information.html" target="_blank" rel="noopener noreferrer">Student policies (new tab)</a></p>
             <div class="flow-actions"><button type="button" id="back-registration" class="flow-back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg>Back</button><button type="submit" class="flow-primary" disabled>Submit registration<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button></div>
           </section>

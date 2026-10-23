@@ -153,3 +153,7 @@
  #step-review .flow-actions button { width: 100%; }
 }
 @media(prefers-reduced-motion:no-preference) { .flow-step { animation: step-in .2s ease-out; } @keyframes step-in { from { opacity: .4; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } } }
+
+/* Compact review details without repeating the course and plan selections. */
+.review-card dl > div { display:grid; grid-template-columns:64px minmax(0,1fr); gap:12px; margin-bottom:8px; align-items:baseline; }
+.flow-consent { min-height:44px; }
