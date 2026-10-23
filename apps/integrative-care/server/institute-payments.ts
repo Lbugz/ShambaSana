@@ -1,0 +1,183 @@
+import { Billing, billingConfigured, billingMode, type Enrollment, type Purchase } from "./billing";
+import { ConflictError, type CareStore } from "./care-store";
+import { semesterPrice, semesterDescription } from "./institute-offerings";
+
+export type SemesterPlan = "full" | "monthly";
+export const paymentTermsVersion = "sandbox-semester-4x500-v1";
+const fail = (status: number, message: string): never => { throw Object.assign(new Error(message), { status, expose: true }); };
+const stamp = () => new Date().toISOString();
+// Preserve the billing day, clamping dates such as January 31 to February's end.
+export function followingMonth(timestamp: number) {
+  const date = new Date(timestamp * 1000);
+  const day = date.getUTCDate();
+  date.setUTCDate(1); date.setUTCMonth(date.getUTCMonth() + 1);
+  const last = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)).getUTCDate();
+  date.setUTCDate(Math.min(day, last));
+  return Math.floor(date.getTime() / 1000);
+}
+
+// The draft plan is sandbox-only. Live activation needs a separate implementation
+// review once tuition, payment dates, withdrawal and collection terms are final.
+export class InstitutePayments {
+  constructor(private store: CareStore, private billing: Billing, private apply: (purchase: Purchase) => Promise<void>) {}
+  private ready() {
+    if (billingMode() !== "sandbox" || !process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_") || !billingConfigured()) fail(503, "Semester checkout is available in Stripe sandbox only.");
+  }
+  private async stripe(path: string, body?: URLSearchParams, key?: string) {
+    this.ready();
+    const response = await fetch(`https://api.stripe.com/v1/${path}`, {
+      method: body ? "POST" : "GET", body,
+      headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`, "Stripe-Version": "2024-06-20", ...(body ? { "Content-Type": "application/x-www-form-urlencoded" } : {}), ...(key ? { "Idempotency-Key": key } : {}) },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) fail(502, "Stripe checkout needs attention. Your registration is saved; use your private payment page to retry.");
+    const result = await response.json();
+    if (result.livemode === true) fail(502, "A live payment response was rejected.");
+    return result;
+  }
+  async order(e: Enrollment, plan: SemesterPlan) {
+    this.ready();
+    const total = semesterPrice(e);
+    if (total !== 200000) fail(409, "Tuition needs confirmation before checkout.");
+    let order = await this.billing.order("institute", e.id, e.email, `Shamba Sana Institute — ${semesterDescription(e)}`, total!);
+    if (order.amount !== total || order.livemode) fail(409, "The payment record needs review.");
+    if (!order.directCheckout) {
+      if (order.checkoutId || order.status !== "pending") fail(409, "An earlier checkout needs review.");
+      const revision = order.revision;
+      order = { ...order, directCheckout: true, semesterPlan: plan, planState: "pending", paidAmount: 0, refundedAmount: 0, payments: {}, revision: revision + 1, updatedAt: stamp() };
+      try { await this.store.put("purchase", order.id, order, revision); }
+      catch (error) { if (!(error instanceof ConflictError)) throw error; order = (await this.store.get<Purchase>("purchase", order.id))!; }
+    }
+    if (order.semesterPlan !== plan) fail(409, "A different payment plan is already attached to this registration. Contact admissions to change it.");
+    return order;
+  }
+  async checkout(id: string, returnPath: string) {
+    this.ready();
+    let order = await this.store.get<Purchase>("purchase", id);
+    if (!order?.directCheckout || order.status !== "pending" || order.livemode) fail(409, "This payment does not need a new checkout.");
+    if (order!.checkoutId) {
+      const old = await this.stripe(`checkout/sessions/${encodeURIComponent(order!.checkoutId)}`);
+      if (old.status === "open" && old.url?.startsWith("https://checkout.stripe.com/")) return { url: old.url };
+      if (old.status !== "expired") fail(409, "Stripe is confirming this payment. Refresh your payment page.");
+      const revision = order!.revision;
+      order = { ...order!, revision: revision + 1, generation: order!.generation + 1, checkoutId: undefined, updatedAt: stamp() };
+      await this.store.put("purchase", id, order, revision);
+    }
+    if (!returnPath.startsWith("/#/course-payment?")) fail(400, "Invalid return page.");
+    const monthly = order!.semesterPlan === "monthly";
+    const amount = monthly ? 50000 : order!.amount;
+    const base = new URL(process.env.APP_BASE_URL!).origin;
+    const body = new URLSearchParams({ mode: "payment", customer_creation: "always", customer_email: order!.email,
+      "payment_method_types[0]": "card", "line_items[0][price_data][currency]": "usd", "line_items[0][price_data][unit_amount]": String(amount),
+      "line_items[0][price_data][product_data][name]": `${order!.description}${monthly ? " — installment 1 of 4" : " — full semester tuition"}`,
+      "line_items[0][quantity]": "1", "metadata[orderId]": id, "payment_intent_data[metadata][orderId]": id,
+      client_reference_id: id, success_url: `${base}${returnPath}`, cancel_url: `${base}${returnPath}`,
+      "custom_text[submit][message]": monthly ? "SANDBOX PLAN: $500 today, then 3 automatic monthly payments of $500. $2,000 total. Charges stop after those installments. Late-start payments may extend beyond class dates. No next-semester renewal." : "SANDBOX: $2,000 tuition for this semester only. No automatic next-semester charge.",
+    });
+    if (monthly) body.set("payment_intent_data[setup_future_usage]", "off_session");
+    const session = await this.stripe("checkout/sessions", body, `institute-checkout-${id}-${order!.generation}`);
+    if (!session.id || !session.url?.startsWith("https://checkout.stripe.com/")) fail(502, "Invalid Stripe checkout response.");
+    const revision = order!.revision;
+    const next = { ...order!, checkoutId: session.id, revision: revision + 1, updatedAt: stamp() };
+    try { await this.store.put("purchase", id, next, revision); }
+    catch (error) { if (!(error instanceof ConflictError) || (await this.store.get<Purchase>("purchase", id))?.checkoutId !== session.id) throw error; }
+    return { url: session.url };
+  }
+  private async schedule(order: Purchase, intent: any) {
+    if (order.scheduleId) return order.scheduleId;
+    if (typeof intent.customer !== "string" || typeof intent.payment_method !== "string") fail(409, "The saved payment method needs reconciliation.");
+    const previous = await this.stripe(`subscription_schedules?customer=${encodeURIComponent(intent.customer)}&limit=100`);
+    const existing = previous.data?.find((item: any) => item.metadata?.orderId === order.id);
+    if (existing) {
+      if (!["active", "not_started"].includes(existing.status) || existing.end_behavior !== "cancel") fail(409, "An earlier payment schedule needs staff reconciliation.");
+      return existing.id as string;
+    }
+    // The first $500 was collected by Checkout. Create ONLY three more monthly
+    // installments, with a cancellation boundary set at creation (never unbounded).
+    const body = new URLSearchParams({ customer: intent.customer, start_date: String(followingMonth(intent.created)), end_behavior: "cancel",
+      "default_settings[default_payment_method]": intent.payment_method, "metadata[orderId]": order.id,
+      "phases[0][items][0][price_data][currency]": "usd", "phases[0][items][0][price_data][unit_amount]": "50000",
+      "phases[0][items][0][price_data][recurring][interval]": "month", "phases[0][items][0][quantity]": "1",
+      "phases[0][iterations]": "3", "phases[0][proration_behavior]": "none", "phases[0][metadata][orderId]": order.id,
+    });
+    const product = await this.stripe("products", new URLSearchParams({ name: `${order.description} — remaining semester installments`, "metadata[orderId]": order.id }), `institute-product-${order.id}`);
+    body.set("phases[0][items][0][price_data][product]", product.id);
+    const schedule = await this.stripe("subscription_schedules", body, `institute-schedule-${order.id}`);
+    if (!schedule.id || schedule.end_behavior !== "cancel" || schedule.phases?.length !== 1) fail(502, "The finite payment schedule could not be confirmed.");
+    return schedule.id as string;
+  }
+  async event(event: { id: string; type: string; data: { object: Record<string, any> } }): Promise<boolean> {
+    if (billingMode() !== "sandbox") return false;
+    const types = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "charge.refunded", "invoice.paid", "invoice.payment_failed", "customer.subscription.deleted", "subscription_schedule.canceled", "subscription_schedule.completed", "subscription_schedule.aborted"];
+    if (!types.includes(event.type)) return false;
+    let object = event.data.object;
+    let id = object.metadata?.orderId;
+    if (!id && event.type.startsWith("invoice.")) {
+      const subscriptionId = object.subscription || object.parent?.subscription_details?.subscription;
+      if (typeof subscriptionId !== "string") return false;
+      const sub = await this.stripe(`subscriptions/${encodeURIComponent(subscriptionId)}`);
+      id = sub.metadata?.orderId;
+    }
+    if (!id && event.type === "charge.refunded" && typeof object.payment_intent === "string") id = (await this.stripe(`payment_intents/${encodeURIComponent(object.payment_intent)}`)).metadata?.orderId;
+    if (typeof id !== "string") return false;
+    const original = await this.store.get<Purchase>("purchase", id);
+    if (!original?.directCheckout) return false;
+    this.ready();
+    if (original.livemode || object.livemode === true) fail(400, "Payment environment mismatch.");
+    let intent: any; let scheduleId = original.scheduleId;
+    if (event.type.startsWith("checkout.")) {
+      object = await this.stripe(`checkout/sessions/${encodeURIComponent(object.id)}`);
+      if (object.payment_status !== "paid") return true;
+      const expected = original.semesterPlan === "monthly" ? 50000 : original.amount;
+      if (object.id !== original.checkoutId || object.amount_total !== expected || object.currency !== "usd" || typeof object.payment_intent !== "string") fail(400, "Checkout does not match the semester order.");
+      intent = await this.stripe(`payment_intents/${encodeURIComponent(object.payment_intent)}?expand[]=latest_charge`);
+      if (intent.status !== "succeeded" || intent.amount_received !== expected || intent.metadata?.orderId !== id) fail(409, "Payment confirmation needs reconciliation.");
+      intent.refundedAmount = typeof intent.latest_charge === "object" ? intent.latest_charge.amount_refunded || 0 : 0;
+      if (original.semesterPlan === "monthly" && original.status !== "refunded" && !intent.refundedAmount) scheduleId = await this.schedule(original, intent);
+    } else if (event.type.startsWith("invoice.")) {
+      object = await this.stripe(`invoices/${encodeURIComponent(object.id)}`);
+      if (object.currency !== "usd" || object.total !== 50000 || typeof object.subscription !== "string") fail(409, "Installment invoice needs reconciliation.");
+      const sub = await this.stripe(`subscriptions/${encodeURIComponent(object.subscription)}`);
+      if (sub.schedule !== original.scheduleId || sub.metadata?.orderId !== id) fail(409, "Installment schedule mismatch.");
+    } else if (event.type === "charge.refunded") {
+      object = await this.stripe(`charges/${encodeURIComponent(object.id)}`);
+      // Stop future collections as soon as a refund is recorded. Staff decide
+      // whether the student continues; a refund never silently creates a new plan.
+      if (original.scheduleId && object.amount_refunded > 0) {
+        const scheduled = await this.stripe(`subscription_schedules/${encodeURIComponent(original.scheduleId)}`);
+        if (["active", "not_started"].includes(scheduled.status)) await this.stripe(`subscription_schedules/${encodeURIComponent(original.scheduleId)}/cancel`, new URLSearchParams({ invoice_now: "false", prorate: "false" }), `institute-refund-stop-${original.id}`);
+      }
+    }
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const old = (await this.store.get<Purchase>("purchase", id))!;
+      const next = { ...old, payments: { ...old.payments }, revision: old.revision + 1, updatedAt: stamp(), scheduleId: scheduleId || old.scheduleId };
+      if (intent) {
+        next.payments[intent.id] ||= { amount: intent.amount_received, refunded: intent.refundedAmount, intent: intent.id };
+        if (intent.refundedAmount) next.planState = "cancelled";
+        next.paymentIntent = intent.id;
+      } else if (event.type === "invoice.paid" && object.status === "paid") {
+        if (object.amount_paid !== 50000 || typeof object.payment_intent !== "string") fail(409, "Installment payment needs reconciliation.");
+        next.payments[object.payment_intent] ||= { amount: object.amount_paid, refunded: 0, intent: object.payment_intent };
+      } else if (event.type === "charge.refunded") {
+        const payment = next.payments[object.payment_intent];
+        if (!payment || object.currency !== "usd" || object.amount !== payment.amount) fail(409, "Refund needs installment reconciliation.");
+        payment.refunded = Math.max(payment.refunded, object.amount_refunded);
+        next.planState = "cancelled";
+      } else if (event.type === "invoice.payment_failed" && !next.payments[object.payment_intent]) next.planState = "past-due";
+      else if (["customer.subscription.deleted", "subscription_schedule.canceled", "subscription_schedule.aborted"].includes(event.type)) next.planState = "cancelled";
+      next.paidAmount = Object.values(next.payments).reduce((sum, item) => sum + item.amount, 0);
+      next.refundedAmount = Object.values(next.payments).reduce((sum, item) => sum + item.refunded, 0);
+      if (next.paidAmount > next.amount || Object.keys(next.payments).length > (next.semesterPlan === "monthly" ? 4 : 1)) fail(409, "Unexpected installment count needs staff reconciliation.");
+      if (next.paidAmount > 0) next.status = next.refundedAmount === next.paidAmount ? "refunded" : "paid";
+      if (next.paidAmount === next.amount && !next.refundedAmount) next.planState = "complete";
+      else if ((intent || event.type === "invoice.paid") && !next.refundedAmount && next.planState !== "cancelled") next.planState = "active";
+      else if (event.type === "subscription_schedule.completed" && next.paidAmount < next.amount) next.planState = "past-due";
+      try {
+        await this.store.put("purchase", id, next, old.revision);
+        await this.apply(next);
+        return true;
+      } catch (error) { if (!(error instanceof ConflictError) || attempt === 4) throw error; }
+    }
+    return true;
+  }
+}

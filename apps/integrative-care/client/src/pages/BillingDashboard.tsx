@@ -8,7 +8,7 @@ import { api, money, useAuth } from "@/lib/care";
 type Enrollment = { id: string; revision: number; course: string; semester?: number; learningFormat?: string; paymentAmount?: number; name: string; email: string; status: string; cohort?: string; policyUrl?: string; term?: string; foundationsStatus?: string; psycheStatus?: string; priorCohort?: string; message?: string; classroomCourseId?: string; orientationUrl?: string; accessApprovedAt?: string; sandboxPayment?: boolean };
 type Job = { id: string; revision: number; enrollmentId: string; purpose: string; status: string; attempts: number; error?: string; providerId?: string; completedAt?: string; sandbox: boolean };
 type Automation = { mode: string; googleConfigured: boolean; connectedEmail?: string; billingMode: string; checkout: boolean };
-type Order = { id: string; offering: string; referenceId: string; email: string; amount: number; status: string };
+type Order = { semesterPlan?: string; paidAmount?: number; refundedAmount?: number; planState?: string; id: string; offering: string; referenceId: string; email: string; amount: number; status: string };
 export default function BillingDashboard() {
   const auth = useAuth("practitioner");
   const query = useQuery<{ orders: Order[]; enrollments: Enrollment[]; jobs: Job[]; automation: Automation }>({ queryKey: ["billing-admin"], queryFn: () => api("/billing/admin"), enabled: auth.user?.role === "practitioner" });
@@ -43,7 +43,7 @@ export default function BillingDashboard() {
     <div className="space-y-4">{query.data?.jobs?.map(job => <Delivery key={job.id} job={job} refresh={() => query.refetch()} />)}</div>
     <h2 className="mb-5 mt-10 text-2xl">Payment ledger</h2>
     <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr>{["Offering", "Reference", "Customer", "Amount", "Status"].map(label => <th className="p-3" key={label}>{label}</th>)}</tr></thead>
-      <tbody>{query.data?.orders.map(o => <tr className="border-t border-border" key={o.id}><td className="p-3">{o.offering}</td><td className="p-3 break-all">{o.referenceId}</td><td className="p-3">{o.email}</td><td className="p-3">{money(o.amount)}</td><td className="p-3">{o.status}</td></tr>)}</tbody></table></div>
+      <tbody>{query.data?.orders.map(o => <tr className="border-t border-border" key={o.id}><td className="p-3">{o.offering}</td><td className="p-3 break-all">{o.referenceId}</td><td className="p-3">{o.email}</td><td className="p-3">{money(o.amount)}{o.semesterPlan && <><br/><span className="text-xs">{o.semesterPlan} plan</span></>}</td><td className="p-3">{o.semesterPlan === "monthly" && o.status === "paid" ? "Installments started" : o.status}{o.paidAmount !== undefined && <><br/><span className="text-xs">Collected {money(o.paidAmount)} / {money(o.amount)}<br/>Refunded {money(o.refundedAmount || 0)}<br/>{o.planState}</span></>}</td></tr>)}</tbody></table></div>
   </CareLayout>;
 }
 function GoogleDeliveryCheck() {

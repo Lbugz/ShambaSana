@@ -7,8 +7,9 @@ import { InstituteOnboarding, automationMode, invitationToken, type OnboardingJo
 import { googleConfigured, googleRedirect, googleScopes, instituteEmail, seal, unseal, type GoogleConnection } from "./institute-google";
 import { ConflictError, type CareStore } from "./care-store";
 import type { CareCase, User } from "../shared/care";
-import { InstituteDeliveryCheck, deliveryCheckRecipient } from "./institute-delivery-check";
+import { InstituteDeliveryCheck, deliveryCheckRecipient, deliveryCheckCourse } from "./institute-delivery-check";
 import { semesterPrice, semesterDescription } from "./institute-offerings";
+import { InstitutePayments, paymentTermsVersion } from "./institute-payments";
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown>) => (req: Request, res: Response, next: NextFunction) => { fn(req, res).catch(next); };
 const fail = (status: number, message: string): never => { throw Object.assign(new Error(message), { status, expose: true }); };
@@ -49,6 +50,12 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
         const enrollment = record as Enrollment;
         if (enrollment.status === "refunded" || latest.status === "pending" || enrollment.status === latest.status) { await reconcile(enrollment); return; }
         enrollment.status = latest.status;
+        const testClass = deliveryCheckCourse();
+        if (latest.directCheckout && !latest.livemode && latest.status === "paid" && enrollment.course === courseNames[0] && enrollment.semester === 1 && testClass) {
+          enrollment.classroomCourseId = testClass;
+          enrollment.accessApprovedAt = new Date().toISOString();
+          enrollment.accessVersion = 1;
+        }
       }
       record!.revision++;
       try { await store.put(kind, record!.id, record, revision); if (kind === "enrollment") await reconcile(record as Enrollment); return; }
@@ -56,6 +63,8 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     }
   };
   const billing = new Billing(store, apply);
+  const semesterPayments = new InstitutePayments(store, billing, apply);
+  billing.instituteEvent = event => semesterPayments.event(event);
   billing.registerWebhook(app);
 
   // Only the website server can submit a registration. Enrollment stays under review.
@@ -68,15 +77,39 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     if (input.term !== expectedTerm || (!foundations && (input.semester !== 1 || input.learningFormat !== "live-online")) || (foundations && ((input.semester === 1) !== (input.learningFormat === "self-paced"))) || (input.course === courseNames[2] && !input.psycheStatus)) fail(400, "Check the requested course, semester, format and prerequisite details.");
     const allowed = (process.env.INSTITUTE_OPEN_COURSES || courseNames.slice(1).join("|")).split("|").map(course => course.trim());
     if (!foundations && !allowed.includes(input.course)) fail(503, "Registration review for this course is not open.");
-    const enrollment: Enrollment = { ...input, id: input.reference, revision: 0, createdAt: new Date().toISOString(), status: "review", automationVersion: 1 };
+    const payment = z.object({ paymentPlan: z.enum(["full", "monthly"]).optional(), paymentConsent: z.boolean().optional(), paymentTermsVersion: z.string().optional() }).parse(req.body);
+    if (payment.paymentPlan && (!foundations || !payment.paymentConsent || payment.paymentTermsVersion !== paymentTermsVersion)) fail(400, "Review the semester payment choice and terms.");
+    const enrollment: Enrollment = { ...input, id: input.reference, revision: 0, createdAt: new Date().toISOString(), status: "review", automationVersion: 1, paymentPlan: payment.paymentPlan, paymentTermsVersion: payment.paymentTermsVersion, paymentConsentAt: payment.paymentConsent ? new Date().toISOString() : undefined };
     try { await store.put("enrollment", enrollment.id, enrollment); }
     catch (error) {
       if (!(error instanceof ConflictError)) throw error;
       const old = await store.get<Enrollment>("enrollment", enrollment.id);
-      if (old?.email !== input.email || old?.course !== input.course || (old?.semester ?? 1) !== input.semester || (old?.learningFormat ?? "live-online") !== input.learningFormat || old?.term !== input.term) throw error;
+      if (old?.email !== input.email || old?.course !== input.course || (old?.semester ?? 1) !== input.semester || (old?.learningFormat ?? "live-online") !== input.learningFormat || old?.term !== input.term || old?.paymentPlan !== payment.paymentPlan) throw error;
     }
-    await reconcile((await store.get<Enrollment>("enrollment", enrollment.id))!);
-    res.json({ received: true, reference: enrollment.id });
+    let current = (await store.get<Enrollment>("enrollment", enrollment.id))!;
+    let paymentUrl: string | undefined;
+    let checkoutUrl: string | undefined;
+    // No prerequisite is required for Foundations Semester 1. This draft path
+    // simulates eligibility only; all live payments remain explicitly blocked.
+    if (payment.paymentPlan && foundations && input.semester === 1 && billingMode() === "sandbox" && billingConfigured()) {
+      if (current.status === "review") {
+        const order = await semesterPayments.order(current, payment.paymentPlan);
+        const version = current.revision + 1;
+        const token = invitationToken(current.id, version);
+        const updated: Enrollment = { ...current, revision: version, status: "payment-ready", purchaseId: order.id, tuitionCents: order.amount, sandboxPayment: true, accessHash: paymentTokenHash(token), invitationVersion: version, policyAcceptedAt: current.paymentConsentAt, policyUrl: "https://institute.shambasana.com/student-information.html#tuition", cohort: "Foundations Semester 1 — self-paced catch-up. Sandbox draft; learning plan, support and access arrangements require confirmation before live enrollment.", prerequisitesReviewedAt: new Date().toISOString() };
+        try { await store.put("enrollment", current.id, updated, current.revision); current = updated; }
+        catch (error) { if (!(error instanceof ConflictError)) throw error; current = (await store.get<Enrollment>("enrollment", current.id))!; }
+      }
+      if (current.status === "payment-ready" && current.invitationVersion && current.purchaseId) {
+        const token = invitationToken(current.id, current.invitationVersion);
+        const returnPath = `/#/course-payment?enrollment=${encodeURIComponent(current.id)}&token=${token}`;
+        paymentUrl = `${new URL(process.env.APP_BASE_URL!).origin}${returnPath}`;
+        try { checkoutUrl = (await semesterPayments.checkout(current.purchaseId, returnPath)).url; }
+        catch { console.error("Institute checkout deferred; registration and private payment page are preserved."); }
+      }
+    }
+    await reconcile(current);
+    res.json({ received: true, reference: enrollment.id, paymentUrl, checkoutUrl, sandbox: billingMode() === "sandbox" });
   }));
 
   app.get("/api/billing/admin", wrap(async (req, res) => {
@@ -103,7 +136,7 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     if (!amount) fail(409, "Semester pricing or learning-format terms need confirmation before a new payment invitation.");
     const version = e!.revision + 1;
     const token = invitationToken(e!.id, version);
-    const purchase = await billing.order("institute", e!.id, e!.email, `Shamba Sana Institute — ${semesterDescription(e!)}`, amount!);
+    const purchase = e!.paymentPlan ? await semesterPayments.order(e!, e!.paymentPlan) : await billing.order("institute", e!.id, e!.email, `Shamba Sana Institute — ${semesterDescription(e!)}`, amount!);
     if (purchase.amount !== amount) fail(409, "An existing payment has a different price. Staff must reconcile it before proceeding.");
     if (purchase.status !== "pending" || purchase.checkoutId) fail(409, "Checkout has already started. Resolve the existing payment before replacing its invitation.");
     const updated: Enrollment = { ...e!, tuitionCents: purchase.amount, revision: version, status: "payment-ready", purchaseId: purchase.id, accessHash: paymentTokenHash(token), invitationVersion: version, automationVersion: 1, sandboxPayment: purchase.livemode !== true, policyUrl: data.policyUrl, cohort: data.cohort, orientationUrl: data.orientationUrl, classroomCourseId: data.classroomCourseId, prerequisitesReviewedAt: new Date().toISOString(), policyAcceptedAt: undefined };
@@ -117,14 +150,15 @@ export function platform(app: Express, store: CareStore, httpServer?: Server) {
     verifyPaymentToken(input.token, e);
     const order = e!.purchaseId ? await store.get<Purchase>("purchase", e!.purchaseId) : undefined;
     if (!order) fail(409, "The payment record needs staff review.");
-    if (!input.checkout) return res.json({ course: e!.course, semester: e!.semester, learningFormat: e!.learningFormat, cohort: e!.cohort, policyUrl: e!.policyUrl, amount: order!.amount, status: e!.status, sandbox: e!.sandboxPayment === true, accessApproved: !!e!.accessApprovedAt && !e!.sandboxPayment, orientationUrl: e!.status === "paid" && !e!.sandboxPayment ? e!.orientationUrl : undefined });
+    if (!input.checkout) return res.json({ course: e!.course, semester: e!.semester, learningFormat: e!.learningFormat, cohort: e!.cohort, policyUrl: e!.policyUrl, amount: order!.amount, status: e!.status, paymentPlan: order!.semesterPlan, paidAmount: order!.paidAmount, refundedAmount: order!.refundedAmount, planState: order!.planState, sandbox: e!.sandboxPayment === true, accessApproved: !!e!.accessApprovedAt && !e!.sandboxPayment, orientationUrl: e!.status === "paid" && !e!.sandboxPayment ? e!.orientationUrl : undefined });
     if (input.acceptPolicies !== true || e!.status !== "payment-ready" || !e!.purchaseId) fail(409, "Review the course policies before checkout.");
     if (!e!.policyAcceptedAt) {
       const revision = e!.revision;
       e!.policyAcceptedAt = new Date().toISOString(); e!.revision++;
       await store.put("enrollment", e!.id, e, revision);
     }
-    const result = await billing.checkout(e!.purchaseId!, `/#/course-payment?enrollment=${encodeURIComponent(e!.id)}&token=${input.token}`);
+    const returnPath = `/#/course-payment?enrollment=${encodeURIComponent(e!.id)}&token=${input.token}`;
+    const result = order!.directCheckout ? await semesterPayments.checkout(e!.purchaseId!, returnPath) : await billing.checkout(e!.purchaseId!, returnPath);
     res.json({ url: result.url });
   }));
 

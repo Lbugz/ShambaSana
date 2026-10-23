@@ -31,6 +31,7 @@
   const isFoundations = () => course.value === 'Foundations of Chinese Medicine';
   const isBeginner = () => isFoundations() && semester.value === '1';
   const isAdvanced = () => course.value === 'Advanced Diagnosis & Treatment';
+  const selectedPlan = () => $('[name="paymentPlan"]:checked')?.value || 'full';
   const selectedTerm = () => terms[course.value]?.[semester.value];
   const studyLabel = (selectedCourse = course.value, selectedSemester = semester.value, term = selectedTerm()) => [selectedCourse || 'Course not selected', selectedCourse === 'Foundations of Chinese Medicine' ? `Semester ${selectedSemester}` : '', term].filter(Boolean).join(' · ');
   const enabled = () => readiness.open && readiness.courses.includes(course.value) && !!selectedTerm();
@@ -74,6 +75,11 @@
     $('#psyche-status-field').hidden = !isAdvanced();
     $('#psyche-status-field').setAttribute('aria-describedby','psyche-error');
     $('#prior-cohort-field').hidden = isBeginner();
+    $('#payment-options').hidden = !isFoundations();
+    $('#review-title').textContent = isFoundations() ? 'Review your registration & payment.' : 'Your preparation & next steps.';
+    $('#payment-reassurance').textContent = isFoundations() ? 'Card details are entered securely on Stripe. Sandbox only.' : 'Tuition will be confirmed before payment.';
+    $('#registration-next-step').textContent = isBeginner() ? 'Continue directly to Stripe sandbox checkout. No real enrollment or class access is granted.' : 'Staff verify your previous study and course details before payment becomes available.';
+    renderPayment();
     renderControls();
     renderReview();
   }
@@ -90,7 +96,9 @@
     semester.disabled = submitting;
     $('#back-registration').disabled = submitting;
     $('#edit-registration').disabled = submitting;
-    submit.firstChild.textContent = submitting ? 'Sending registration…' : 'Submit registration';
+    for (const input of inputGroups('paymentPlan')) input.disabled = !active || !isFoundations();
+    $('[name="paymentConsent"]').disabled = !active || !isFoundations();
+    submit.firstChild.textContent = submitting ? 'Saving registration…' : isBeginner() ? 'Continue to Stripe sandbox' : 'Submit registration';
     availability.dataset.state = !checking && !enabled() ? 'unavailable' : 'ready';
     availability.textContent = checking ? 'Checking registration availability…' : enabled() ? '' : !course.value ? 'Choose your course to start registration.' : 'Online registration is unavailable for this selection. Please contact onlineclass@liferx.us. No details have been sent.';
     form.setAttribute('aria-busy', String(submitting));
@@ -104,6 +112,13 @@
   function renderReview() {
     const summary = $('#registration-review-summary');
     summary.replaceChildren(summaryRow('Student', name.value.trim() || 'Your name'), summaryRow('Email', email.value.trim() || 'Your email'), summaryRow('Study', studyLabel()), summaryRow('Format', isBeginner() ? 'Self-paced catch-up' : 'Live online'));
+    if (isFoundations()) summary.append(summaryRow('Payment choice', selectedPlan() === 'monthly' ? '4 monthly payments of $500 · $2,000 total' : '$2,000 in one payment'));
+  }
+  function renderPayment() {
+    const monthly = selectedPlan() === 'monthly';
+    $('#payment-plan-detail').textContent = monthly ? '$500 at checkout, then 3 automatic monthly payments of $500. $2,000 total. Stops after those installments. Late-start plans may extend beyond class dates; this is not a charge for a later semester.' : '$2,000 at checkout for this semester. No automatic next-semester charge.';
+    $('#payment-eligibility').textContent = isBeginner() ? 'Sandbox preview: no previous study is required. Your catch-up learning plan and access arrangements must be finalized before live enrollment.' : 'Your preference is saved. Staff must verify your previous semester before enabling payment.';
+    $('#payment-consent-label').textContent = monthly ? 'For this sandbox simulation, I authorize $500 at checkout and 3 further automatic monthly payments of $500, totaling $2,000. I understand the draft plan does not renew.' : 'I understand this is a $2,000 sandbox payment using test card details. No real tuition is collected.';
   }
   function setStep(number, focus = true) {
     step = number;
@@ -137,6 +152,10 @@
       const input = $(`[name="${field}"]`);
       if(!fieldError(input,errorId,input.checked ? '' : message) && !first) first = input;
     }
+    if (isFoundations()) {
+      const input = $('[name="paymentConsent"]');
+      if (!fieldError(input,'payment-consent-error',input.checked ? '' : 'Please confirm the sandbox payment terms.') && !first) first = input;
+    }
     if(first) { first.focus(); return false; }
     return true;
   }
@@ -146,6 +165,10 @@
   name.addEventListener('input',()=> { if(name.hasAttribute('aria-invalid') && name.value.trim().length >= 2) fieldError(name,'name-error',''); });
   email.addEventListener('input',()=> { if(email.hasAttribute('aria-invalid') && email.validity.valid && email.value) fieldError(email,'email-error',''); });
   form.addEventListener('change',event=> { if(event.target.type === 'radio' || event.target.type === 'checkbox') { event.target.removeAttribute('aria-invalid'); const groupError = event.target.name === 'foundationsStatus' ? $('#foundations-error') : event.target.name === 'psycheStatus' ? $('#psyche-error') : event.target.name === 'consent' ? $('#consent-error') : $('#preparation-error'); if(groupError) groupError.hidden = true; } });
+  form.addEventListener('change',event=> {
+    if(event.target.name === 'paymentPlan') { $('[name="paymentConsent"]').checked = false; renderPayment(); renderReview(); }
+    if(event.target.name === 'paymentConsent') $('#payment-consent-error').hidden = true;
+  });
 
   function closePicker(apply = false) {
     if(apply) {
@@ -153,6 +176,7 @@
       if(pickerSnapshot?.course !== course.value || pickerSnapshot?.semester !== semester.value) {
         $('[name="consent"]').checked = false;
         $('[name="prerequisiteAcknowledgement"]').checked = false;
+        $('[name="paymentConsent"]').checked = false;
       }
       pickerSnapshot = undefined;
       renderSelection(); syncLink(); setStep(1,false); status.textContent = ''; status.removeAttribute('data-state');
@@ -186,7 +210,7 @@
     const submitted = {course:course.value,semester:semester.value,term:selectedTerm(),email:email.value};
     submitting = true; renderControls(); status.removeAttribute('data-state'); status.textContent = 'Sending your registration…';
     try {
-      const response = await fetch(form.action,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body,signal:AbortSignal.timeout(12000)});
+      const response = await fetch(form.action,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body,signal:AbortSignal.timeout(35000)});
       let result;
       try { result = await response.json(); } catch { throw new Error('Receipt is not confirmed. Contact onlineclass@liferx.us before sending again.'); }
       if(!response.ok) {
@@ -196,9 +220,17 @@
       }
       if(result.received !== true || !result.reference) throw new Error('Receipt is not confirmed. Contact onlineclass@liferx.us before sending again.');
       completed = true;
+      if (result.sandbox === true && typeof result.checkoutUrl === 'string' && result.checkoutUrl.startsWith('https://checkout.stripe.com/')) {
+        status.textContent = 'Registration saved. Opening Stripe sandbox…';
+        window.location.assign(result.checkoutUrl);
+      }
       document.querySelector('#success-course').textContent = studyLabel(submitted.course, submitted.semester, submitted.term);
       document.querySelector('#success-reference').textContent = result.reference;
       document.querySelector('#success-next').textContent = `The Institute will review your preparation and email ${submitted.email} with the next steps and confirmed semester details.`;
+      if (result.sandbox === true && typeof result.paymentUrl === 'string' && result.paymentUrl.startsWith('https://care.shambasana.com/#/course-payment?')) {
+        const resume = document.querySelector('#resume-payment'); resume.href = result.paymentUrl; resume.hidden = false;
+        document.querySelector('#success-next').textContent = 'Your registration is saved. Open your private payment page to continue or check your sandbox payment status. Keep this page private.';
+      }
       const success = document.querySelector('#registration-success'); form.hidden = true; success.hidden = false; success.focus(); success.scrollIntoView({block:'start'});
     } catch(error) {
       status.dataset.state = 'error'; status.textContent = error.name === 'TimeoutError' || error.name === 'AbortError' || error instanceof TypeError ? 'We couldn’t confirm receipt. Your answers are still here. Contact onlineclass@liferx.us before sending again.' : error.message; status.focus();

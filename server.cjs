@@ -87,6 +87,9 @@ async function handleRegistration(req, res) {
     timezone: (fields.get('timezone') || '').trim(),
     message: (fields.get('message') || '').trim(),
     consent: fields.get('consent') === 'yes',
+    paymentPlan: fields.get('paymentPlan') || undefined,
+    paymentConsent: fields.get('paymentConsent') === 'yes',
+    paymentTermsVersion: fields.get('paymentTermsVersion') || undefined,
     submittedAt: new Date().toISOString(),
     reference: /^SS-[a-f0-9-]{36}$/i.test(fields.get('reference') || '') ? fields.get('reference') : 'SS-' + randomUUID(),
   };
@@ -102,6 +105,7 @@ async function handleRegistration(req, res) {
       || registration.name.length < 2 || registration.name.length > 120
       || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registration.email) || registration.email.length > 254
       || registration.phone.length > 40 || registration.message.length > 1000 || registration.timezone.length > 80
+      || (registration.paymentPlan && (!['full', 'monthly'].includes(registration.paymentPlan) || registration.course !== 'Foundations of Chinese Medicine' || !registration.paymentConsent || registration.paymentTermsVersion !== 'sandbox-semester-4x500-v1'))
       || !registration.consent) {
     return sendJson(res, 400, { message: 'Please check the form fields and consent, then try again.' });
   }
@@ -111,12 +115,15 @@ async function handleRegistration(req, res) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(process.env.COURSE_REGISTRATION_SERVICE_TOKEN ? { Authorization: `Bearer ${process.env.COURSE_REGISTRATION_SERVICE_TOKEN}` } : {}) },
       body: JSON.stringify(registration),
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(30000),
     });
     if (!response.ok) throw new Error(`Submission destination returned ${response.status}`);
     const acknowledgement = await response.json();
     if (acknowledgement.received !== true) throw new Error('Submission destination did not acknowledge receipt');
-    return sendJson(res, 200, { received: true, reference: registration.reference });
+    const checkoutUrl = typeof acknowledgement.checkoutUrl === 'string' && acknowledgement.checkoutUrl.startsWith('https://checkout.stripe.com/') ? acknowledgement.checkoutUrl : undefined;
+    let paymentUrl;
+    try { const candidate = new URL(acknowledgement.paymentUrl); if (candidate.origin === settings.webhook.origin && candidate.hash.startsWith('#/course-payment?')) paymentUrl = candidate.href; } catch { /* No private payment page for reviewed applications. */ }
+    return sendJson(res, 200, { received: true, reference: registration.reference, checkoutUrl, paymentUrl, sandbox: acknowledgement.sandbox === true });
   } catch (error) {
     console.error('Course registration delivery failed:', error.message);
     return sendJson(res, 502, { message: 'Receipt is not confirmed. Contact onlineclass@liferx.us before submitting again.' });
