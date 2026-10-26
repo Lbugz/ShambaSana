@@ -50,7 +50,7 @@ export default function SampleResults() {
     return <div className="min-h-screen bg-background">
     <header className="border-b border-border bg-card">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-8">
-        <Brand /><div className="flex flex-wrap items-center gap-x-6 gap-y-2"><Link href="/sample-practitioner" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium hover:underline">Practitioner rehearsal<ArrowRight className="h-4 w-4" aria-hidden="true"/></Link><Link href="/what-we-test" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium hover:underline"><ArrowLeft className="h-4 w-4" aria-hidden="true"/>Back to lab guide</Link></div>
+        <Brand /><div className="flex flex-wrap items-center gap-x-6 gap-y-2"><Link href="/sample-intake" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium hover:underline">Intake preview<ArrowRight className="h-4 w-4" aria-hidden="true"/></Link><Link href="/sample-practitioner" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium hover:underline">Practitioner rehearsal<ArrowRight className="h-4 w-4" aria-hidden="true"/></Link><Link href="/what-we-test" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium hover:underline"><ArrowLeft className="h-4 w-4" aria-hidden="true"/>Back to lab guide</Link></div>
       </div>
     </header>
     <div className="border-b border-primary/10 bg-secondary/60 px-5 py-3 text-center text-xs leading-5 text-primary sm:text-sm"><strong>Sample care workspace.</strong> Fictional results and illustrative ranges. No real patient data or clinical advice.</div>
