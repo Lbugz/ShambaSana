@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CareLayout, ErrorMessage } from "@/components/CareLayout";
 import { ReportView } from "@/components/ReportView";
+import { VerifiedLabResults } from "@/components/VerifiedLabResults";
 import {
   useAuth,
   useCases,
@@ -431,6 +432,7 @@ function CustomerCase({ id }: { id: string }) {
           </span>
         </section>
       )}
+      {!pending && <VerifiedLabResults documents={c.documents} />}
       {report ? (
         <>
           <div className="flex flex-wrap items-center gap-3">
