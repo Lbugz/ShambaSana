@@ -23,6 +23,7 @@ import {
   type Document,
 } from "../shared/care";
 import { createCareStore, ConflictError, type CareStore } from "./care-store";
+import { documentKinds, reviewBlockers, verificationProblems } from "../shared/care-review";
 import {
   aiConfigured,
   extractLabs,
@@ -79,9 +80,10 @@ function visibleCase(c: CareCase, u: User) {
   const { draft: _, practitionerNotes: __, events: ___, ...rest } = c;
   return {
     ...rest,
-    documents: c.documents.map((d) =>
-      d.verifiedAt ? d : { ...d, extraction: undefined },
-    ),
+    documents: c.documents.map((d) => {
+      const {criticalReview: _, ...visible}=d;
+      return d.verifiedAt && d.kind === "laboratory-results" ? visible : {...visible,extraction:undefined};
+    }),
   };
 }
 export async function registerRoutes(
@@ -428,6 +430,7 @@ export async function registerRoutes(
           ]),
           data: z.string().max(7_000_000),
           purpose: z.enum(["lab", "tongue"]),
+          kind: z.enum(documentKinds).optional(),
         })
         .parse(req.body);
       if (c.documents.length >= 12)
@@ -464,6 +467,7 @@ export async function registerRoutes(
         name,
         mime: input.mime,
         purpose: input.purpose,
+        kind: input.purpose === "lab" ? input.kind : undefined,
         size: bytes.length,
         uploadedAt: now(),
       };
@@ -558,6 +562,15 @@ export async function registerRoutes(
       res.json(c);
     }),
   );
+  app.put("/api/cases/:id/documents/:documentId/kind", route(async (req, res) => {
+    const [c,u] = await getCase(req,"practitioner"); enrolled(c); unpublished(c);
+    const expected = revision(req,c);
+    const input = z.object({kind:z.enum(documentKinds)}).parse(req.body);
+    const d = c.documents.find(d=>d.id===req.params.documentId && d.purpose==="lab");
+    if(!d) failure(404,"Supporting document not found.");
+    if(d!.kind!==input.kind){d!.kind=input.kind; d!.extraction=undefined; d!.verifiedAt=undefined; d!.verifiedBy=undefined; d!.verificationNote=undefined; d!.criticalReview=undefined; c.draft=undefined;}
+    await save(c,expected,u.id,"document-type-confirmed"); res.json(c);
+  }));
   app.post(
     "/api/cases/:id/labs/:documentId/extract",
     route(async (req, res) => {
@@ -571,11 +584,13 @@ export async function registerRoutes(
         (d) => d.id === req.params.documentId && d.purpose === "lab",
       );
       if (!d) failure(404, "Lab document not found.");
+      if (d!.kind !== "laboratory-results") failure(409,"Classify this as original laboratory results before extracting measurements.");
       const file = await store.get<Attachment>("attachment", d!.id);
       if (!file) failure(404, "Source document not found.");
       d!.extraction = await extractLabs(file!);
       d!.verifiedAt = undefined;
       d!.verifiedBy = undefined;
+      d!.criticalReview = undefined;
       c.draft = undefined;
       await save(c, expected, u.id, "lab-extracted");
       res.json(c);
@@ -601,10 +616,13 @@ export async function registerRoutes(
         (d) => d.id === req.params.documentId && d.purpose === "lab",
       );
       if (!d) failure(404, "Lab document not found.");
+      const problems = verificationProblems({...d!,extraction:data.extraction});
+      if(problems.length) failure(409,problems.join(" "));
       d!.extraction = data.extraction;
       d!.verifiedAt = now();
       d!.verifiedBy = u.id;
       d!.verificationNote = data.verificationNote;
+      d!.criticalReview = undefined;
       c.draft = undefined;
       await save(c, expected, u.id, "lab-verified");
       res.json(c);
@@ -628,21 +646,18 @@ export async function registerRoutes(
       res.json(c);
     }),
   );
+  app.put("/api/cases/:id/labs/:documentId/critical-review",route(async(req,res)=>{
+    const [c,u]=await getCase(req,"practitioner"); enrolled(c); unpublished(c);
+    const expected=revision(req,c);
+    const input=z.object({confirmed:z.literal(true),action:z.string().trim().min(10).max(3000)}).parse(req.body);
+    const d=c.documents.find(d=>d.id===req.params.documentId && d.kind==="laboratory-results" && d.verifiedAt);
+    if(!d?.extraction?.results.some(r=>r.flag==="critical")) failure(409,"No verified critical laboratory flag is recorded here.");
+    d!.criticalReview={reviewedAt:now(),reviewedBy:u.id,action:input.action};c.draft=undefined;
+    await save(c,expected,u.id,"critical-result-followup-recorded");res.json(c);
+  }));
   function ready(c: CareCase) {
-    enrolled(c);
-    if (!c.intakeSubmittedAt || intakeErrors(c.intake).length)
-      failure(409, "Complete and submit the intake first.");
-    const labs = c.documents.filter((d) => d.purpose === "lab");
-    if (!labs.length || labs.some((d) => !d.verifiedAt))
-      failure(
-        409,
-        "Verify all uploaded lab documents before drafting a combined report.",
-      );
-    if (c.followupRequest)
-      failure(
-        409,
-        "Resolve the follow-up request before drafting or releasing a report.",
-      );
+    const blockers=reviewBlockers(c);
+    if(blockers.length) failure(409,blockers.join(" "));
   }
   app.post(
     "/api/cases/:id/draft",

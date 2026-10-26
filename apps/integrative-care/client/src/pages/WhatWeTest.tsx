@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import mandalaImage from "@assets/generated_images/holistic_body_system_mandala_illustration.png";
 import paperImage from "@assets/generated_images/warm_cream_paper_texture_with_subtle_botanical_jade_watermark.png";
 
@@ -317,6 +318,7 @@ const categories = [
 export default function WhatWeTest() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
+  const [selectedMarker, setSelectedMarker] = useState<{name:string; description:string; category:string; context:string}>();
   const query = search.trim().toLowerCase();
   const filtered = categories
     .filter(
@@ -343,7 +345,7 @@ export default function WhatWeTest() {
 
   return (
     <main>
-      <header className="relative overflow-hidden px-6 pb-12 pt-16 text-center md:pt-24">
+      <header className="relative overflow-hidden px-6 pb-8 pt-10 text-center md:pt-14">
         <img
           src={paperImage}
           alt=""
@@ -353,7 +355,7 @@ export default function WhatWeTest() {
           <p className="mb-5 text-xs font-semibold uppercase tracking-[.23em] text-muted-foreground">
             Understand your results
           </p>
-          <h1 className="text-4xl leading-[1.15] md:text-6xl">
+          <h1 className="text-4xl leading-[1.15] md:text-5xl">
             Lab guide.
             <br />
             <span className="italic text-emerald-800/80">
@@ -381,7 +383,7 @@ export default function WhatWeTest() {
               id="lab-search"
               type="search"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {setSearch(event.target.value);setActiveCategory("all");}}
               placeholder="Search a test or topic, e.g. ferritin, thyroid…"
               className="h-14 rounded-full border-primary/20 bg-card pl-13 pr-13 text-base shadow-sm [&::-webkit-search-cancel-button]:appearance-none"
             />
@@ -398,11 +400,12 @@ export default function WhatWeTest() {
         </div>
       </header>
 
+      <div className="bg-background px-6 pb-6 text-center"><Link href="/sample-results" className="inline-flex min-h-11 items-center justify-center gap-2 text-sm font-semibold underline underline-offset-4">Explore a sample results workspace<ArrowRight aria-hidden="true" className="h-4 w-4" /></Link></div>
       <nav
         aria-label="Filter tests by body system"
-        className="sticky top-20 z-30 border-y border-border/60 bg-background/95 backdrop-blur-md"
+        className="border-y border-border/60 bg-background/95"
       >
-        <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-6 py-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap gap-2 px-6 py-4">
           {[
             { id: "all", label: "All areas", icon: FlaskConical },
             ...categories,
@@ -438,7 +441,7 @@ export default function WhatWeTest() {
             className="text-sm text-muted-foreground"
           >
             {filtered.length
-              ? `${filtered.length} ${filtered.length === 1 ? "area" : "areas"} · ${filtered.reduce((count, category) => count + category.items.length, 0)} test examples`
+              ? `${filtered.length} ${filtered.length === 1 ? "area" : "areas"} · ${filtered.reduce((count, category) => count + category.items.length, 0)} test ${filtered.reduce((count, category) => count + category.items.length, 0) === 1 ? "example" : "examples"}`
               : "No matching test examples"}
           </p>
           {(search || activeCategory !== "all") && (
@@ -476,7 +479,7 @@ export default function WhatWeTest() {
                   {category.items.map((item) => (
                     <div key={item.name} className="px-6 py-5 md:px-8">
                       <dt className="font-semibold text-primary">
-                        {item.name}
+                        <button onClick={() => setSelectedMarker({...item,category:category.title,context:category.context})} className="flex min-h-11 w-full items-center justify-between gap-4 rounded-md text-left underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-primary">{item.name}<ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" /><span className="sr-only">Learn about {item.name}</span></button>
                       </dt>
                       <dd className="mt-2 text-sm leading-7 text-muted-foreground">
                         {item.description}
@@ -659,6 +662,7 @@ export default function WhatWeTest() {
           </div>
         </div>
       </section>
+      <Sheet open={!!selectedMarker} onOpenChange={open => {if(!open)setSelectedMarker(undefined);}}><SheetContent className="w-full overflow-y-auto sm:max-w-lg"><SheetHeader className="text-left"><SheetDescription>{selectedMarker?.category} · Educational guide</SheetDescription><SheetTitle className="pr-6 font-serif text-3xl">{selectedMarker?.name}</SheetTitle></SheetHeader><div className="mt-8 space-y-7"><section><h3 className="text-xl">What it measures</h3><p className="mt-4 text-sm leading-7 text-muted-foreground">{selectedMarker?.description}</p></section><section className="rounded-2xl bg-secondary/40 p-5"><h3 className="text-xl">Your story adds context</h3><p className="mt-4 text-sm leading-7 text-muted-foreground">{selectedMarker?.context}</p></section><section><h3 className="text-xl">Reading your own result</h3><p className="mt-4 text-sm leading-7 text-muted-foreground">Keep the collection date, units and laboratory reference interval with the value. Your practitioner checks the source report and considers your history before interpreting the result.</p></section><p className="rounded-xl border border-border p-4 text-xs leading-6 text-muted-foreground">This guide does not include a fixed testing panel or a universal target range. Additional tests are chosen with your practitioner and priced separately.</p><Button asChild className="min-h-12 w-full rounded-full"><Link href="/sample-results" onClick={()=>setSelectedMarker(undefined)}>Explore the sample results workspace<ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" /></Link></Button></div></SheetContent></Sheet>
     </main>
   );
 }

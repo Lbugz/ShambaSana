@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CareLayout, ErrorMessage } from "@/components/CareLayout";
 import { ReportView } from "@/components/ReportView";
+import { documentKinds, documentLabels, reviewBlockers } from "@shared/care-review";
 import {
   useAuth,
   useCases,
@@ -158,6 +159,7 @@ function PractitionerCase({ id }: { id: string }) {
         </Button>
       </header>
       <ErrorMessage error={error || action.error} />
+      <section aria-label="Assessment readiness" className="rounded-2xl border border-border bg-card p-6"><h3 className="text-xl">Before an assessment can be released</h3>{reviewBlockers(c).length ? <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-muted-foreground">{reviewBlockers(c).map(reason=><li key={reason}>{reason}</li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">The source checks are complete. The practitioner must still review, edit and approve the assessment.</p>}</section>
       {notice && (
         <p role="status" className="text-sm">
           {notice}
@@ -325,13 +327,14 @@ function LabOrder({ c, busy, perform }: PanelProps) {
     </section>
   );
 }
-function LabEditor({
+export function LabEditor({
   c,
   document: d,
   busy,
   aiAvailable,
   perform,
-}: PanelProps & { document: Document; aiAvailable: boolean }) {
+  demo = false,
+}: PanelProps & { document: Document; aiAvailable: boolean; demo?: boolean }) {
   const empty: Extraction = {
     patientName: "",
     collectionDate: "",
@@ -344,6 +347,10 @@ function LabEditor({
   );
   const [identity, setIdentity] = useState(false);
   const [note, setNote] = useState(d.verificationNote || "");
+  const [kind,setKind]=useState(d.kind || "");
+  const [criticalAction,setCriticalAction]=useState(d.criticalReview?.action || "");
+  const [criticalConfirmed,setCriticalConfirmed]=useState(false);
+  useEffect(()=>setKind(d.kind || ""),[d.kind]);
   useEffect(() => {
     setExtraction(d.extraction || empty);
     setIdentity(false);
@@ -355,18 +362,21 @@ function LabEditor({
         j === i ? { ...row, [key]: value } : row,
       ),
     });
+  const classification=<div className="my-5 rounded-xl border border-border bg-secondary/20 p-4"><Label htmlFor={`${d.id}-kind`}>Document type</Label><select id={`${d.id}-kind`} value={kind} onChange={e=>setKind(e.target.value)} className="mt-2 min-h-12 w-full rounded-lg border border-border bg-card px-3 text-sm"><option value="">Select document type</option>{documentKinds.map(k=><option key={k} value={k}>{documentLabels[k]}</option>)}</select><p className="my-3 text-xs leading-6 text-muted-foreground">Orders list requested tests. Interpretations explain results. Only an original laboratory report supplies measurements. Changing the type clears extracted values, verification and any assessment draft.</p><Button variant="outline" disabled={busy || !kind || kind===d.kind || !!c.reports.length} onClick={()=>perform(`/documents/${d.id}/kind`,{revision:c.revision,kind},"PUT")}>Confirm document type</Button></div>;
+  if(d.kind!=="laboratory-results") return <section className="rounded-2xl border border-border bg-card p-6"><h3 className="break-words text-xl">{d.name}</h3>{classification}<p className="text-sm leading-7 text-muted-foreground">{d.kind ? "Supporting context only. This document is excluded from laboratory measurements and result comparisons." : "Confirm the document type before extracting or verifying results."}</p>{!demo && <a className="mt-4 inline-flex min-h-11 items-center text-sm underline" href={`/api/cases/${c.id}/documents/${d.id}`}>Download original</a>}</section>;
   return (
     <details open className="rounded-2xl border border-border bg-card p-6">
       <summary className="cursor-pointer break-all font-serif text-lg">
         {d.name} · {d.verifiedAt ? "Verified" : "Needs verification"}
       </summary>
+      {classification}
       <div className="my-5 flex flex-wrap gap-3">
-        <a
+        {!demo && <a
           className="rounded-lg border border-border px-4 py-2 text-sm underline"
           href={`/api/cases/${c.id}/documents/${d.id}`}
         >
           Download original
-        </a>
+        </a>}
         <Button
           variant="outline"
           disabled={busy || !aiAvailable || !!c.reports.length}
@@ -548,6 +558,7 @@ function LabEditor({
           !identity ||
           note.trim().length < 3 ||
           !extraction.results.length ||
+          !extraction.patientName.trim() || !extraction.collectionDate.trim() || !extraction.laboratory.trim() || extraction.results.some(r=>!r.sourcePage.trim()) ||
           !!c.reports.length
         }
         onClick={() =>
@@ -565,6 +576,7 @@ function LabEditor({
       >
         Save verified lab facts
       </Button>
+      {d.verifiedAt && d.extraction?.results.some(r=>r.flag==="critical") && <section className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-5"><h4 className="text-lg">Critical laboratory flag: practitioner follow-up</h4><p className="my-3 text-xs leading-6">Record the clinical review, contact or escalation taken. Saving this note does not notify the client or emergency services.</p><Label htmlFor={`${d.id}-critical`}>Review and follow-up action</Label><Textarea id={`${d.id}-critical`} value={criticalAction} onChange={e=>setCriticalAction(e.target.value)} className="mt-2" /><label className="my-4 flex gap-3 text-sm"><input type="checkbox" checked={criticalConfirmed} onChange={e=>setCriticalConfirmed(e.target.checked)} className="h-5 w-5" />I have reviewed this flag and recorded the appropriate action.</label><Button disabled={busy || !criticalConfirmed || criticalAction.trim().length<10 || !!c.reports.length} onClick={()=>perform(`/labs/${d.id}/critical-review`,{revision:c.revision,confirmed:true,action:criticalAction},"PUT")}>Record critical-result review</Button>{d.criticalReview && <p className="mt-3 text-xs">Review recorded. Re-verifying or re-extracting the source requires a new critical-result review.</p>}</section>}
     </details>
   );
 }
@@ -621,12 +633,13 @@ function ReviewNotes({ c, busy, perform }: PanelProps) {
     </section>
   );
 }
-function ReportEditor({
+export function ReportEditor({
   c,
   busy,
   aiAvailable,
   perform,
-}: PanelProps & { aiAvailable: boolean }) {
+  demo = false,
+}: PanelProps & { aiAvailable: boolean; demo?: boolean }) {
   const [content, setContent] = useState<Report>(
     c.draft?.content || blankReport,
   );
@@ -637,11 +650,8 @@ function ReportEditor({
     setDirty(false);
     setApprove(false);
   }, [c.draft]);
-  const ready =
-    !!c.intakeSubmittedAt &&
-    !c.followupRequest &&
-    c.documents.some((d) => d.purpose === "lab") &&
-    c.documents.filter((d) => d.purpose === "lab").every((d) => d.verifiedAt);
+  const blockers=reviewBlockers(c);
+  const ready = blockers.length===0;
   return (
     <section className="rounded-2xl border border-border bg-card p-6">
       <p className="mb-3 text-xs uppercase tracking-[.15em] text-muted-foreground">
@@ -655,8 +665,7 @@ function ReportEditor({
       </p>
       {!ready && (
         <p className="mb-5 rounded-lg bg-secondary/50 p-4 text-xs leading-6">
-          Submit the intake, verify every lab document and resolve follow-up
-          requests to enable drafting and release.
+          {blockers.join(" ")}
         </p>
       )}
       <Button
@@ -724,7 +733,7 @@ function ReportEditor({
           perform("/approve", { revision: c.revision, confirmation: true })
         }
       >
-        Approve and release report
+        {demo ? "Simulate approval and release" : "Approve and release report"}
       </Button>
       {dirty && (
         <p className="mt-3 text-xs text-muted-foreground">
@@ -732,8 +741,7 @@ function ReportEditor({
         </p>
       )}
       <p className="mt-4 text-xs leading-6 text-muted-foreground">
-        Release creates a saved report version in the customer’s dashboard.
-        Email delivery is not configured.
+        {demo ? "Simulation only: creates an in-memory fictional report. Nothing is saved to a server or emailed." : "Release creates a saved report version in the customer’s dashboard. Email delivery is not configured."}
       </p>
     </section>
   );

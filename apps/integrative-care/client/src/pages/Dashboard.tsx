@@ -217,6 +217,7 @@ function CustomerCase({ id }: { id: string }) {
       </>
     );
   const labs = c.documents.filter((d) => d.purpose === "lab");
+  const resultDocuments=labs.filter(d=>d.kind==="laboratory-results");
   const completed = !!c.reports.length;
   const pending = c.payment.status === "pending";
   const milestones = [
@@ -224,7 +225,7 @@ function CustomerCase({ id }: { id: string }) {
     { label: "Your intake", done: !!c.intakeSubmittedAt },
     {
       label: "Labs verified",
-      done: !!labs.length && labs.every((d) => d.verifiedAt),
+      done: !!resultDocuments.length && resultDocuments.every((d) => d.verifiedAt),
     },
     { label: "Report released", done: completed },
   ];
@@ -327,9 +328,9 @@ function CustomerCase({ id }: { id: string }) {
                     {d.name}
                   </a>
                   <span className="text-xs text-muted-foreground">
-                    {d.verifiedAt
+                    {d.kind && d.kind!=="laboratory-results" ? "Supporting document" : d.verifiedAt
                       ? "Verified by practitioner"
-                      : "Awaiting verification"}
+                      : d.kind ? "Awaiting verification" : "Awaiting document review"}
                   </span>
                   {!completed && (
                     <Button

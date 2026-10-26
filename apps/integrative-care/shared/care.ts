@@ -154,11 +154,13 @@ export type Document = {
   mime: string;
   size: number;
   purpose: "lab" | "tongue";
+  kind?: "requisition" | "laboratory-results" | "practitioner-report";
   uploadedAt: string;
   extraction?: Extraction;
   verifiedAt?: string;
   verifiedBy?: string;
   verificationNote?: string;
+  criticalReview?: { reviewedAt: string; reviewedBy: string; action: string };
 };
 export type ReportVersion = {
   id: string;
@@ -222,11 +224,12 @@ export function caseStatus(c: CareCase): string {
   if (c.followupRequest) return "More information requested";
   if (c.reports.length) return "Your report is ready";
   if (!c.intakeSubmittedAt) return "Complete your intake";
-  if (!c.documents.some((d) => d.purpose === "lab"))
+  if (c.documents.some(d=>d.purpose==="lab" && !d.kind)) return "Document type review in progress";
+  if (!c.documents.some((d) => d.purpose === "lab" && d.kind === "laboratory-results"))
     return c.labRequest?.status === "ordered"
       ? "Labs ordered — awaiting results"
       : "Add labs or request an order";
-  if (c.documents.some((d) => d.purpose === "lab" && !d.verifiedAt))
+  if (c.documents.some((d) => d.purpose === "lab" && (!d.kind || (d.kind === "laboratory-results" && !d.verifiedAt))))
     return "Lab verification in progress";
   return c.draft
     ? "Practitioner reviewing your report"
