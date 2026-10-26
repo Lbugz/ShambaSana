@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, RefreshCw } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { intakeSections, intakeLabels, intakeAnswer } from "@shared/intake-journey";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,251 +28,61 @@ import {
 } from "@shared/care";
 
 export default function AdminDashboard() {
-  const auth = useAuth("practitioner");
-  const cases = useCases(auth.user?.role === "practitioner");
-  const [selected, setSelected] = useState("");
-  const [search, setSearch] = useState("");
-  if (auth.isLoading)
-    return <p className="p-10">Loading the practitioner workspace…</p>;
-  const filtered = cases.data?.filter((c) =>
-    `${c.customerName} ${c.customerEmail} ${caseStatus(c)}`
-      .toLowerCase()
-      .includes(search.toLowerCase()),
-  );
-  return (
-    <CareLayout practitioner>
-      <header className="mb-8">
-        <p className="mb-3 text-xs uppercase tracking-[.2em] text-muted-foreground">
-          Shamba Sana · Practitioner workspace
-        </p>
-        <h1 className="text-3xl md:text-4xl">Care, connected.</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Verify the source, review the whole person, and release clear
-          guidance.
-        </p>
-      </header>
-      <ErrorMessage error={auth.error || cases.error} />
-      <div className="grid grid-cols-1 gap-7 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside>
-          <Label htmlFor="case-search">Find a care case</Label>
-          <Input
-            className="my-3"
-            id="case-search"
-            placeholder="Name, email or status"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Button
-            className="mb-5 w-full"
-            variant="outline"
-            onClick={() => cases.refetch()}
-          >
-            Refresh cases
-          </Button>
-          {cases.isLoading && <p className="text-sm">Loading cases…</p>}
-          {cases.isSuccess && !filtered?.length && (
-            <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
-              No cases to show.
-            </p>
-          )}
-          <ul className="space-y-3">
-            {filtered?.map((c) => (
-              <li key={c.id}>
-                <button
-                  aria-pressed={selected === c.id}
-                  onClick={() => setSelected(c.id)}
-                  className={`w-full rounded-xl border p-4 text-left ${selected === c.id ? "border-primary bg-secondary/50" : "border-border bg-card"}`}
-                >
-                  <span className="block text-sm font-semibold">
-                    {c.customerName}
-                  </span>
-                  <span className="mt-1 block break-all text-xs text-muted-foreground">
-                    {c.customerEmail}
-                  </span>
-                  <span className="mt-3 block text-xs text-primary">
-                    {caseStatus(c)}
-                  </span>
-                  <span className="mt-2 block text-xs text-muted-foreground">
-                    {new Date(c.createdAt).toLocaleDateString()}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </aside>
-        <div className="min-w-0">
-          {selected ? (
-            <PractitionerCase key={selected} id={selected} />
-          ) : (
-            <section className="rounded-2xl border border-dashed border-border p-10">
-              <h2 className="text-2xl">Select a care case</h2>
-              <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                Submitted intake answers, original lab documents, verification
-                and report editing are available here. AI assistance is optional
-                and requires customer permission.
-              </p>
-            </section>
-          )}
-        </div>
-      </div>
-    </CareLayout>
-  );
+  const auth=useAuth("practitioner");
+  const cases=useCases(auth.user?.role==="practitioner");
+  const [selected,setSelected]=useState("");
+  const [search,setSearch]=useState("");
+  const [showQueue,setShowQueue]=useState(true);
+  const searchRef=useRef<HTMLInputElement>(null);
+  useEffect(()=>{if(showQueue)searchRef.current?.focus();},[showQueue]);
+  if(auth.isLoading)return <p className="p-10">Loading the practitioner workspace…</p>;
+  const filtered=(cases.data || []).filter(c=>`${c.customerName} ${c.customerEmail} ${caseStatus(c)}`.toLowerCase().includes(search.trim().toLowerCase())).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
+  return <CareLayout practitioner>
+    <header className="mb-8"><p className="mb-3 text-xs uppercase tracking-[.2em] text-muted-foreground">Shamba Sana · Practitioner workspace</p><h1 className="text-3xl md:text-4xl">Care, connected.</h1><p className="mt-3 text-sm leading-7 text-muted-foreground">Review your cases, verify the evidence and prepare clear guidance.</p></header>
+    <ErrorMessage error={auth.error || cases.error}/>
+    <section hidden={!showQueue} aria-labelledby="case-queue-title" className="min-w-0 rounded-2xl border border-border bg-card">
+      <div className="flex flex-wrap items-end justify-between gap-5 border-b border-border p-5 sm:p-6"><div><h2 id="case-queue-title" className="text-2xl">Care cases</h2><p className="mt-2 text-xs text-muted-foreground">{filtered.length} {filtered.length===1?"case":"cases"} · Most recently updated first</p></div><div className="flex w-full flex-wrap items-end gap-3 sm:w-auto"><div className="min-w-0 flex-1 sm:w-64"><Label htmlFor="case-search">Find a case</Label><Input ref={searchRef} id="case-search" className="mt-2 min-h-12" placeholder="Name, email or status" value={search} onChange={e=>setSearch(e.target.value)}/></div><Button variant="outline" className="min-h-12" onClick={()=>cases.refetch()}><RefreshCw className="mr-2 h-4 w-4" aria-hidden="true"/>Refresh</Button></div></div>
+      {cases.isLoading && <p className="p-6 text-sm">Loading cases…</p>}
+      {cases.isSuccess && !filtered.length && <p className="p-6 text-sm text-muted-foreground">{search?"No matching cases. Try a different name, email or status.":"No care cases yet."}</p>}
+      {!!filtered.length && <table className="w-full table-fixed text-left text-sm"><caption className="sr-only">Care cases. Open a case to review intake, labs, assessments and reports.</caption><thead className="border-b border-border bg-secondary/30 text-xs text-muted-foreground"><tr><th scope="col" className="w-[37%] px-3 py-4 font-medium sm:w-[28%] sm:px-6">Client</th><th scope="col" className="w-[35%] px-2 py-4 font-medium sm:w-[22%]">Status</th><th scope="col" className="hidden p-4 font-medium md:table-cell">Intake</th><th scope="col" className="hidden p-4 font-medium lg:table-cell">Labs verified</th><th scope="col" className="hidden p-4 font-medium lg:table-cell">Updated</th><th scope="col" className="w-[28%] px-2 py-4 font-medium sm:w-[14%] sm:px-6"><span className="sr-only">Open case</span></th></tr></thead><tbody>{filtered.map(c=>{const labs=c.documents.filter(d=>d.kind==="laboratory-results" && d.purpose==="lab");return <tr key={c.id} className={`border-b border-border last:border-0 ${selected===c.id?"bg-secondary/40":"hover:bg-secondary/20"}`}><th scope="row" className="break-words px-3 py-5 align-top font-normal sm:px-6"><span className="font-semibold">{c.customerName}</span><span className="mt-2 hidden break-all text-xs text-muted-foreground sm:block">{c.customerEmail}</span></th><td className="break-words px-2 py-5 align-top text-xs leading-6 text-primary">{caseStatus(c)}</td><td className="hidden p-4 align-top text-xs leading-6 md:table-cell">{c.intakeSubmittedAt?"Submitted":"Draft"}</td><td className="hidden p-4 align-top text-xs leading-6 lg:table-cell">{labs.length?`${labs.filter(d=>d.verifiedAt).length} of ${labs.length}`:"No results"}</td><td className="hidden p-4 align-top text-xs leading-6 text-muted-foreground lg:table-cell">{new Date(c.updatedAt).toLocaleDateString()}</td><td className="px-2 py-3 align-top sm:px-6"><Button variant="outline" className="min-h-12 w-full px-2" aria-label={`Open case for ${c.customerName}`} onClick={()=>{setSelected(c.id);setShowQueue(false);window.scrollTo({top:0,behavior:"instant"});}}>Open<ArrowRight className="ml-1 hidden h-3.5 w-3.5 sm:block" aria-hidden="true"/></Button></td></tr>;})}</tbody></table>}
+    </section>
+    <div hidden={showQueue} className="min-w-0">{selected && <><Button variant="ghost" className="mb-5 min-h-12" onClick={()=>{setShowQueue(true);window.scrollTo({top:0,behavior:"instant"});}}><ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true"/>Back to cases</Button><PractitionerCase key={selected} id={selected}/></>}</div>
+  </CareLayout>;
 }
-function PractitionerCase({ id }: { id: string }) {
-  const query = useCase(id);
-  const action = useCaseAction(id);
-  const config = useCareConfig();
-  const c = query.data;
-  const [error, setError] = useState<unknown>();
-  const [notice, setNotice] = useState("");
-  const perform = async (path: string, body: unknown, method = "POST") => {
-    setError(undefined);
-    setNotice("");
-    try {
-      const result = await action.mutateAsync({ path, body, method });
-      setNotice("Saved to the care record.");
-      return result;
-    } catch (e) {
-      setError(e);
-      return undefined;
-    }
+
+function PractitionerCase({id}:{id:string}) {
+  const query=useCase(id);
+  const action=useCaseAction(id);
+  const config=useCareConfig();
+  const c=query.data;
+  const [error,setError]=useState<unknown>();
+  const [notice,setNotice]=useState("");
+  const [tab,setTab]=useState("intake");
+  const [reportId,setReportId]=useState("");
+  const initialized=useRef(false);
+  const titleRef=useRef<HTMLHeadingElement>(null);
+  useEffect(()=>{if(c && !initialized.current){initialized.current=true;setTab(c.reports.length?"reports":!c.intakeSubmittedAt?"intake":reviewBlockers(c).length?"labs":"assessment");titleRef.current?.focus();}},[c]);
+  const perform=async(path:string,body:unknown,method="POST")=>{
+    setError(undefined);setNotice("");
+    try{const result=await action.mutateAsync({path,body,method});setNotice("Saved to the care record.");if(path==="/approve"){setReportId(result.reports.at(-1)?.id || "");setTab("reports");}return result;}catch(e){setError(e);return undefined;}
   };
-  if (!c)
-    return (
-      <>
-        <ErrorMessage error={query.error} />
-        <p>Loading case…</p>
-      </>
-    );
-  return (
-    <div className="space-y-6">
-      <header className="rounded-2xl bg-primary p-6">
-        <p className="mb-3 text-xs uppercase tracking-[.15em] text-white/65">
-          {c.payment.status === "unpaid-pilot" ? "Unpaid pilot" : "Integrative Care"}{" "}
-          · Revision {c.revision}
-        </p>
-        <h2 className="text-2xl text-white">{c.customerName}</h2>
-        <p className="mt-3 text-sm text-white/75">{caseStatus(c)}</p>
-        <Button
-          variant="secondary"
-          className="mt-5"
-          onClick={() => query.refetch()}
-        >
-          Refresh case
-        </Button>
-      </header>
-      <ErrorMessage error={error || action.error} />
-      <section aria-label="Assessment readiness" className="rounded-2xl border border-border bg-card p-6"><h3 className="text-xl">Before an assessment can be released</h3>{reviewBlockers(c).length ? <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-muted-foreground">{reviewBlockers(c).map(reason=><li key={reason}>{reason}</li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">The source checks are complete. The practitioner must still review, edit and approve the assessment.</p>}</section>
-      {notice && (
-        <p role="status" className="text-sm">
-          {notice}
-        </p>
-      )}
-      <details className="rounded-2xl border border-border bg-card p-6" open>
-        <summary className="cursor-pointer font-serif text-xl">
-          Health history and TCM intake
-        </summary>
-        <p className="mt-3 text-xs text-muted-foreground">
-          {c.intakeSubmittedAt
-            ? `Submitted ${new Date(c.intakeSubmittedAt).toLocaleString()}`
-            : "Intake is still a draft. Reports cannot be released until it is submitted."}
-        </p>
-        <dl className="mt-6 grid gap-5 sm:grid-cols-2">
-          {Object.entries(c.intake)
-            .filter(([key]) => key !== "schemaVersion")
-            .map(([key, value]) => (
-              <div key={key}>
-                <dt className="text-xs capitalize text-muted-foreground">
-                  {key.replace(/([A-Z])/g, " $1")}
-                </dt>
-                <dd className="mt-1 whitespace-pre-wrap break-words text-sm leading-6">
-                  {Array.isArray(value)
-                    ? value.join(", ") || "Not answered"
-                    : String(value) || "Not answered"}
-                </dd>
-              </div>
-            ))}
-        </dl>
-        {c.documents
-          .filter((d) => d.purpose === "tongue")
-          .map((d) => (
-            <p key={d.id} className="mt-5 text-sm">
-              <a
-                className="underline"
-                href={`/api/cases/${id}/documents/${d.id}`}
-              >
-                Download tongue photo: {d.name}
-              </a>
-            </p>
-          ))}
-        <p className="mt-5 text-xs leading-6 text-muted-foreground">
-          Tongue observations are self-reported. The remote questionnaire does
-          not include a measured pulse examination.
-        </p>
-      </details>
-      {c.labRequest && (
-        <LabOrder c={c} busy={action.isPending} perform={perform} />
-      )}
-      <section className="space-y-4">
-        <h3 className="text-2xl">Lab source and verification</h3>
-        {!c.documents.some((d) => d.purpose === "lab") && (
-          <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
-            No lab documents uploaded yet.
-          </p>
-        )}
-        {c.documents
-          .filter((d) => d.purpose === "lab")
-          .map((d) => (
-            <LabEditor
-              key={d.id}
-              c={c}
-              document={d}
-              busy={action.isPending}
-              aiAvailable={!!config.data?.ai && !!c.aiConsent}
-              perform={perform}
-            />
-          ))}
-      </section>
-      <ReviewNotes c={c} busy={action.isPending} perform={perform} />
-      <ReportEditor
-        c={c}
-        busy={action.isPending}
-        aiAvailable={!!config.data?.ai && !!c.aiConsent}
-        perform={perform}
-      />
-      {!!c.reports.length && (
-        <details className="rounded-2xl border border-border bg-card p-6">
-          <summary className="cursor-pointer font-serif text-xl">
-            Released reports ({c.reports.length})
-          </summary>
-          <div className="mt-6 space-y-6">
-            {c.reports.map((r) => (
-              <ReportView
-                key={r.id}
-                report={r}
-                customerName={c.customerName}
-                printable={false}
-              />
-            ))}
-          </div>
-        </details>
-      )}
-      <details className="rounded-xl border border-border p-5">
-        <summary className="cursor-pointer text-sm">Case activity</summary>
-        <ol className="mt-4 space-y-3 text-xs text-muted-foreground">
-          {c.events
-            .slice()
-            .reverse()
-            .map((e, i) => (
-              <li key={i}>
-                {new Date(e.at).toLocaleString()} ·{" "}
-                {e.action.replace(/-/g, " ")}
-              </li>
-            ))}
-        </ol>
-      </details>
-    </div>
-  );
+  if(!c)return <><ErrorMessage error={query.error}/>{!query.error && <p>Loading case…</p>}</>;
+  const blockers=reviewBlockers(c);
+  const report=c.reports.find(r=>r.id===reportId)||c.reports.at(-1);
+  const tabItems=[{value:"intake",label:"Intake"},{value:"labs",label:`Labs (${c.documents.filter(d=>d.purpose==="lab").length})`},{value:"assessment",label:"Assessment"},{value:"reports",label:`Reports (${c.reports.length})`},{value:"activity",label:"Activity"}];
+  return <div className="min-w-0 space-y-6">
+    <header className="flex flex-wrap items-center justify-between gap-5 rounded-2xl bg-primary p-6 sm:p-7"><div className="min-w-0"><p className="mb-3 text-xs uppercase tracking-[.15em] text-white/65">{c.payment.status==="unpaid-pilot"?"Unpaid pilot":"Integrative Care"} · Revision {c.revision}</p><h2 ref={titleRef} tabIndex={-1} className="break-words text-2xl text-white outline-none">{c.customerName}</h2><p className="mt-3 text-sm text-white/75">{caseStatus(c)}</p></div><Button variant="secondary" className="min-h-12" disabled={action.isPending} onClick={()=>query.refetch()}><RefreshCw className="mr-2 h-4 w-4" aria-hidden="true"/>Refresh case</Button></header>
+    <ErrorMessage error={error || action.error}/>{notice && <p role="status" className="rounded-xl bg-secondary/40 p-4 text-sm">{notice}</p>}
+    <Tabs value={tab} onValueChange={setTab} className="min-w-0">
+      <TabsList aria-label="Care case sections" className="mb-5 grid h-auto w-full grid-cols-3 gap-2 bg-secondary/40 p-2 sm:grid-cols-5">{tabItems.map(t=><TabsTrigger key={t.value} value={t.value} className="min-h-12 whitespace-normal px-2 text-xs sm:text-sm">{t.label}</TabsTrigger>)}</TabsList>
+      <p className="mb-6 text-xs leading-6 text-muted-foreground">Switch tabs to review this case. Save edits with the controls in each section.</p>
+      <TabsContent value="intake" forceMount hidden={tab!=="intake"} className="space-y-5 data-[state=inactive]:hidden"><section className="rounded-2xl border border-border bg-card p-5 sm:p-7"><h3 className="text-2xl">Health history and TCM intake</h3><p className="mt-3 text-xs leading-6 text-muted-foreground">{c.intakeSubmittedAt?`Submitted ${new Date(c.intakeSubmittedAt).toLocaleString()}`:"Intake is still a draft. It must be submitted before report release."}</p><div className="mt-6 space-y-6">{intakeSections.map(section=><section key={section.title} className="rounded-xl border border-border p-4 sm:p-5"><h4 className="mb-5 text-lg">{section.title}</h4><dl className="grid gap-5 sm:grid-cols-2">{section.keys.map(key=><div key={key}><dt className="text-xs text-muted-foreground">{intakeLabels[key]}</dt><dd className="mt-2 whitespace-pre-wrap break-words text-sm leading-6">{intakeAnswer(c.intake,key)}</dd></div>)}</dl></section>)}</div>{c.documents.filter(d=>d.purpose==="tongue").map(d=><p key={d.id} className="mt-5 break-words text-sm"><a className="underline" href={`/api/cases/${id}/documents/${d.id}`}>Download tongue photo: {d.name}</a></p>)}<p className="mt-5 text-xs leading-6 text-muted-foreground">Tongue observations are self-reported. This remote intake does not include a measured pulse examination.</p></section></TabsContent>
+      <TabsContent value="labs" forceMount hidden={tab!=="labs"} className="space-y-5 data-[state=inactive]:hidden">{c.labRequest && <LabOrder c={c} busy={action.isPending} perform={perform}/>}<section className="space-y-4"><h3 className="text-2xl">Lab source and verification</h3>{!c.documents.some(d=>d.purpose==="lab") && <p className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">No lab documents uploaded yet.</p>}{c.documents.filter(d=>d.purpose==="lab").map(d=><LabEditor key={d.id} c={c} document={d} busy={action.isPending} aiAvailable={!!config.data?.ai && !!c.aiConsent} perform={perform}/>)}</section></TabsContent>
+      <TabsContent value="assessment" forceMount hidden={tab!=="assessment"} className="space-y-5 data-[state=inactive]:hidden"><section aria-label="Assessment readiness" className="rounded-2xl border border-border bg-card p-6"><h3 className="text-xl">Assessment readiness</h3>{blockers.length?<ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-muted-foreground">{blockers.map(reason=><li key={reason}>{reason}</li>)}</ul>:<p className="mt-3 text-sm leading-7 text-muted-foreground">Source checks are complete. Review the intake, evidence and safety considerations before saving and approving a report{c.reports.length?" version":""}.</p>}</section><ReviewNotes c={c} busy={action.isPending} perform={perform}/><ReportEditor c={c} busy={action.isPending} aiAvailable={!!config.data?.ai && !!c.aiConsent} perform={perform}/></TabsContent>
+      <TabsContent value="reports" forceMount hidden={tab!=="reports"} className="space-y-6 data-[state=inactive]:hidden"><section className="overflow-hidden rounded-2xl border border-border bg-card"><h3 className="p-5 text-2xl sm:p-6">Released reports</h3>{!c.reports.length?<p className="px-6 pb-6 text-sm leading-7 text-muted-foreground">No report has been released. Complete the source checks and approve a saved assessment to create the first report version.</p>:<table className="w-full text-left text-sm"><caption className="sr-only">Released report versions</caption><thead className="border-y border-border bg-secondary/30 text-xs text-muted-foreground"><tr><th scope="col" className="p-3 sm:p-5">Version</th><th scope="col" className="p-3 sm:p-5">Reviewed</th><th scope="col" className="hidden p-5 sm:table-cell">Practitioner</th><th scope="col" className="p-3 sm:p-5"><span className="sr-only">View report</span></th></tr></thead><tbody>{c.reports.map((r,i)=><tr key={r.id} className={`border-b border-border last:border-0 ${report?.id===r.id?"bg-secondary/30":""}`}><th scope="row" className="p-3 text-xs font-medium sm:p-5">Version {i+1}</th><td className="p-3 text-xs sm:p-5">{new Date(r.approvedAt).toLocaleDateString()}</td><td className="hidden break-words p-5 text-xs sm:table-cell">{r.author}</td><td className="p-3 sm:p-5"><Button variant="outline" className="min-h-12" aria-label={`View report version ${i+1}`} aria-pressed={report?.id===r.id} onClick={()=>setReportId(r.id)}>{report?.id===r.id?"Viewing":"View"}</Button></td></tr>)}</tbody></table>}</section>{report && <ReportView report={report} customerName={c.customerName} printable={false}/>}</TabsContent>
+      <TabsContent value="activity" forceMount hidden={tab!=="activity"} className="data-[state=inactive]:hidden"><section className="overflow-hidden rounded-2xl border border-border bg-card"><h3 className="p-5 text-2xl sm:p-6">Case activity</h3><table className="w-full table-fixed text-left text-xs"><caption className="sr-only">Case activity, most recent first</caption><thead className="border-y border-border bg-secondary/30 text-muted-foreground"><tr><th scope="col" className="w-[40%] p-4 font-medium">Time</th><th scope="col" className="p-4 font-medium">Action</th></tr></thead><tbody>{c.events.slice().reverse().map((e,i)=><tr key={i} className="border-b border-border last:border-0"><td className="p-4 align-top leading-6">{new Date(e.at).toLocaleString()}</td><td className="break-words p-4 align-top capitalize leading-6">{e.action.replace(/-/g," ")}</td></tr>)}</tbody></table>{!c.events.length && <p className="p-6 text-sm text-muted-foreground">No case activity yet.</p>}</section></TabsContent>
+    </Tabs>
+  </div>;
 }
 type Perform = (
   path: string,
