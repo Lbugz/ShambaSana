@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { IntakeChoices } from "@/components/IntakeChoices";
 import { ErrorMessage } from "@/components/CareLayout";
 import { intakeErrors, intakeSchema, type Intake, type Document } from "@shared/care";
 import { intakeSections, intakeLabels, requiredIntakeKeys, intakeStepErrors, intakeAnswer } from "@shared/intake-journey";
+const genderOptions = ["Woman", "Man", "Non-binary", "Prefer not to say"];
 const steps = [...intakeSections.map(s=>s.title), "Review and submit"];
 const symptoms = [
   "Bloating or abdominal fullness",
@@ -33,6 +35,7 @@ export function IntakeJourney({ initial, documents = [], onSave, onUpload, onExi
   onUpload?: (file: File) => Promise<void>; onExit: () => void; documentUrl?: (id: string) => string; preview?: boolean;
 }) {
   const [intake,setIntake] = useState<Intake>(()=>structuredClone(initial));
+  const [selfDescribeGender,setSelfDescribeGender] = useState(!!initial.gender && !genderOptions.includes(initial.gender));
   const [step,setStep] = useState(0);
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState<unknown>();
@@ -107,21 +110,7 @@ export function IntakeJourney({ initial, documents = [], onSave, onUpload, onExi
     </div>
   );
   const select = (key: keyof Intake, label: string, options: string[]) => (
-    <div key={key}>
-      <Label htmlFor={key}>{label}{" "}{requiredIntakeKeys.includes(key) && <span className="ml-1 text-muted-foreground">(required)</span>}</Label>
-      <select
-        id={key}
-        aria-required={requiredIntakeKeys.includes(key)}
-        value={String(intake[key])}
-        onChange={(e) => change(key, e.target.value)}
-        className="mt-2 min-h-12 w-full rounded-lg border border-border bg-background p-3 text-base"
-      >
-        <option value="">Choose an answer</option>
-        {options.map((o) => (
-          <option key={o}>{o}</option>
-        ))}
-      </select>
-    </div>
+    <IntakeChoices key={key} name={key} label={label} value={String(intake[key])} options={options} onChange={value=>change(key,value)} required={requiredIntakeKeys.includes(key)} numeric={["pain","energy","sleep","stress"].includes(key)} clearable={!requiredIntakeKeys.includes(key) && !["weightUnit","heightUnit"].includes(key)}/>
   );
   const checks = (key: "symptoms" | "constitution", options: string[]) => (
     <div className="grid gap-3">
@@ -211,7 +200,7 @@ export function IntakeJourney({ initial, documents = [], onSave, onUpload, onExi
                   <>
                     {field("name", "Full name")}
                     {field("age", "Age (18 or older)")}
-                    {field("gender", "Gender (optional)")}
+                    <div><IntakeChoices name="gender-choice" label="Gender (optional)" value={selfDescribeGender ? "Self-describe" : intake.gender} options={[...genderOptions,"Self-describe"]} onChange={value=>{setSelfDescribeGender(value==="Self-describe");change("gender",value==="Self-describe"?"":value);}}/>{selfDescribeGender && <div className="mt-3">{field("gender","How do you describe your gender? (optional)")}</div>}</div>
                     {field("phone", "Phone (optional)")}
                     {field(
                       "concern",
@@ -241,24 +230,8 @@ export function IntakeJourney({ initial, documents = [], onSave, onUpload, onExi
                       true,
                       "Include medication, food and supplement allergies. Write 'none' if you have none.",
                     )}
-                    <div>
-                      <Label htmlFor="pregnancy">
-                        Are you pregnant, breastfeeding or trying to conceive? (required)
-                      </Label>
-                      <select
-                        id="pregnancy"
-                        aria-required="true"
-                        value={intake.pregnancy}
-                        onChange={(e) => change("pregnancy", e.target.value)}
-                        className="mt-2 min-h-12 w-full rounded-lg border bg-background p-3 text-base"
-                      >
-                        <option value="">Choose an answer</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                        <option value="unsure">Unsure</option>
-                        <option value="not-applicable">Not applicable</option>
-                      </select>
-                    </div>
+                    <IntakeChoices name="pregnancy" label="Are you pregnant, breastfeeding or trying to conceive?" value={intake.pregnancy} options={[{value:"yes",label:"Yes"},{value:"no",label:"No"},{value:"unsure",label:"Unsure"},{value:"not-applicable",label:"Not applicable"}]} onChange={value=>change("pregnancy",value)} required/>
+
                   </>
                 )}
                 {step === 2 && (
