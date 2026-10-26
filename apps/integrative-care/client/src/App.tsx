@@ -62,6 +62,7 @@ import BillingDashboard from "@/pages/BillingDashboard";
 import CoursePayment from "@/pages/CoursePayment";
 const SampleResults = lazy(() => import("@/pages/SampleResults"));
 const SamplePractitioner = lazy(() => import("@/pages/SamplePractitioner"));
+const SampleIntake = lazy(() => import("@/pages/SampleIntake"));
 
 function Router() {
   const [location] = useLocation();
@@ -74,6 +75,7 @@ function Router() {
   const isAppRoute =
     location.startsWith("/sample-results") ||
     location.startsWith("/sample-practitioner") ||
+    location.startsWith("/sample-intake") ||
     location.startsWith("/dashboard") ||
     location.startsWith("/auth") ||
     location.startsWith("/formula-library") ||
@@ -91,6 +93,7 @@ function Router() {
         <Route path="/what-we-test" component={WhatWeTest} />
         <Route path="/sample-results"><Suspense fallback={<p className="p-8">Loading sample workspace…</p>}><SampleResults /></Suspense></Route>
         <Route path="/sample-practitioner"><Suspense fallback={<p className="p-8">Loading practitioner rehearsal…</p>}><SamplePractitioner /></Suspense></Route>
+        <Route path="/sample-intake"><Suspense fallback={<p className="p-8">Loading intake preview…</p>}><SampleIntake /></Suspense></Route>
         <Route path="/pricing" component={Pricing} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/formula-library" component={FormulaLibrary} />
