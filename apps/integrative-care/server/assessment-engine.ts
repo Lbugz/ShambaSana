@@ -179,7 +179,7 @@ export async function draftAssessment(c: CareCase): Promise<Report> {
   const facts = {
     intake: c.intake,
     labs: c.documents
-      .filter((d) => d.purpose === "lab" && d.verifiedAt)
+      .filter((d) => d.purpose === "lab" && d.kind === "laboratory-results" && d.verifiedAt)
       .map((d) => ({ name: d.name, facts: d.extraction })),
     practitionerNotes: c.practitionerNotes,
   };

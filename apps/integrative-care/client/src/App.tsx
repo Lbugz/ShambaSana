@@ -1,5 +1,5 @@
 import { Switch, Route, useLocation, Router as WouterRouter } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { queryClient } from "./lib/queryClient";
 
 // Custom hash location hook to support static deployment environments
@@ -60,6 +60,8 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import Policies from "@/pages/Policies";
 import BillingDashboard from "@/pages/BillingDashboard";
 import CoursePayment from "@/pages/CoursePayment";
+const SampleResults = lazy(() => import("@/pages/SampleResults"));
+const SamplePractitioner = lazy(() => import("@/pages/SamplePractitioner"));
 
 function Router() {
   const [location] = useLocation();
@@ -70,6 +72,8 @@ function Router() {
 
   // Hide Navbar/Footer on Dashboard and Auth pages for immersive experience
   const isAppRoute =
+    location.startsWith("/sample-results") ||
+    location.startsWith("/sample-practitioner") ||
     location.startsWith("/dashboard") ||
     location.startsWith("/auth") ||
     location.startsWith("/formula-library") ||
@@ -85,6 +89,8 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/how-it-works" component={HowItWorks} />
         <Route path="/what-we-test" component={WhatWeTest} />
+        <Route path="/sample-results"><Suspense fallback={<p className="p-8">Loading sample workspace…</p>}><SampleResults /></Suspense></Route>
+        <Route path="/sample-practitioner"><Suspense fallback={<p className="p-8">Loading practitioner rehearsal…</p>}><SamplePractitioner /></Suspense></Route>
         <Route path="/pricing" component={Pricing} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/formula-library" component={FormulaLibrary} />

@@ -341,6 +341,18 @@ test("Shamba Sana pilot: persisted care, access control, verified labs and repor
       },
     );
     await t.test(
+      "only a practitioner can classify documents and orders cannot supply verified measurements",
+      async () => {
+        const id=c.documents[0].id;
+        const verify={revision:c.revision,extraction:lab,identityConfirmed:true,verificationNote:"Synthetic source reviewed"};
+        assert.equal((await request(`/api/cases/${c.id}/labs/${id}/verify`,"PUT",verify,practitioner)).response.status,409);
+        assert.equal((await request(`/api/cases/${c.id}/documents/${id}/kind`,"PUT",{revision:c.revision,kind:"laboratory-results"},customer)).response.status,403);
+        await change(`/documents/${id}/kind`,{kind:"requisition"},"PUT",practitioner);
+        assert.equal((await request(`/api/cases/${c.id}/labs/${id}/verify`,"PUT",{...verify,revision:c.revision},practitioner)).response.status,409);
+        await change(`/documents/${id}/kind`,{kind:"laboratory-results"},"PUT",practitioner);
+      },
+    );
+    await t.test(
       "a lab request is separate from a recorded issued order",
       async () => {
         await change("/lab-request", {});
@@ -450,6 +462,21 @@ test("Shamba Sana pilot: persisted care, access control, verified labs and repor
         );
         assert.ok(c.documents[0].verifiedAt);
         assert.equal(c.documents[0].extraction?.results[0].unit, "ng/mL");
+      },
+    );
+    await t.test(
+      "critical flags block drafting until practitioner follow-up is recorded and re-verification clears the acknowledgment",
+      async()=>{
+        const id=c.documents[0].id;
+        const critical={...lab,results:lab.results.map(r=>({...r,flag:"critical" as const}))};
+        await change(`/labs/${id}/verify`,{extraction:critical,identityConfirmed:true,verificationNote:"Synthetic critical flag workflow"},"PUT",practitioner);
+        assert.equal((await request(`/api/cases/${c.id}/draft`,"POST",{revision:c.revision,content:report},practitioner)).response.status,409);
+        assert.equal((await request(`/api/cases/${c.id}/labs/${id}/critical-review`,"PUT",{revision:c.revision,confirmed:true,action:"Synthetic review and follow-up recorded"},customer)).response.status,403);
+        await change(`/labs/${id}/critical-review`,{confirmed:true,action:"Synthetic practitioner reviewed and recorded follow-up"},"PUT",practitioner);
+        assert.ok(c.documents[0].criticalReview);
+        await change("/draft",{content:report,ai:false},"POST",practitioner);
+        await change(`/labs/${id}/verify`,{extraction:lab,identityConfirmed:true,verificationNote:"Restore ordinary synthetic fixture"},"PUT",practitioner);
+        assert.ok(!c.documents[0].criticalReview);assert.ok(!c.draft);
       },
     );
     await t.test(
