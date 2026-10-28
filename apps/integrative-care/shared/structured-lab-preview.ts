@@ -36,15 +36,17 @@ export type StructuredLabDraft=z.infer<typeof structuredLabDraftSchema>;
 export type FictionalPreviewEnvelope={version:typeof previewVersion;fixture:typeof fictionalLabFixture;draft:StructuredLabDraft;evidence:{id:string;title:string;url:string;explanation:string;use:"education"|"link-only"}[];generatedAt:string;model:string;evidenceVersion:string;reviewStatus:"unapproved-ai-draft";tcm:{status:"pending-practitioner-criteria";text:string}};
 
 // Format is constrained; factual/clinical correctness still needs a practitioner.
-const str={type:"string"};
-const strings={type:"array",items:str};
+const str={type:"string",minLength:1,maxLength:1800};
+const id={type:"string",minLength:1,maxLength:60};
+const list=(items:object,minItems:number,maxItems:number)=>({type:"array",items,minItems,maxItems});
+const references=list(id,0,15);
 const object=(properties:Record<string,unknown>)=>({type:"object",properties,required:Object.keys(properties),additionalProperties:false});
 export const structuredLabDraftFormat=object({
-  title:str,summary:str,takeaways:strings,
-  findings:{type:"array",items:object({observationId:str,meaning:str,context:str,followUp:str,relatedObservationIds:strings,uncertainties:strings,clinicianQuestions:strings,evidenceIds:strings})},
-  patterns:{type:"array",items:object({title:str,observationIds:strings,reasoning:str,limits:str,clinicianQuestions:strings,evidenceIds:strings})},
-  actions:{type:"array",items:object({title:str,rationale:str,observationIds:strings,owner:{type:"string",enum:["client","practitioner","shared"]},category:{type:"string",enum:["review","lifestyle-topic","follow-up"]},timing:str})},
-  missingInformation:strings,safetyReview:str,
+  title:str,summary:str,takeaways:list(str,1,4),
+  findings:list(object({observationId:id,meaning:str,context:str,followUp:str,relatedObservationIds:references,uncertainties:list(str,0,5),clinicianQuestions:list(str,1,4),evidenceIds:references}),fictionalLabFixture.observations.length,fictionalLabFixture.observations.length),
+  patterns:list(object({title:str,observationIds:references,reasoning:str,limits:str,clinicianQuestions:list(str,1,4),evidenceIds:references}),0,4),
+  actions:list(object({title:str,rationale:str,observationIds:references,owner:{type:"string",enum:["client","practitioner","shared"]},category:{type:"string",enum:["review","lifestyle-topic","follow-up"]},timing:str}),1,6),
+  missingInformation:list(str,1,10),safetyReview:str,
 });
 export function validatePreviewDraft(value:unknown,evidenceIds:string[]) {
   const draft=structuredLabDraftSchema.parse(value);

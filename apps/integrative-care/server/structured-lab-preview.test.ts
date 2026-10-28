@@ -51,7 +51,7 @@ test("fictional generation, privacy, staff access and request limits",async()=>{
     process.env.OPENAI_API_KEY="synthetic-test-value-not-a-real-key";
     globalThis.fetch=async(input,init)=>{
       assert.equal(String(input),"https://api.openai.com/v1/responses");calls++;
-      const body=JSON.parse(String(init?.body));assert.equal(body.store,false);assert.equal(body.text.format.name,"structured_lab_preview_v1");assert.equal(body.text.format.strict,true);
+      const body=JSON.parse(String(init?.body));assert.equal(body.store,false);assert.equal(body.text.format.name,"structured_lab_preview_v1");assert.equal(body.text.format.strict,true);assert.equal(body.text.format.schema.properties.findings.minItems,10);assert.equal(body.text.format.schema.properties.actions.maxItems,6);
       const payload=JSON.parse(body.input[0].content[0].text);assert.deepEqual(payload.fixture,fictionalLabFixture);
       assert.equal(payload.fixture.fictional,true);assert.equal(payload.fixture.observations.length,10);
       assert.deepEqual(payload.educationSources,fictionalEvidence());assert.match(body.instructions,/Do not generate a TCM diagnosis/);
