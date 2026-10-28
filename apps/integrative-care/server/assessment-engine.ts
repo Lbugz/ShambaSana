@@ -79,6 +79,7 @@ export async function generate<T>(
   validator: z.ZodType<T>,
   instructions: string,
   content: unknown[],
+  options: {model?:string;timeoutMs?:number;reasoningEffort?:"low"|"medium"|"high";maxOutputTokens?:number} = {},
 ): Promise<T> {
   const integration = !process.env.OPENAI_API_KEY;
   const key =
@@ -101,13 +102,14 @@ export async function generate<T>(
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
-    signal: AbortSignal.timeout(90000),
+    signal: AbortSignal.timeout(options.timeoutMs || 90000),
     body: JSON.stringify({
-      model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
+      model: options.model || process.env.OPENAI_MODEL || "gpt-4.1-mini",
+      ...(options.reasoningEffort ? {reasoning:{effort:options.reasoningEffort}} : {}),
       store: false,
       instructions,
       input: [{ role: "user", content }],
-      max_output_tokens: 10000,
+      max_output_tokens: options.maxOutputTokens || 10000,
       text: { format: { type: "json_schema", name, strict: true, schema } },
     }),
   });
