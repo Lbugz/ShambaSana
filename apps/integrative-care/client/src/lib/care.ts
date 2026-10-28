@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
+import { uploadIssue } from "@shared/client-journey";
 import type { CareCase, CareConfig, PublicUser } from "@shared/care";
 
 export async function api<T>(
@@ -95,8 +96,8 @@ export async function uploadDocument(
   purpose: "lab" | "tongue",
   revision: number,
 ) {
-  if (file.size > 5 * 1024 * 1024)
-    throw new Error("Choose a file smaller than 5 MB.");
+  const issue=uploadIssue(file,purpose);
+  if(issue)throw new Error(issue);
   const data = await new Promise<string>((resolve, reject) => {
     const r = new FileReader();
     r.onload = () => resolve(String(r.result).split(",")[1]);
@@ -104,7 +105,7 @@ export async function uploadDocument(
     r.readAsDataURL(file);
   });
   const mime =
-    file.type ||
+    (file.name.toLowerCase().endsWith(".csv") ? "text/csv" : file.type) ||
     (file.name.toLowerCase().endsWith(".csv")
       ? "text/csv"
       : file.name.toLowerCase().endsWith(".txt")

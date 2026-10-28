@@ -117,6 +117,8 @@ try {
   assert.equal(released.reports[0].author,process.env.PRACTITIONER_NAME);
   assert.deepEqual((await new FileStore(filename).get<CareCase>("case",caseId))?.reports,released.reports);
   checkpoints.push("Approved report version persists and appears in the same client's case");
+  const starter=(await request("/api/cases","POST",{consent:true,pilot:true},clientCookie,201)).data;
+  console.log("Fresh fictional client episode ready for the browser walkthrough:",starter.id);
   const config=(await request("/api/config")).data;
   assert.equal(config.checkout,false);assert.equal(config.ai,false);assert.equal(config.billingMode,"sandbox");
   const evidence={status:"passed",fictional:true,storage:"isolated local FileStore; not Railway PostgreSQL",caseId,checkpoints,externalRequests:"blocked",payments:"disabled",ai:"disabled",emails:"not sent",portal:`${origin}/rehearsal`};

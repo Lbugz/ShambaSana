@@ -199,6 +199,8 @@ export type CareCase = {
   };
   practitionerNotes: string;
   followupRequest: string;
+  followupResponse?: { request: string; message: string; sentAt: string };
+  followupResponses?: { request: string; message: string; sentAt: string }[];
   draft?: {
     content: Report;
     author: string;
@@ -221,7 +223,7 @@ export function caseStatus(c: CareCase): string {
   if (c.payment.status === "refunded")
     return "Payment refunded — contact your care team";
   if (c.payment.status === "pending") return "Payment pending";
-  if (c.followupRequest) return "More information requested";
+  if (c.followupRequest) return c.followupResponse ? "Client reply awaiting practitioner review" : "More information requested";
   if (c.reports.length) return "Your report is ready";
   if (!c.intakeSubmittedAt) return "Complete your intake";
   if (c.documents.some(d=>d.purpose==="lab" && !d.kind)) return "Document type review in progress";

@@ -558,6 +558,22 @@ test("Shamba Sana pilot: persisted care, access control, verified labs and repor
         assert.ok(!("practitionerNotes" in copy));
         assert.ok(!("events" in copy));
         assert.ok(copy.followupRequest);
+        const replyUrl=`/api/cases/${c.id}/followup-response`;
+        assert.equal((await request(replyUrl,"POST",{revision:c.revision,message:"Not the client"},practitioner)).response.status,403);
+        assert.equal((await request(replyUrl,"POST",{revision:c.revision,message:"Wrong owner"},other)).response.status,404);
+        assert.equal((await request(replyUrl,"POST",{revision:c.revision,message:" "})).response.status,400);
+        assert.equal((await request(replyUrl,"POST",{revision:stale,message:"Stale reply"})).response.status,409);
+        await change("/followup-response",{message:"Synthetic client clarification for practitioner review."});
+        assert.equal(c.followupResponse?.message,"Synthetic client clarification for practitioner review.");
+        assert.ok(c.followupRequest);
+        assert.equal(c.followupResponses?.length,1);
+        const persisted=await store.get<CareCase>("case",c.id);
+        assert.deepEqual(persisted?.followupResponse,c.followupResponse);
+        await change("/intake",{intake:fullIntake,submit:true},"PUT");
+        assert.ok(c.followupRequest,"Intake resubmission cannot resolve the practitioner question automatically");
+        const reviewer=(await request(`/api/cases/${c.id}`,"GET",undefined,practitioner)).data;
+        assert.equal(reviewer.followupResponse.message,"Synthetic client clarification for practitioner review.");
+
         assert.equal(
           (
             await request(
@@ -590,6 +606,9 @@ test("Shamba Sana pilot: persisted care, access control, verified labs and repor
           "PUT",
           practitioner,
         );
+        assert.equal(c.followupResponse,undefined);
+        assert.equal(c.followupResponses?.length,1,"Reply history survives resolution");
+        assert.equal((await request(replyUrl,"POST",{revision:c.revision,message:"No open request"})).response.status,409);
       },
     );
     await t.test(

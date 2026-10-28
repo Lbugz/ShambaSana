@@ -13,6 +13,6 @@ export default function TcmAssessment(){
   if(auth.isLoading)return <p className="p-10">Loading your intake…</p>;
   if(!id)return <CareLayout><h1 className="text-3xl">Choose a care episode first</h1><p className="my-5 text-sm">Your intake belongs to your private care record.</p><Button onClick={()=>navigate("/dashboard")}>Go to my care</Button></CareLayout>;
   if(!c)return <CareLayout><ErrorMessage error={query.error}/>{!query.error && <p>Loading your saved intake…</p>}</CareLayout>;
-  if(c.payment.status==="pending"||c.reports.length)return <CareLayout><h1 className="text-3xl">{c.reports.length?"Your case has an approved report":"Complete enrollment first"}</h1><Button className="mt-6" onClick={()=>navigate("/dashboard")}>Return to my care</Button></CareLayout>;
+  if(!["paid","unpaid-pilot"].includes(c.payment.status)||c.reports.length)return <CareLayout><h1 className="text-3xl">{c.reports.length?"Your case has an approved report":"Complete enrollment first"}</h1><Button className="mt-6" onClick={()=>navigate("/dashboard")}>Return to my care</Button></CareLayout>;
   return <CareLayout><IntakeJourney key={id} initial={c.intake} documents={c.documents} documentUrl={documentId=>`/api/cases/${id}/documents/${documentId}`} onExit={()=>navigate("/dashboard")} onSave={async(intake,submit)=>{await action.mutateAsync({path:"/intake",method:"PUT",body:{revision:c.revision,intake,submit}});}} onUpload={async(file)=>{await action.mutateAsync({path:"/documents",body:await uploadDocument(file,"tongue",c.revision)});}}/></CareLayout>;
 }
