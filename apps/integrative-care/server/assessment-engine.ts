@@ -136,10 +136,12 @@ export async function generate<T>(
     .join("");
   try {
     return validator.parse(JSON.parse(result || ""));
-  } catch {
+  } catch (error) {
+    const detail = name === "structured_lab_preview_v1" && error instanceof z.ZodError
+      ? ` Fictional preview fields: ${error.issues.slice(0,5).map(issue=>`${issue.path.join(".")}: ${issue.code}`).join("; ")}.` : "";
     throw Object.assign(
       new Error(
-        "AI output did not pass validation. Review the source and enter results manually.",
+        "AI output did not pass validation. Review the source and enter results manually." + detail,
       ),
       { status: 502 },
     );
