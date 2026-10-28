@@ -73,7 +73,7 @@ const extractionFormat = {
   ],
 };
 
-async function generate<T>(
+export async function generate<T>(
   name: string,
   schema: object,
   validator: z.ZodType<T>,

@@ -1,3 +1,6 @@
+import { generateFictionalLabPreview } from "./structured-lab-preview";
+import { labPreviewToolHtml } from "./lab-preview-tool";
+import { fictionalLabFixture, type FictionalPreviewEnvelope } from "../shared/structured-lab-preview";
 import { platform } from "./platform";
 import { billingConfigured, billingMode } from "./billing";
 import type { Express, Request, Response, NextFunction } from "express";
@@ -194,6 +197,31 @@ export async function registerRoutes(
       next();
     })().catch(next);
   });
+  const previewAttempts=new Map<string,{count:number;until:number}>();
+  const previewBusy=new Set<string>();
+  function previewStaff(req:Request){
+    const u=userFor(req,"practitioner");
+    if(u.email!==practitionerEmail)failure(403,"This preview is restricted to the configured staff administrator.");
+    if(process.env.LAB_REPORT_PREVIEW_ENABLED!=="true")failure(403,"The fictional AI preview is not enabled.");
+    return u;
+  }
+  app.get("/api/admin/lab-report-preview/tool",route(async(req,res)=>{
+    previewStaff(req);res.setHeader("Content-Security-Policy","default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'");res.type("html").send(labPreviewToolHtml);
+  }));
+  app.get("/api/admin/lab-report-preview/result",route(async(req,res)=>{
+    const u=previewStaff(req);const value=await store.get<FictionalPreviewEnvelope>("fictional-ai-preview",u.id);
+    if(!value)failure(404,"No fictional AI draft has been generated.");res.json(value);
+  }));
+  app.post("/api/admin/lab-report-preview",route(async(req,res)=>{
+    const u=previewStaff(req);
+    z.object({fixtureId:z.literal(fictionalLabFixture.id),confirm:z.literal(true)}).strict().parse(req.body);
+    if(!aiConfigured())failure(503,"OpenAI is not configured on this service.");
+    const old=previewAttempts.get(u.id);const window=old && old.until>Date.now()?old:{count:0,until:Date.now()+15*60*1000};
+    if(previewBusy.has(u.id))failure(429,"A fictional draft is already being generated. Wait for it to finish.");
+    if(window.count>=3)failure(429,"The fictional AI test limit is three attempts per 15 minutes. Please wait before retrying.");
+    window.count++;previewAttempts.set(u.id,window);previewBusy.add(u.id);
+    try{const value=await generateFictionalLabPreview();await store.put("fictional-ai-preview",u.id,value);res.json(value);}finally{previewBusy.delete(u.id);}
+  }));
   app.get("/api/config", (_req, res) =>
     res.json({
       pilot: pilotMode(),
