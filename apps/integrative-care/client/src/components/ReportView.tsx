@@ -1,5 +1,5 @@
 import { labEducation } from "@shared/lab-education";
-import { reportFields, type ReportVersion } from "@shared/care";
+import { reportFields, type Report, type ReportVersion } from "@shared/care";
 import { Button } from "./ui/button";
 import { Printer } from "lucide-react";
 const educationUrls=new Set(labEducation.map(source=>source.url));
@@ -39,16 +39,16 @@ export function ReportView({
           </Button>
         )}
       </div>
-      <div className="mt-8 grid gap-8">
-        {Object.entries(reportFields).map(([key, label]) => (
-          <section key={key} className="break-inside-avoid">
-            <h3 className="mb-3 text-xl">{label}</h3>
-            <p className="whitespace-pre-wrap break-words text-sm leading-7 text-foreground/85">
-              {sourceLinkedText(report.content[key as keyof typeof reportFields])}
-            </p>
-          </section>
-        ))}
-      </div>
+      <ReportContent content={report.content}/>
+
     </article>
   );
+}
+
+export function ReportContent({content,showEmpty=false}:{content:Report;showEmpty?:boolean}) {
+  return <div className="mt-8 grid gap-8">{Object.entries(reportFields).map(([key,label],index)=>{
+    const value=content[key as keyof Report];
+    if(!value.trim() && !showEmpty) return null;
+    return <section key={key} className="min-w-0 break-inside-avoid border-t border-border pt-6 first:border-0 first:pt-0"><p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">{String(index+1).padStart(2,"0")} / {key==="labs"?"Laboratory evidence":key==="tcm"?"Practitioner assessment":"Care guidance"}</p><h3 className="mb-3 text-xl">{label}</h3><p className="whitespace-pre-wrap break-words text-sm leading-7 text-foreground/85">{value.trim()?sourceLinkedText(value):<span className="italic text-muted-foreground">Not yet written — practitioner input required.</span>}</p></section>;
+  })}</div>;
 }
