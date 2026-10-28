@@ -1,0 +1,15 @@
+import { useState } from "react";
+import { BookOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "./ui/button";
+import { labEducationVersion, labEvidenceForCase } from "@shared/lab-education";
+import type { CareCase } from "@shared/care";
+
+export function LabEducationPanel({ c }: { c: CareCase }) {
+  const [expanded,setExpanded]=useState(false);
+  const packet=labEvidenceForCase(c);
+  const matched=packet.rows.filter(r=>r.education).length;
+  return <section aria-label="Lab education sources" className="mb-6 rounded-xl border border-border bg-secondary/20 p-4 sm:p-5">
+    <div className="flex items-start gap-3"><BookOpen className="mt-1 h-5 w-5 shrink-0" aria-hidden="true"/><div className="min-w-0"><h4 className="text-lg">Source-linked lab preparation</h4><p className="mt-2 text-sm leading-7 text-muted-foreground">Use verified measurements and general MedlinePlus education to prepare the lab section. Clinical interpretation and the remaining report sections require practitioner input.</p><p className="mt-3 text-xs leading-6">TCM diagnostic criteria are pending. This tool does not generate a TCM pattern, diagnosis or treatment plan.</p></div></div>
+    {!packet.rows.length?<p className="mt-4 text-xs leading-6 text-muted-foreground">Verify an original laboratory report to see its source coverage.</p>:<><p className="mt-4 text-xs leading-6 text-muted-foreground">{matched} of {packet.rows.length} entries matched to an education reference · {packet.sources.length} sources</p><Button variant="ghost" className="mt-2 min-h-12 max-w-full whitespace-normal text-left" aria-expanded={expanded} aria-controls="lab-education-reference-list" onClick={()=>setExpanded(!expanded)}>{expanded?"Hide education sources":"View education sources"}{expanded?<ChevronUp className="ml-2 h-4 w-4 shrink-0" aria-hidden="true"/>:<ChevronDown className="ml-2 h-4 w-4 shrink-0" aria-hidden="true"/>}</Button><div id="lab-education-reference-list" hidden={!expanded} className="mt-4 space-y-4">{packet.sources.map((source,i)=><article key={source.id} className="rounded-xl border border-border bg-card p-4"><h5 className="text-sm font-semibold">[E{i+1}] {source.title}</h5>{source.explanation?<p className="mt-2 text-sm leading-7 text-muted-foreground">{source.explanation}</p>:<p className="mt-2 text-xs leading-6 text-muted-foreground">External reading link only. No licensed encyclopedia explanation has been imported.</p>}<a href={source.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-11 items-center text-sm underline underline-offset-4">Read on MedlinePlus</a></article>)}{!!packet.unmatched.length && <div className="rounded-xl border border-border p-4"><h5 className="text-sm font-semibold">Education mapping needs review</h5><p className="mt-2 break-words text-xs leading-6 text-muted-foreground">{packet.unmatched.join(", ")}. No explanation was guessed.</p></div>}<p className="break-words text-xs leading-6 text-muted-foreground">Reference version: {labEducationVersion}. Checked October 28, 2026. These are education references, not approved diagnostic rules.</p></div></>}
+  </section>;
+}

@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CareLayout, ErrorMessage } from "@/components/CareLayout";
+import { LabEducationPanel } from "@/components/LabEducationPanel";
+import { prepareReferenceLabSection } from "@shared/lab-education";
 import { ReportView } from "@/components/ReportView";
 import { documentKinds, documentLabels, reviewBlockers } from "@shared/care-review";
 import {
@@ -456,6 +458,7 @@ export function ReportEditor({
   const [content, setContent] = useState<Report>(
     c.draft?.content || blankReport,
   );
+  const [summaryError, setSummaryError] = useState<unknown>();
   const [approve, setApprove] = useState(false);
   const [dirty, setDirty] = useState(false);
   useEffect(() => {
@@ -481,6 +484,13 @@ export function ReportEditor({
           {blockers.join(" ")}
         </p>
       )}
+      <LabEducationPanel c={c}/>
+      <ErrorMessage error={summaryError}/>
+      <Button variant="outline" className="mb-3 min-h-12 max-w-full whitespace-normal" disabled={busy || !ready || !!content.labs.trim()} onClick={()=>{
+        setSummaryError(undefined);
+        try{setContent({...content,labs:prepareReferenceLabSection(c)});setDirty(true);setApprove(false);}catch(error){setSummaryError(error);}
+      }}>Prepare source-linked lab section</Button>
+      <p className="mb-6 text-xs leading-6 text-muted-foreground">No AI service is used. Preparation fills an empty lab section only; your other edits are preserved. Review the text and save the draft. The remaining sections must be completed before release.</p>
       <Button
         variant="outline"
         className="mb-6"
