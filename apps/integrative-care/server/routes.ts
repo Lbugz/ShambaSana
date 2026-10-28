@@ -220,7 +220,13 @@ export async function registerRoutes(
     if(previewBusy.has(u.id))failure(429,"A fictional draft is already being generated. Wait for it to finish.");
     if(window.count>=3)failure(429,"The fictional AI test limit is three attempts per 15 minutes. Please wait before retrying.");
     window.count++;previewAttempts.set(u.id,window);previewBusy.add(u.id);
-    try{const value=await generateFictionalLabPreview();await store.put("fictional-ai-preview",u.id,value);res.json(value);}finally{previewBusy.delete(u.id);}
+    try{
+      const previous=await store.get<FictionalPreviewEnvelope & {revision?:number}>("fictional-ai-preview",u.id);
+      const draft=await generateFictionalLabPreview();
+      const value={...draft,revision:(previous?.revision ?? 0)+1};
+      await store.put("fictional-ai-preview",u.id,value,previous ? previous.revision ?? 0 : undefined);
+      res.json(value);
+    }finally{previewBusy.delete(u.id);}
   }));
   app.get("/api/config", (_req, res) =>
     res.json({

@@ -64,7 +64,10 @@ test("fictional generation, privacy, staff access and request limits",async()=>{
     assert.equal((await store.list("case")).length,0);assert.equal((await store.list("purchase")).length,0);
     const cached=await request(url+"/result","GET",undefined,staff);assert.equal(cached.response.status,200);assert.deepEqual(cached.data,generated.data);assert.equal(calls,1,"Reading the cached result must not call AI again");
     assert.equal((await request(url+"/result","GET",undefined,customer)).response.status,403);
-    await request(url,"POST",input,staff);await request(url,"POST",input,staff);assert.equal((await request(url,"POST",input,staff)).response.status,429);assert.equal(calls,3);
+    const regenerated=await request(url,"POST",input,staff);assert.equal(regenerated.response.status,200);assert.equal(regenerated.data.revision,2);
+    const third=await request(url,"POST",input,staff);assert.equal(third.response.status,200);assert.equal(third.data.revision,3);
+    assert.deepEqual((await request(url+"/result","GET",undefined,staff)).data,third.data);
+    assert.equal((await request(url,"POST",input,staff)).response.status,429);assert.equal(calls,3);
     globalThis.fetch=async()=>new Response(JSON.stringify({status:"incomplete"}),{status:200});await assert.rejects(()=>generateFictionalLabPreview(),/did not finish/);
     globalThis.fetch=async()=>new Response(JSON.stringify({status:"completed",output:[{content:[{type:"output_text",text:"{bad-json"}]}]}),{status:200});await assert.rejects(()=>generateFictionalLabPreview(),/did not pass validation/);
   }finally{globalThis.fetch=originalFetch;for(const key of Object.keys(process.env))if(!(key in env))delete process.env[key];Object.assign(process.env,env);await new Promise<void>(resolve=>server.close(()=>resolve()));await store.close();await rm(dir,{recursive:true,force:true});}
