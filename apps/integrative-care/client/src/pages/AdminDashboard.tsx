@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, RefreshCw, ChevronDown, Trash2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { intakeSections, intakeLabels, intakeAnswer } from "@shared/intake-journey";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CareLayout, ErrorMessage } from "@/components/CareLayout";
 import { LabEducationPanel } from "@/components/LabEducationPanel";
 import { prepareReferenceLabSection } from "@shared/lab-education";
-import { ReportView } from "@/components/ReportView";
+import { ReportContent, ReportView } from "@/components/ReportView";
 import { documentKinds, documentLabels, reviewBlockers } from "@shared/care-review";
 import {
   useAuth,
@@ -170,20 +170,22 @@ export function LabEditor({
     setExtraction(d.extraction || empty);
     setIdentity(false);
   }, [d.extraction]);
-  const changeRow = (i: number, key: keyof LabRow, value: string) =>
+  useEffect(() => setIdentity(false), [extraction]);
+  const changeRow = (i: number, key: keyof LabRow, value: string) => {
+    setIdentity(false);
     setExtraction({
       ...extraction,
       results: extraction.results.map((row, j) =>
         j === i ? { ...row, [key]: value } : row,
       ),
     });
+  };
+  const missingSource = [!extraction.patientName.trim() && "patient name", !extraction.collectionDate.trim() && "collection date", !extraction.laboratory.trim() && "laboratory", !extraction.results.length && "at least one result", ...extraction.results.flatMap((r,i)=>[(!r.name.trim() || !r.value.trim() || !r.sourcePage.trim()) && `complete source details for result ${i+1}`])].filter(Boolean);
   const classification=<div className="my-5 rounded-xl border border-border bg-secondary/20 p-4"><Label htmlFor={`${d.id}-kind`}>Document type</Label><select id={`${d.id}-kind`} value={kind} onChange={e=>setKind(e.target.value)} className="mt-2 min-h-12 w-full rounded-lg border border-border bg-card px-3 text-sm"><option value="">Select document type</option>{documentKinds.map(k=><option key={k} value={k}>{documentLabels[k]}</option>)}</select><p className="my-3 text-xs leading-6 text-muted-foreground">Orders list requested tests. Interpretations explain results. Only an original laboratory report supplies measurements. Changing the type clears extracted values, verification and any assessment draft.</p><Button variant="outline" disabled={busy || !kind || kind===d.kind || !!c.reports.length} onClick={()=>perform(`/documents/${d.id}/kind`,{revision:c.revision,kind},"PUT")}>Confirm document type</Button></div>;
   if(d.kind!=="laboratory-results") return <section className="rounded-2xl border border-border bg-card p-6"><h3 className="break-words text-xl">{d.name}</h3>{classification}<p className="text-sm leading-7 text-muted-foreground">{d.kind ? "Supporting context only. This document is excluded from laboratory measurements and result comparisons." : "Confirm the document type before extracting or verifying results."}</p>{!demo && <a className="mt-4 inline-flex min-h-11 items-center text-sm underline" href={`/api/cases/${c.id}/documents/${d.id}`}>Download original</a>}</section>;
   return (
-    <details open className="rounded-2xl border border-border bg-card p-6">
-      <summary className="cursor-pointer break-all font-serif text-lg">
-        {d.name} · {d.verifiedAt ? "Verified" : "Needs verification"}
-      </summary>
+    <details open className="group rounded-2xl border border-border bg-card p-4 sm:p-6">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden"><span className="min-w-0"><span className="block break-words font-serif text-lg">{d.name}</span><span className="mt-2 block text-xs text-muted-foreground">{d.verifiedAt ? "Verified source on file · save corrections to re-verify" : "Source verification needed"}</span></span><ChevronDown aria-hidden="true" className="h-5 w-5 shrink-0 transition-transform group-open:rotate-180"/></summary>
       {classification}
       <div className="my-5 flex flex-wrap gap-3">
         {!demo && <a
@@ -224,7 +226,7 @@ export function LabEditor({
                 className="mt-2"
                 value={extraction[key]}
                 onChange={(e) =>
-                  setExtraction({ ...extraction, [key]: e.target.value })
+                  (setIdentity(false), setExtraction({ ...extraction, [key]: e.target.value }))
                 }
               />
             </div>
@@ -236,9 +238,10 @@ export function LabEditor({
         substitute an “optimal” range or infer a flag that is absent from the
         source. Flag critical results for prompt clinical review.
       </p>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-left text-xs">
-          <thead>
+      <div>
+        <table className="block w-full text-left text-xs lg:table">
+          <caption className="sr-only">Laboratory results copied from the original report</caption>
+          <thead className="hidden lg:table-header-group">
             <tr>
               {[
                 "Marker",
@@ -255,25 +258,27 @@ export function LabEditor({
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="grid gap-4 lg:table-row-group">
             {extraction.results.map((row, i) => (
-              <tr key={i}>
+              <tr key={i} className="grid min-w-0 grid-cols-2 gap-3 rounded-xl border border-border p-4 lg:table-row lg:border-0 lg:p-0">
                 {(["name", "value", "unit", "referenceRange"] as const).map(
                   (key) => (
-                    <td key={key} className="p-1">
+                    <td key={key} className={`${key==="name"?"col-span-2":""} block min-w-0 lg:table-cell lg:p-1`}>
+                      <span className="mb-2 block text-xs text-muted-foreground lg:hidden">{{name:"Marker",value:"Result",unit:"Unit",referenceRange:"Laboratory range"}[key]}</span>
                       <Input
                         aria-label={`${key} for result ${i + 1}`}
-                        className="min-w-20 px-2 text-xs"
+                        className="min-h-11 min-w-0 px-2 text-sm"
                         value={row[key]}
                         onChange={(e) => changeRow(i, key, e.target.value)}
                       />
                     </td>
                   ),
                 )}
-                <td className="p-1">
+                <td className="block min-w-0 lg:table-cell lg:p-1">
+                  <span className="mb-2 block text-xs text-muted-foreground lg:hidden">Source flag</span>
                   <select
                     aria-label={`Flag for result ${i + 1}`}
-                    className="rounded-lg border bg-background p-2"
+                    className="min-h-11 w-full rounded-lg border bg-background p-2 text-sm"
                     value={row.flag}
                     onChange={(e) => changeRow(i, "flag", e.target.value)}
                   >
@@ -284,15 +289,16 @@ export function LabEditor({
                     )}
                   </select>
                 </td>
-                <td className="p-1">
+                <td className="block min-w-0 lg:table-cell lg:p-1">
+                  <span className="mb-2 block text-xs text-muted-foreground lg:hidden">Source page</span>
                   <Input
                     aria-label={`Source page for result ${i + 1}`}
                     value={row.sourcePage}
-                    className="w-16 px-2 text-xs"
+                    className="min-h-11 w-full px-2 text-sm lg:w-16"
                     onChange={(e) => changeRow(i, "sourcePage", e.target.value)}
                   />
                 </td>
-                <td>
+                <td className="col-span-2 block lg:table-cell">
                   <Button
                     aria-label={`Remove result ${i + 1}`}
                     size="sm"
@@ -304,7 +310,7 @@ export function LabEditor({
                       })
                     }
                   >
-                    ×
+                    <Trash2 aria-hidden="true" className="h-4 w-4"/><span className="ml-2 lg:sr-only">Remove result</span>
                   </Button>
                 </td>
               </tr>
@@ -348,6 +354,7 @@ export function LabEditor({
           }
         />
       </div>
+      <div className="my-5 rounded-xl bg-secondary/30 p-4 text-sm leading-6"><h4 className="font-semibold">Before saving verification</h4>{missingSource.length ? <p className="mt-2">Complete: {missingSource.join(", ")}. Use the original report; do not guess missing details.</p> : <p className="mt-2">Required source details are filled in. Check values, units, ranges and flags against the original; leave units or ranges blank only if absent from the report. Confirm below and record a verification note.</p>}</div>
       <label className="my-5 flex items-start gap-3 text-sm leading-6">
         <input
           type="checkbox"
@@ -372,8 +379,7 @@ export function LabEditor({
           busy ||
           !identity ||
           note.trim().length < 3 ||
-          !extraction.results.length ||
-          !extraction.patientName.trim() || !extraction.collectionDate.trim() || !extraction.laboratory.trim() || extraction.results.some(r=>!r.sourcePage.trim()) ||
+          !!missingSource.length ||
           !!c.reports.length
         }
         onClick={() =>
@@ -448,6 +454,16 @@ function ReviewNotes({ c, busy, perform }: PanelProps) {
     </section>
   );
 }
+const reportGuidance: Record<keyof Report,string> = {
+  overview: "Connect the client's goals and intake with the reviewed evidence.",
+  labs: "Separate original measurements and laboratory flags from your interpretation. Keep source references visible.",
+  tcm: "Practitioner assessment only. Record supporting observations and limitations; automated diagnostic criteria are pending.",
+  priorities: "List the most useful next steps in order, including who will follow up and when.",
+  nutrition: "Explain practical food guidance and any relevant restrictions or uncertainties.",
+  lifestyle: "Offer clear, achievable guidance on movement, rest and daily routines.",
+  recommendations: "Record the reviewed care recommendations and relevant medication, allergy or supplement checks.",
+  safety: "Document precautions, escalation advice and the follow-up plan."
+};
 export function ReportEditor({
   c,
   busy,
@@ -458,6 +474,7 @@ export function ReportEditor({
   const [content, setContent] = useState<Report>(
     c.draft?.content || blankReport,
   );
+  const [preview, setPreview] = useState(false);
   const [summaryError, setSummaryError] = useState<unknown>();
   const [approve, setApprove] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -505,12 +522,16 @@ export function ReportEditor({
           permission and a configured server key.
         </p>
       )}
-      <div className="space-y-6">
+      <div className="mb-6 rounded-xl bg-secondary/30 p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><p role="status" className="text-sm">{Object.values(content).filter(v=>v.trim()).length} of {Object.keys(reportFields).length} sections filled · {dirty ? "Unsaved changes" : c.draft ? "Saved draft" : "Not saved"}</p><Button variant="outline" className="min-h-11" aria-pressed={preview} onClick={()=>setPreview(!preview)}>{preview ? "Continue editing" : "Preview client layout"}</Button></div><p className="mt-3 text-xs leading-6 text-muted-foreground">Filled sections still need clinical review. Previewing does not save, approve or share the report.</p></div>
+      {preview && <section aria-label="Unreleased report preview" className="mb-6 rounded-xl border border-border p-5 sm:p-8"><p className="mb-5 text-xs font-semibold uppercase tracking-widest">Draft preview · Not released</p><h4 className="mb-6 text-2xl">{c.customerName}</h4><ReportContent content={content} showEmpty/></section>}
+      <div hidden={preview} className="space-y-6">
         {Object.entries(reportFields).map(([key, label]) => (
-          <div key={key}>
-            <Label htmlFor={`report-${key}`}>{label}</Label>
+          <div key={key} className="rounded-xl border border-border p-4 sm:p-5">
+            <Label className="text-base" htmlFor={`report-${key}`}>{label}</Label>
+            <p id={`report-${key}-hint`} className="mt-2 text-xs leading-6 text-muted-foreground">{reportGuidance[key as keyof Report]}</p>
             <Textarea
-              className="mt-2 min-h-28"
+              aria-describedby={`report-${key}-hint`}
+              className="mt-3 min-h-36 text-base"
               id={`report-${key}`}
               value={content[key as keyof Report]}
               onChange={(e) => {
