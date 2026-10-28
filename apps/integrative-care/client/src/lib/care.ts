@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { uploadIssue } from "@shared/client-journey";
+import { uploadIssue, uploadMime } from "@shared/client-journey";
 import type { CareCase, CareConfig, PublicUser } from "@shared/care";
 
 export async function api<T>(
@@ -104,12 +104,6 @@ export async function uploadDocument(
     r.onerror = () => reject(new Error("Unable to read this file."));
     r.readAsDataURL(file);
   });
-  const mime =
-    (file.name.toLowerCase().endsWith(".csv") ? "text/csv" : file.type) ||
-    (file.name.toLowerCase().endsWith(".csv")
-      ? "text/csv"
-      : file.name.toLowerCase().endsWith(".txt")
-        ? "text/plain"
-        : "");
+  const mime=uploadMime(file);
   return { name: file.name, mime, data, purpose, revision };
 }

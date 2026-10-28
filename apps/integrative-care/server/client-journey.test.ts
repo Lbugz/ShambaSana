@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { clientJourney, uploadIssue } from "../shared/client-journey";
+import { clientJourney, uploadIssue, uploadMime } from "../shared/client-journey";
 import { blankIntake, type CareCase } from "../shared/care";
 
 function fixture():CareCase {
@@ -40,5 +40,8 @@ test("upload preflight rejects empty, mismatched, oversized and unsupported file
   assert.match(uploadIssue({name:"results.exe",size:10,type:""}),/supported/);
   assert.match(uploadIssue({name:"results.pdf",size:10,type:"application/pdf"},"tongue"),/JPG/);
   assert.equal(uploadIssue({name:"results.pdf",size:5*1024*1024,type:"application/pdf"}),"");
+  assert.equal(uploadIssue({name:"results.pdf",size:10,type:""}),"");
+  assert.equal(uploadMime({name:"results.pdf",type:""}),"application/pdf");
+  assert.equal(uploadMime({name:"results.csv",type:"application/vnd.ms-excel"}),"text/csv");
   assert.equal(uploadIssue({name:"results.csv",size:512*1024,type:"application/vnd.ms-excel"}),"");
 });

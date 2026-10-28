@@ -35,3 +35,9 @@ export function uploadIssue(file: {name: string; size: number; type: string}, pu
   if (file.name.length > 160) return "Shorten the file name to 160 characters or fewer.";
   return "";
 }
+
+export function uploadMime(file: {name:string;type:string}) {
+  const extension=file.name.toLowerCase().split(".").pop() || "";
+  const types:Record<string,string>={pdf:"application/pdf",jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",webp:"image/webp",txt:"text/plain",csv:"text/csv"};
+  return extension==="csv" ? "text/csv" : file.type || types[extension] || "";
+}
