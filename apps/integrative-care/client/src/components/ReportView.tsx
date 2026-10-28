@@ -1,6 +1,11 @@
+import { labEducation } from "@shared/lab-education";
 import { reportFields, type ReportVersion } from "@shared/care";
 import { Button } from "./ui/button";
 import { Printer } from "lucide-react";
+const educationUrls=new Set(labEducation.map(source=>source.url));
+function sourceLinkedText(value:string){
+  return value.split(/(https:\/\/medlineplus\.gov\/[^\s]+)/g).map((part,index)=>educationUrls.has(part)?<a key={index} href={part} target="_blank" rel="noopener noreferrer" className="break-all underline underline-offset-4">{part}</a>:part);
+}
 export function ReportView({
   report,
   customerName,
@@ -38,8 +43,8 @@ export function ReportView({
         {Object.entries(reportFields).map(([key, label]) => (
           <section key={key} className="break-inside-avoid">
             <h3 className="mb-3 text-xl">{label}</h3>
-            <p className="whitespace-pre-wrap text-sm leading-7 text-foreground/85">
-              {report.content[key as keyof typeof reportFields]}
+            <p className="whitespace-pre-wrap break-words text-sm leading-7 text-foreground/85">
+              {sourceLinkedText(report.content[key as keyof typeof reportFields])}
             </p>
           </section>
         ))}
