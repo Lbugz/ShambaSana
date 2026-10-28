@@ -15,6 +15,8 @@ function example(){return {title:"Fictional panel review",summary:"A fictional r
 
 test("structured preview rejects missing or duplicate measurements and unapproved references",()=>{
   assert.doesNotThrow(()=>validatePreviewDraft(example(),["lipids"]));
+  const fasting=example();fasting.summary="Both fasting blood glucose and A1c are normal.";assert.throws(()=>validatePreviewDraft(fasting,["lipids"]),/fasting status/);
+  const kidneys=example();kidneys.findings[0].context="This indicates normal renal filtration.";assert.throws(()=>validatePreviewDraft(kidneys,["lipids"]),/organ function/);
   const missing=example();missing.findings.pop();assert.throws(()=>validatePreviewDraft(missing,["lipids"]),/exactly once/);
   const duplicate=example();duplicate.findings[1].observationId="apob";assert.throws(()=>validatePreviewDraft(duplicate,["lipids"]),/exactly once/);
   const invented=example();invented.findings[0].relatedObservationIds=["invented"] as never;assert.throws(()=>validatePreviewDraft(invented,["lipids"]),/unknown observation/);
@@ -28,7 +30,7 @@ test("fictional generation, privacy, staff access and request limits",async()=>{
   const store=new FileStore(path.join(dir,"fixture.json"));
   process.env.NODE_ENV="test";process.env.PRACTITIONER_EMAIL="fictional-staff@example.invalid";
   const password=randomBytes(24).toString("hex");process.env.PRACTITIONER_PASSWORD=password;
-  process.env.LAB_REPORT_PREVIEW_ENABLED="true";delete process.env.OPENAI_API_KEY;delete process.env.AI_INTEGRATIONS_OPENAI_API_KEY;delete process.env.OPENAI_BASE_URL;delete process.env.OPENAI_MODEL;
+  process.env.LAB_REPORT_PREVIEW_ENABLED="true";delete process.env.OPENAI_API_KEY;delete process.env.AI_INTEGRATIONS_OPENAI_API_KEY;delete process.env.OPENAI_BASE_URL;delete process.env.OPENAI_MODEL;delete process.env.OPENAI_LAB_PREVIEW_MODEL;
   const app=express();app.use(express.json());const server=createServer(app);
   await registerRoutes(server,app,store);await new Promise<void>(resolve=>server.listen(0,"127.0.0.1",resolve));
   const origin=`http://127.0.0.1:${(server.address() as {port:number}).port}`;
@@ -51,7 +53,7 @@ test("fictional generation, privacy, staff access and request limits",async()=>{
     process.env.OPENAI_API_KEY="synthetic-test-value-not-a-real-key";
     globalThis.fetch=async(input,init)=>{
       assert.equal(String(input),"https://api.openai.com/v1/responses");calls++;
-      const body=JSON.parse(String(init?.body));assert.equal(body.store,false);assert.equal(body.text.format.name,"structured_lab_preview_v1");assert.equal(body.text.format.strict,true);assert.equal(body.text.format.schema.properties.findings.minItems,10);assert.equal(body.text.format.schema.properties.actions.maxItems,6);
+      const body=JSON.parse(String(init?.body));assert.equal(body.store,false);assert.equal(body.model,"gpt-5.4");assert.equal(body.reasoning.effort,"low");assert.equal(body.text.format.name,"structured_lab_preview_v1");assert.equal(body.text.format.strict,true);assert.equal(body.text.format.schema.properties.findings.minItems,10);assert.equal(body.text.format.schema.properties.actions.maxItems,6);
       const payload=JSON.parse(body.input[0].content[0].text);assert.deepEqual(payload.fixture,fictionalLabFixture);
       assert.equal(payload.fixture.fictional,true);assert.equal(payload.fixture.observations.length,10);
       assert.deepEqual(payload.educationSources,fictionalEvidence());assert.match(body.instructions,/Do not generate a TCM diagnosis/);

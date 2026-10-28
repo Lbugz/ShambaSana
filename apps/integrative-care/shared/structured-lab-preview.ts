@@ -53,6 +53,9 @@ export function validatePreviewDraft(value:unknown,evidenceIds:string[]) {
   const known=new Set(fictionalLabFixture.observations.map(row=>row.id));
   const returned=draft.findings.map(row=>row.observationId);
   if(new Set(returned).size!==known.size || returned.length!==known.size || returned.some(id=>!known.has(id)))throw new Error("The AI draft did not cover each original observation exactly once.");
+  const text=JSON.stringify(draft);
+  const unsupported=[[/\bfasting blood glucose\b/i,"Glucose fasting status was not supplied"],[/\b(?:suggest(?:s|ing)?|indicat(?:es|ing)|shows?|reflects?|consistent with) (?:a )?normal (?:renal filtration|kidney function|renal function)\b/i,"Normal organ function is not established by this panel"],[/indicat(?:es|ing) no (?:current )?biochemical evidence of (?:hypo|hyper)thyroidism/i,"Within-range TSH cannot certify thyroid health"],[/\bno (?:immediate )?action (?:is )?needed\b/i,"Unreviewed results cannot certify that no follow-up is needed"],[/(?:which may reduce|, reducing) (?:the )?(?:likelihood|concerns).*?liver injury/i,"The supplied AST cannot establish reduced likelihood of liver injury"]] as const;
+  for(const [pattern,reason] of unsupported)if(pattern.test(text))throw new Error(`The AI draft needs revision: ${reason}.`);
   const sourceIds=new Set(evidenceIds);
   for(const item of [...draft.findings,...draft.patterns,...draft.actions]){
     const references="relatedObservationIds" in item?item.relatedObservationIds:item.observationIds;
