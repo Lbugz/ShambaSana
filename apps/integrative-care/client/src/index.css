@@ -105,9 +105,9 @@
 
 @media print {
   body { background: white; color: #172b23; }
-  main > * { display: none !important; }
-  main:has(.report-view) > *:has(.report-view), .report-view { display: block !important; }
-  main:has(.report-view) > *:has(.report-view) > * { display: none !important; }
-  main:has(.report-view) > *:has(.report-view) > .report-view { display: block !important; }
+  main:has(.report-view) { padding: 0; max-width: none; }
+  main:has(.report-view) :not(.report-view):not(.report-view *):not(:has(.report-view)) { display: none !important; }
+  main:has(.report-view) :has(.report-view) { display: block !important; margin: 0 !important; padding: 0 !important; border: 0 !important; box-shadow: none !important; }
+  .report-view { display: block !important; }
   .report-view h2, .report-view h3 { color: #172b23; }
 }

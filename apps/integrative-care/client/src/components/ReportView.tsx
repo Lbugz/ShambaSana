@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { labEducation } from "@shared/lab-education";
 import { reportFields, type Report, type ReportVersion } from "@shared/care";
 import { Button } from "./ui/button";
@@ -15,6 +16,7 @@ export function ReportView({
   customerName: string;
   printable?: boolean;
 }) {
+  const sectionPrefix=useId();
   return (
     <article className="report-view rounded-2xl border border-border bg-card p-6 md:p-10 print:border-0 print:p-0">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
@@ -39,16 +41,17 @@ export function ReportView({
           </Button>
         )}
       </div>
-      <ReportContent content={report.content}/>
+      <nav aria-label="Care report sections" className="mt-6 flex flex-wrap gap-2 print:hidden">{[["labs","Lab findings"],["tcm","Practitioner assessment"],["priorities","Next steps"],["safety","Safety & follow-up"]].map(([key,label])=><Button key={key} variant="outline" className="min-h-11 whitespace-normal text-xs" onClick={()=>{const section=document.getElementById(`${sectionPrefix}-${key}`);section?.scrollIntoView({behavior:"smooth",block:"start"});section?.focus({preventScroll:true});}}>{label}</Button>)}</nav>
+      <ReportContent content={report.content} sectionPrefix={sectionPrefix}/>
 
     </article>
   );
 }
 
-export function ReportContent({content,showEmpty=false}:{content:Report;showEmpty?:boolean}) {
+export function ReportContent({content,showEmpty=false,sectionPrefix}:{content:Report;showEmpty?:boolean;sectionPrefix?:string}) {
   return <div className="mt-8 grid gap-8">{Object.entries(reportFields).map(([key,label],index)=>{
     const value=content[key as keyof Report];
     if(!value.trim() && !showEmpty) return null;
-    return <section key={key} className="min-w-0 break-inside-avoid border-t border-border pt-6 first:border-0 first:pt-0"><p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">{String(index+1).padStart(2,"0")} / {key==="labs"?"Laboratory evidence":key==="tcm"?"Practitioner assessment":"Care guidance"}</p><h3 className="mb-3 text-xl">{label}</h3><p className="whitespace-pre-wrap break-words text-sm leading-7 text-foreground/85">{value.trim()?sourceLinkedText(value):<span className="italic text-muted-foreground">Not yet written — practitioner input required.</span>}</p></section>;
+    return <section key={key} id={sectionPrefix?`${sectionPrefix}-${key}`:undefined} tabIndex={sectionPrefix?-1:undefined} className="scroll-mt-6 outline-none min-w-0 break-inside-avoid border-t border-border pt-6 first:border-0 first:pt-0"><p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">{String(index+1).padStart(2,"0")} / {key==="labs"?"Laboratory evidence":key==="tcm"?"Practitioner assessment":"Care guidance"}</p><h3 className="mb-3 text-xl">{label}</h3><p className="whitespace-pre-wrap break-words text-sm leading-7 text-foreground/85">{value.trim()?sourceLinkedText(value):<span className="italic text-muted-foreground">Not yet written — practitioner input required.</span>}</p></section>;
   })}</div>;
 }

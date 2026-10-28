@@ -36,7 +36,7 @@ export function IntakeJourney({ initial, documents = [], onSave, onUpload, onExi
 }) {
   const [intake,setIntake] = useState<Intake>(()=>structuredClone(initial));
   const [selfDescribeGender,setSelfDescribeGender] = useState(!!initial.gender && !genderOptions.includes(initial.gender));
-  const [step,setStep] = useState(0);
+  const [step,setStep] = useState(()=>{const first=[0,1,2].find(index=>intakeStepErrors(initial,index).length);return first ?? 5;});
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState<unknown>();
   const [notice,setNotice] = useState("");
@@ -145,7 +145,7 @@ export function IntakeJourney({ initial, documents = [], onSave, onUpload, onExi
             <p className="mb-3 text-xs uppercase tracking-[.2em] text-muted-foreground">
               Your health intake
             </p>
-            <h1 className="text-3xl sm:text-4xl">Your story comes first.</h1><p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground">Share what matters to you. Save your progress and return when you are ready.</p>
+            <h1 className="text-3xl sm:text-4xl">Your story comes first.</h1><p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground">Share what matters to you. Save your progress and return when you are ready. Required sections must be submitted before practitioner review.</p>
           </div>
           <Button
             variant="outline"
@@ -168,21 +168,7 @@ export function IntakeJourney({ initial, documents = [], onSave, onUpload, onExi
           </section>
         ) : (
           <>
-            <label className="mb-5 block text-xs text-muted-foreground sm:hidden" htmlFor="intake-section">Your section<select id="intake-section" className="mt-2 min-h-12 w-full rounded-xl border border-border bg-card p-3 text-base text-foreground" value={step} disabled={busy} onChange={e=>go(Number(e.target.value))}>{steps.map((title,i)=><option key={title} value={i}>{i+1} of 6 · {title}</option>)}</select></label>
-            <ol aria-label="Intake steps" className="mb-6 hidden gap-2 sm:grid sm:grid-cols-3">
-              {steps.map((s, i) => (
-                <li key={s}>
-                  <button
-                    disabled={busy}
-                    onClick={() => go(i)}
-                    aria-current={step === i ? "step" : undefined}
-                    className={`min-h-12 w-full rounded-xl p-3 text-left text-xs ${step === i ? "bg-primary text-white" : "bg-secondary/50 text-primary"}`}
-                  >
-                    {i + 1}. {s}
-                  </button>
-                </li>
-              ))}
-            </ol>
+            <ol aria-label="Intake steps" className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3">{steps.map((title,i)=><li key={title}><button disabled={busy} onClick={()=>go(i)} aria-current={step===i?"step":undefined} className={`min-h-12 w-full rounded-xl p-3 text-left text-xs ${step===i?"bg-primary text-white":"bg-secondary/50 text-primary"}`}>{i+1}. {title}</button></li>)}</ol>
             <div className="mb-6 h-1.5 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-label="Intake progress" aria-valuemin={1} aria-valuemax={6} aria-valuenow={step + 1}><div className="h-full bg-primary transition-all" style={{width: `${(step + 1) / 6 * 100}%`}} /></div>
             <div ref={messageRef} tabIndex={-1}><ErrorMessage error={error} /></div>
             {(notice || dirty) && (

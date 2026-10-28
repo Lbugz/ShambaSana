@@ -422,6 +422,8 @@ function ReviewNotes({ c, busy, perform }: PanelProps) {
         These notes are kept out of the customer dashboard. They may be used for
         report drafting if the customer allows AI processing.
       </p>
+      {c.followupResponse && <section className="my-5 rounded-xl border border-border bg-secondary/30 p-4"><h4 className="text-lg">Client reply awaiting review</h4><p className="mt-2 text-xs text-muted-foreground">Received {new Date(c.followupResponse.sentAt).toLocaleString()}</p><p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7">{c.followupResponse.message}</p><p className="mt-3 text-xs leading-6 text-muted-foreground">Review this reply and any updated intake or documents. Clear the request below only when it is resolved, then save review notes.</p></section>}
+      {!!c.followupResponses?.length && <details className="my-4 rounded-xl border border-border p-4"><summary className="cursor-pointer text-sm">Client reply history ({c.followupResponses.length})</summary><ol className="mt-4 space-y-4">{c.followupResponses.map((reply,index)=><li key={index} className="border-t border-border pt-4"><p className="text-xs text-muted-foreground">{new Date(reply.sentAt).toLocaleString()}</p><p className="mt-2 whitespace-pre-wrap break-words text-sm">Question: {reply.request}</p><p className="mt-2 whitespace-pre-wrap break-words text-sm">Reply: {reply.message}</p></li>)}</ol></details>}
       <Label htmlFor="followup-request">
         Information requested from the customer
       </Label>

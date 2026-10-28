@@ -379,7 +379,6 @@ export async function registerRoutes(
         const errors = intakeErrors(c.intake);
         if (errors.length) failure(400, errors.join(" "));
         c.intakeSubmittedAt = now();
-        c.followupRequest = "";
       } else c.intakeSubmittedAt = undefined;
       c.draft = undefined;
       await save(
@@ -391,6 +390,17 @@ export async function registerRoutes(
       res.json(visibleCase(c, u));
     }),
   );
+  app.post("/api/cases/:id/followup-response", route(async(req,res)=>{
+    const [c,u]=await getCase(req,"customer");enrolled(c);unpublished(c);
+    const expected=revision(req,c);
+    const input=z.object({message:z.string().trim().min(1).max(5000)}).parse(req.body);
+    if(!c.followupRequest.trim())failure(409,"There is no open practitioner question. Refresh your care record.");
+    if((c.followupResponses?.length || 0)>=100)failure(409,"The reply limit for this episode has been reached. Contact your care team.");
+    c.followupResponse={request:c.followupRequest,message:input.message,sentAt:now()};
+    c.followupResponses=[...(c.followupResponses || []),c.followupResponse];
+    c.draft=undefined;
+    await save(c,expected,u.id,"client-followup-response-saved");res.json(visibleCase(c,u));
+  }));
   app.post(
     "/api/cases/:id/ai-consent",
     route(async (req, res) => {
@@ -640,6 +650,7 @@ export async function registerRoutes(
         })
         .parse(req.body);
       c.practitionerNotes = data.practitionerNotes;
+      if(c.followupRequest !== data.followupRequest)c.followupResponse=undefined;
       c.followupRequest = data.followupRequest;
       c.draft = undefined;
       await save(c, expected, u.id, "practitioner-review-saved");
